@@ -190,4 +190,54 @@ public sealed class BoardTests(SqlFixture fixture)
         Assert.False(await db.Comments.AnyAsync(x => x.Id == a.Comment.Id)); Assert.False(await db.BoardMembers.AnyAsync(x => x.BoardId == first.Id));
         Assert.True(await db.Cards.AnyAsync(x => x.Id == b.Card.Id)); Assert.True(await db.Users.AnyAsync(x => x.Id == owner.Id));
     }
+    [SqlFact]
+    public async Task FailedBoardDeletionRollsBackEntireGraphAndVersion()
+    {
+        using var app = ApiFoundationTests.Factory(fixture.ConnectionString); var owner = await UserAsync(); using var admin = As(app,owner);
+        var board = await Create(admin); var graph = await SeedGraph(board.Id, owner);
+        await using var db = fixture.CreateContext();
+        await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER [Ph03DeleteFailure] ON [Boards] AFTER DELETE AS THROW 50001, 'forced test failure', 1;");
+        try
+        {
+            Assert.Equal(HttpStatusCode.InternalServerError, (await admin.DeleteAsync($"/api/boards/{board.Id}" + Query(board.Version))).StatusCode);
+            Assert.Equal(board.Version, (await Get(admin, board.Id)).Version);
+            Assert.True(await db.CardImages.AnyAsync(x => x.CardId == graph.Card.Id));
+            Assert.True(await db.CardTags.AnyAsync(x => x.CardId == graph.Card.Id));
+            Assert.True(await db.Comments.AnyAsync(x => x.Id == graph.Comment.Id));
+            Assert.True(await db.Cards.AnyAsync(x => x.Id == graph.Card.Id));
+            Assert.True(await db.BoardMembers.AnyAsync(x => x.BoardId == board.Id));
+        }
+        finally { await db.Database.ExecuteSqlRawAsync("DROP TRIGGER [Ph03DeleteFailure]"); }
+    }
+
+    [SqlFact]
+    public async Task FailedRevocationRollsBackAssignmentsMembershipAndVersion()
+    {
+        using var app = ApiFoundationTests.Factory(fixture.ConnectionString); var person = await UserAsync(); using var admin = As(app, await UserAsync());
+        var board = await Create(admin); await Add(admin,board,person); board = await Get(admin,board.Id); var graph = await SeedGraph(board.Id,person);
+        await using var db = fixture.CreateContext();
+        await db.Database.ExecuteSqlRawAsync("CREATE TABLE [Ph03Hold] ([BoardId] uniqueidentifier NOT NULL, [UserId] uniqueidentifier NOT NULL, FOREIGN KEY ([BoardId],[UserId]) REFERENCES [BoardMembers]([BoardId],[UserId]));");
+        await db.Database.ExecuteSqlAsync($"INSERT INTO [Ph03Hold] VALUES ({board.Id},{person.Id});");
+        try
+        {
+            Assert.Equal(HttpStatusCode.InternalServerError, (await admin.DeleteAsync($"/api/boards/{board.Id}/members/{person.Id}" + Query(board.Version))).StatusCode);
+            Assert.Equal(board.Version, (await Get(admin,board.Id)).Version);
+            var card = await db.Cards.AsNoTracking().SingleAsync(x => x.Id == graph.Card.Id);
+            Assert.Equal(person.Id,card.AssigneeId); Assert.Equal(graph.Card.RowVersion,card.RowVersion);
+            Assert.True(await db.BoardMembers.AnyAsync(x => x.BoardId == board.Id && x.UserId == person.Id));
+        }
+        finally { await db.Database.ExecuteSqlRawAsync("DROP TABLE [Ph03Hold]"); }
+    }
+
+    [SqlFact]
+    public async Task MemberIdFromAnotherBoardCannotBeChangedOrRemoved()
+    {
+        using var app = ApiFoundationTests.Factory(fixture.ConnectionString); var person = await UserAsync(); using var admin = As(app,await UserAsync());
+        var a = await Create(admin); var b = await Create(admin); await Add(admin,b,person);
+        Assert.Equal(HttpStatusCode.NotFound,(await admin.PatchAsJsonAsync($"/api/boards/{a.Id}/members/{person.Id}",new UpdateMemberPermissionsRequest { ExpectedBoardVersion = a.Version })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound,(await admin.DeleteAsync($"/api/boards/{a.Id}/members/{person.Id}"+Query(a.Version))).StatusCode);
+        await using var db = fixture.CreateContext(); var member = await db.BoardMembers.SingleAsync(x => x.BoardId == b.Id && x.UserId == person.Id);
+        Assert.True(member.CanCreateCards); Assert.True(member.CanDeleteCards); Assert.Equal(a.Version,(await Get(admin,a.Id)).Version);
+    }
+
 }
