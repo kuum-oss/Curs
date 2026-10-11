@@ -1,14 +1,56 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:Curs.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="Curs.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
-        Title="{Binding Title}">
-    <StackPanel Margin="32" Spacing="12">
-        <TextBlock Text="{Binding Title}" FontSize="28" />
-        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
-    </StackPanel>
+        x:Class="Curs.MainWindow" x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}" Width="1000" Height="740" MinWidth="660" MinHeight="640"
+        Background="#F4F6FA" RequestedThemeVariant="Light">
+    <Grid RowDefinitions="Auto,*">
+        <Border Background="#17263E" Padding="28,20">
+            <StackPanel Spacing="4">
+                <TextBlock Text="KanbanBoard" FontSize="26" FontWeight="Bold" Foreground="White" />
+                <TextBlock Text="Командне планування завдань" Foreground="#BCCCE1" />
+            </StackPanel>
+        </Border>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="28" Spacing="20" MaxWidth="480" HorizontalAlignment="Center">
+                <Border IsVisible="{Binding ShowAuth}" Background="White" CornerRadius="16" Padding="32">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="{Binding FormTitle}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="Увійдіть, щоб працювати зі своїми дошками." Foreground="#58677D" TextWrapping="Wrap" />
+                        <StackPanel Spacing="6" IsVisible="{Binding IsRegister}">
+                            <TextBlock Text="Ім'я" />
+                            <TextBox Name="NameInput" Text="{Binding Name, Mode=TwoWay}" Watermark="Ваше ім'я" IsEnabled="{Binding CanEdit}" MaxLength="100" />
+                        </StackPanel>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Email" />
+                            <TextBox Name="EmailInput" Text="{Binding Email, Mode=TwoWay}" Watermark="name@example.com" IsEnabled="{Binding CanEdit}" MaxLength="254" />
+                        </StackPanel>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Пароль" />
+                            <TextBox Name="PasswordInput" Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" Watermark="Ваш пароль" IsEnabled="{Binding CanEdit}" MaxLength="72" />
+                            <TextBlock IsVisible="{Binding IsRegister}" Text="Від 8 символів, до 72 байтів UTF-8." FontSize="12" Foreground="#58677D" />
+                        </StackPanel>
+                        <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" Foreground="#B42318" TextWrapping="Wrap" />
+                        <TextBlock IsVisible="{Binding IsBusy}" Text="Зачекайте…" Foreground="#58677D" />
+                        <Button Name="SubmitButton" Content="{Binding SubmitLabel}" Command="{Binding SubmitCommand}" IsDefault="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Background="#2563EB" Foreground="White" Padding="16,12" />
+                        <Button Name="SwitchButton" Content="{Binding SwitchLabel}" Command="{Binding SwitchCommand}" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+                <Border IsVisible="{Binding IsSignedIn}" Background="White" CornerRadius="16" Padding="32">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="Мої дошки" FontSize="26" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding UserName}" FontSize="18" />
+                        <TextBlock Text="{Binding UserEmail}" Foreground="#58677D" />
+                        <Border Background="#EDF3FF" CornerRadius="8" Padding="16">
+                            <TextBlock Text="Ви увійшли до KanbanBoard. Створення та список дощок з'являться у PH-03." TextWrapping="Wrap" Foreground="#234E8D" />
+                        </Border>
+                        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Foreground="#237A4B" />
+                        <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" TextWrapping="Wrap" Foreground="#B42318" />
+                        <Button Name="CheckSessionButton" Content="Перевірити сесію" Command="{Binding CheckSessionCommand}" />
+                        <Button Name="LogoutButton" Content="Вийти" Command="{Binding LogoutCommand}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </Window>

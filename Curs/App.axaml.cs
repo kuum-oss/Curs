@@ -21,8 +21,9 @@ public partial class App : Application
         {
             var services = new ClientServices(new Uri(Environment.GetEnvironmentVariable("KANBAN_API_URL") ?? "http://localhost:5000/"),
                 action => Dispatcher.UIThread.Post(action));
-            desktop.MainWindow = new MainWindow { DataContext = new MainWindowViewModel(services) };
-            desktop.Exit += (_, _) => services.Dispose();
+            var viewModel = new MainWindowViewModel(services);
+            desktop.MainWindow = new MainWindow { DataContext = viewModel };
+            desktop.Exit += (_, _) => { viewModel.Dispose(); services.Dispose(); };
         }
 
         base.OnFrameworkInitializationCompleted();
