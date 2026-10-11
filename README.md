@@ -12,6 +12,7 @@
 | [Рішення PH-00](docs/PH00_DECISIONS.md) | Обраний запуск і робочі правила перед початком реалізації |
 | [Перевірка середовища PH-00](docs/PH00_ENVIRONMENT.md) | Фактичний стан .NET, Docker та проба MSSQL на ARM |
 | [Результати PH-01](docs/PH01_IMPLEMENTATION.md) | Структура рішення, схема БД, запуск і перевірки основи API та клієнта |
+| [Результати PH-02](docs/PH02_AUTHENTICATION.md) | Реєстрація, BCrypt, JWT, клієнтська сесія та реальні скриншоти |
 | [Ескізи інтерфейсу](docs/sketches/README.md) | Чотири концепти екранів майбутнього застосунку |
 
 ## Технології
@@ -28,11 +29,11 @@
 
 ## Поточний стан
 
-Стан на 11.10.2026: PH-00 та PH-01 виконано. Рішення `Curs.sln` містить Avalonia-клієнт `Curs`, сервер `KanbanApi`, спільні DTO `KanbanContracts` та тести `KanbanApi.Tests`. Використовуються .NET 10, Avalonia 11.3.12 та EF Core 10.0.12.
+Стан на 11.10.2026: PH-00–PH-02 виконано. Рішення `Curs.sln` містить Avalonia-клієнт `Curs`, сервер `KanbanApi`, спільні DTO `KanbanContracts` та тести `KanbanApi.Tests`. Використовуються .NET 10, Avalonia 11.3.12 та EF Core 10.0.12.
 
-Початкова міграція створила дев'ять таблиць у справжньому MSSQL 2022. API має перевірки працездатності та єдиний формат помилок; клієнт — основу MVVM, HTTP, сесії та навігації. Release-збірка пройшла без попереджень; усі 19 тестів пройшли без пропусків. Докази — у [результатах PH-01](docs/PH01_IMPLEMENTATION.md) та [протоколі](docs/PH01_RESULTS.json).
+Початкова міграція створила дев'ять таблиць у справжньому MSSQL 2022. API має перевірки працездатності та єдиний формат помилок; клієнт — основу MVVM, HTTP, сесії та навігації. У PH-01 Release-збірка пройшла без попереджень; усі 19 початкових тестів пройшли без пропусків. Докази — у [результатах PH-01](docs/PH01_IMPLEMENTATION.md) та [протоколі](docs/PH01_RESULTS.json).
 
-Автентифікація та керування дошками належать до наступних фаз. Головне вікно поки повідомляє про готовність основи. Dockerfile API буде додано у PH-07; зараз SQL запускається через Compose, API — нативно.
+PH-02 додала реєстрацію, вхід, BCrypt-хеші та JWT на 24 години. У Avalonia працюють форми авторизації та вихід; токен зберігається лише в пам’яті. Поточна перевірка: 31 тест пройшов, Release без попереджень, вхід/реєстрацію перевірено в живому GUI. [Звіт і скриншоти PH-02](docs/PH02_AUTHENTICATION.md). Керування дошками — наступна PH-03. Dockerfile API буде додано у PH-07; зараз SQL запускається через Compose, API — нативно.
 
 ## Межі проєкту
 
@@ -59,7 +60,7 @@ scripts/dotnet.sh tool restore
 scripts/dotnet.sh run --project KanbanApi
 ```
 
-У Development API читає локальний пароль SQL з `.env` і застосовує міграції до `KanbanDB` перед запуском. Поза Development потрібно передати `ConnectionStrings__Default`. Перевірки: `http://localhost:5000/health/live` та `http://localhost:5000/health/ready`; обидві мають повернути HTTP 200.
+У Development API читає локальний пароль SQL та `JWT_KEY` з `.env` і застосовує міграції до `KanbanDB` перед запуском. Поза Development потрібно передати `ConnectionStrings__Default` та `JWT_KEY` або `Jwt__Key`. Шаблонний JWT-секрет необхідно замінити випадковим значенням щонайменше на 32 байти. Перевірки: `http://localhost:5000/health/live` та `http://localhost:5000/health/ready`; обидві мають повернути HTTP 200.
 
 В іншому терміналі запустити клієнт; адресу сервера можна змінити через `KANBAN_API_URL`:
 
@@ -71,7 +72,7 @@ scripts/dotnet.sh run --project Curs
 
 ```sh
 scripts/dotnet.sh build Curs.sln -c Release
-python3 scripts/verify-ph01.py
+python3 scripts/verify-ph01.py ph02
 ```
 
 SQL-тести створюють окрему тимчасову БД та прибирають її після виконання. Звичайний запуск тестів без `KANBAN_TEST_CONNECTION` пропускає SQL-сценарії; для повної перевірки використовувати наведений скрипт. Повний `docker compose up --build -d` стане доступним після створення Dockerfile у PH-07.

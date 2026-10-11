@@ -1,0 +1,237 @@
+{
+  "phase": "PH-02",
+  "completed_at": "2026-10-11T23:44:42+03:00",
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0,
+    "result": "passed"
+  },
+  "packages": {
+    "jwt_bearer": "10.0.12",
+    "bcrypt_net_next": "4.2.0",
+    "audit": "No vulnerable packages reported by NuGet audit, including transitive dependencies."
+  },
+  "authentication": {
+    "bcrypt_work_factor": 12,
+    "jwt_lifetime_hours": 24,
+    "clock_skew_seconds": 0,
+    "algorithm": "HS256",
+    "token_storage": "Desktop memory only"
+  },
+  "tests": {
+    "total": 31,
+    "passed": 31,
+    "failed": 0,
+    "skipped": 0,
+    "real_sql_tests": 16,
+    "results": [
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.CancellationIsPropagatedAndAbsoluteUrlsAreRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.TokenCannotReadADeletedAccount",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.ParallelRegistrationLeavesOnlyOneAccount",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.MissingInvalidExpiredOrMisaddressedTokensAreRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.AResponseFromAnOlderSessionCannotClearNewLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.RegistrationRouteAndExpiredSessionReturnToLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.RegistrationStoresSaltedBcryptAndIssuesExactly24HourToken",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.MigrationCreatesExactlyNineTablesAndIsIdempotent",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.DuplicateEmailIsRejectedWithoutCaseSensitivity",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiReadinessTests.ReadyOnlyWhenRealDatabaseIsMigrated",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.ValidationProblemFieldsSurviveTheClientBoundary",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.CompleteGraphRoundTripsUnicodeDatesBinaryAndVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiFoundationTests.LivenessDoesNotDependOnDatabaseAndMissingRoutesAreProblemDetails",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ABoardCannotHaveTwoAdministrators",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.NavigationRequiresSessionAndValidBoardId",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.AuthorizationIsAddedPerRequestAndDisappearsOnLogout",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.InvalidFieldsAndUtf8PasswordBoundaryAreEnforced",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ParentDeletionDoesNotSilentlyCascadeAndRollbackPreservesData",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.ValidationAndNetworkFailuresAreVisibleAndPasswordIsErased",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.UnauthorizedClearsSessionAndReturnsToLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.LogoutDuringPendingLoginCannotRestoreTheSession",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiFoundationTests.PublicErrorAndInternalErrorHaveStableCodes",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.CheckConstraintsRejectBadPriorityPositionAndImageSize",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.LoginNormalizesEmailAndUnknownAccountMatchesWrongPasswordResponse",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ForeignKeysAndSingleCoverAreEnforced",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ModelTests.RelationalModelHasNineTablesAndNoCascadePaths",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.StaleRowVersionCannotOverwriteAnotherEditor",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.FailedAnonymousLoginKeepsEmailAndShowsError",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiReadinessTests.MissingDatabaseIsNotReadyAndConnectionIsNotExposed",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.JwtConfigurationTests.MissingShortOrPlaceholderSecretFailsConfiguration",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.LoginAndLogoutUpdateScreenAndEraseAllSessionFields",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  "http_checks": [
+    {
+      "method": "POST",
+      "route": "/api/auth/register",
+      "status": 201,
+      "duration_ms": 1225,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/auth/me",
+      "status": 200,
+      "duration_ms": 57,
+      "code": null
+    },
+    {
+      "method": "POST",
+      "route": "/api/auth/register",
+      "status": 409,
+      "duration_ms": 17,
+      "code": "email_exists"
+    },
+    {
+      "method": "POST",
+      "route": "/api/auth/login",
+      "status": 401,
+      "duration_ms": 361,
+      "code": "invalid_credentials"
+    },
+    {
+      "method": "POST",
+      "route": "/api/auth/login",
+      "status": 200,
+      "duration_ms": 385,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/auth/me",
+      "status": 200,
+      "duration_ms": 13,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/auth/me",
+      "status": 401,
+      "duration_ms": 7,
+      "code": "unauthorized"
+    },
+    {
+      "method": "GET",
+      "route": "/api/auth/me",
+      "status": 401,
+      "duration_ms": 8,
+      "code": "unauthorized"
+    }
+  ],
+  "temporary_database_removed": true,
+  "gui_checks": [
+    "Login and registration screens render with readable contrast",
+    "Registration submits through Avalonia to real MSSQL API",
+    "Password is masked visually",
+    "Authenticated user endpoint works from the desktop",
+    "Wrong password shows an error, preserves email, clears password",
+    "Retry with correct password succeeds",
+    "Logout returns to empty login form",
+    "Closing an authenticated app and restarting requires new login"
+  ],
+  "screenshots": [
+    "screenshots/ph02/invalid-login.jpg",
+    "screenshots/ph02/login.jpg",
+    "screenshots/ph02/logout.jpg",
+    "screenshots/ph02/register.jpg",
+    "screenshots/ph02/restarted.jpg",
+    "screenshots/ph02/signed-in.jpg"
+  ],
+  "scope_notes": [
+    "Board list and board operations belong to PH-03; current landing page is a placeholder.",
+    "Logout removes client credentials; issued JWT remains valid until expiry.",
+    "No 20-user load acceptance or full API Docker deployment is claimed."
+  ]
+}
