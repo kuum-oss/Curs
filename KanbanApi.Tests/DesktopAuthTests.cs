@@ -61,6 +61,18 @@ public sealed class DesktopAuthTests
     }
 
     [Fact]
+    public async Task FailedAnonymousLoginKeepsEmailAndShowsError()
+    {
+        using var services = new ClientServices(new Uri("http://localhost/"), transport: new Transport((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized) { Content = JsonContent.Create(new ApiProblem
+                { Title = "Невірний email або пароль.", Code = "invalid_credentials" }) })));
+        using var vm = new MainWindowViewModel(services) { Email = User.Email, Password = "wrong-password" };
+        await vm.SubmitAsync();
+        Assert.Equal(User.Email, vm.Email); Assert.Equal("", vm.Password);
+        Assert.Contains("Невірний email", vm.Error); Assert.True(vm.ShowAuth);
+    }
+
+    [Fact]
     public async Task RegistrationRouteAndExpiredSessionReturnToLogin()
     {
         using var services = new ClientServices(new Uri("http://localhost/"), transport: new Transport((request, _) =>

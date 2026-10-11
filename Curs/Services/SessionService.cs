@@ -29,6 +29,7 @@ public sealed class SessionService
     {
         lock (gate)
         {
+            if (accessToken is null && user is null) return false;
             // A late 401 from an older request must not erase a newly established session.
             if (!string.Equals(accessToken, observedToken, StringComparison.Ordinal)) return false;
             accessToken = null;

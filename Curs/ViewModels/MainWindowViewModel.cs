@@ -71,7 +71,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
     public Task CheckSessionAsync() => RunAsync(async token =>
     {
         await Services.Auth.MeAsync(token);
-        Status = "Сесію підтверджено сервером.";
+        Status = "Ви авторизовані. З’єднання із сервером працює.";
     });
 
     private async Task RunAsync(Func<CancellationToken, Task> action)
