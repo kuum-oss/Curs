@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Curs.ViewModels"
+        xmlns:vm="using:Curs.ViewModels" xmlns:views="using:Curs.Views"
         x:Class="Curs.MainWindow" x:DataType="vm:MainWindowViewModel"
-        Title="{Binding Title}" Width="1000" Height="740" MinWidth="660" MinHeight="640"
+        Title="{Binding Title}" Width="1100" Height="850" MinWidth="820" MinHeight="640"
         Background="#F4F6FA" RequestedThemeVariant="Light">
     <Grid RowDefinitions="Auto,*">
         <Border Background="#17263E" Padding="28,20">
@@ -12,8 +12,8 @@
             </StackPanel>
         </Border>
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="28" Spacing="20" MaxWidth="480" HorizontalAlignment="Center">
-                <Border IsVisible="{Binding ShowAuth}" Background="White" CornerRadius="16" Padding="32">
+            <StackPanel Margin="28" Spacing="20" MaxWidth="1100" HorizontalAlignment="Stretch">
+                <Border MaxWidth="480" Width="480" HorizontalAlignment="Center" IsVisible="{Binding ShowAuth}" Background="White" CornerRadius="16" Padding="32">
                     <StackPanel Spacing="14">
                         <TextBlock Text="{Binding FormTitle}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
                         <TextBlock Text="Увійдіть, щоб працювати зі своїми дошками." Foreground="#58677D" TextWrapping="Wrap" />
@@ -38,16 +38,18 @@
                 </Border>
                 <Border IsVisible="{Binding IsSignedIn}" Background="White" CornerRadius="16" Padding="32">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="Мої дошки" FontSize="26" FontWeight="SemiBold" />
-                        <TextBlock Text="{Binding UserName}" FontSize="18" />
-                        <TextBlock Text="{Binding UserEmail}" Foreground="#58677D" />
-                        <Border Background="#EDF3FF" CornerRadius="8" Padding="16">
-                            <TextBlock Text="Ваш обліковий запис готовий. Керування дошками скоро буде доступне." TextWrapping="Wrap" Foreground="#234E8D" />
-                        </Border>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{Binding UserName}" FontSize="18" />
+                                <TextBlock Text="{Binding UserEmail}" Foreground="#58677D" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Name="LogoutButton" Content="Вийти" Command="{Binding LogoutCommand}" />
+                        </Grid>
+                        <Separator />
+                        <views:BoardWorkspaceView DataContext="{Binding Workspace}" />
                         <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Foreground="#237A4B" />
                         <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" TextWrapping="Wrap" Foreground="#B42318" />
                         <Button Name="CheckSessionButton" Content="Перевірити підключення" Command="{Binding CheckSessionCommand}" />
-                        <Button Name="LogoutButton" Content="Вийти" Command="{Binding LogoutCommand}" />
                     </StackPanel>
                 </Border>
             </StackPanel>

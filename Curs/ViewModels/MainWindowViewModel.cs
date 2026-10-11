@@ -30,6 +30,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
     private bool isRegister, isBusy;
     private CancellationTokenSource? operation;
     public ClientServices Services { get; }
+    public BoardWorkspaceViewModel Workspace { get; }
     public string Title => "KanbanBoard";
     public string Email { get => email; set { email = value; Notify(); } }
     public string Password { get => password; set { password = value; Notify(); } }
@@ -55,6 +56,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
     public MainWindowViewModel(ClientServices services)
     {
         Services = services;
+        Workspace = new BoardWorkspaceViewModel(services);
         SubmitCommand = new ActionCommand(() => _ = SubmitAsync(), () => !IsBusy);
         SwitchCommand = new ActionCommand(() => { IsRegister = !IsRegister; Password = ""; Name = ""; Error = ""; }, () => !IsBusy);
         LogoutCommand = new ActionCommand(Logout);
@@ -66,6 +68,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
     {
         if (IsRegister) await Services.Auth.RegisterAsync(Email, Name, Password, token);
         else await Services.Auth.LoginAsync(Email, Password, token);
+        await Workspace.Loading;
     });
 
     public Task CheckSessionAsync() => RunAsync(async token =>
@@ -102,5 +105,5 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
         ClearFields(); Notify(nameof(IsSignedIn)); Notify(nameof(ShowAuth)); Notify(nameof(UserName)); Notify(nameof(UserEmail));
         CheckSessionCommand.Refresh();
     }
-    public void Dispose() { operation?.Cancel(); Services.Session.Changed -= SessionChanged; }
+    public void Dispose() { Workspace.Dispose(); operation?.Cancel(); Services.Session.Changed -= SessionChanged; }
 }

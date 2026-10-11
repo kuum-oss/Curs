@@ -20,6 +20,7 @@ public sealed class DesktopAuthTests
     {
         using var services = new ClientServices(new Uri("http://localhost/"), transport: new Transport((request, _) =>
         {
+            if (request.RequestUri!.AbsolutePath == "/api/boards") return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(Array.Empty<BoardSummaryDto>()) });
             Assert.Equal("/api/auth/login", request.RequestUri!.AbsolutePath);
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(new AuthResponse("opaque-token", DateTime.UtcNow.AddHours(24), User)) });
         }));
@@ -82,6 +83,7 @@ public sealed class DesktopAuthTests
                 Assert.Equal("/api/auth/register", request.RequestUri!.AbsolutePath);
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Created) { Content = JsonContent.Create(new AuthResponse("token", DateTime.UtcNow.AddHours(24), User)) });
             }
+            if (request.RequestUri!.AbsolutePath == "/api/boards") return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(Array.Empty<BoardSummaryDto>()) });
             Assert.Equal("token", request.Headers.Authorization?.Parameter);
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized) { Content = JsonContent.Create(new ApiProblem { Title = "Сесію завершено.", Code = "unauthorized" }) });
         }));
