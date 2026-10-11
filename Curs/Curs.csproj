@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="../KanbanContracts/KanbanContracts.csproj"/>
         <!-- Security backport for the transitive Avalonia dependency. -->
         <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3"/>
         <PackageReference Include="Avalonia" Version="11.3.12"/>
