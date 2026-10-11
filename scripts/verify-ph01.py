@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run PH-01 tests against the local SQL service without printing credentials."""
+"""Run solution tests against the local SQL service without printing credentials."""
 from pathlib import Path
 import os
 import subprocess
@@ -19,6 +19,6 @@ env = os.environ.copy()
 quoted = password.replace('"', '""')
 env['KANBAN_TEST_CONNECTION'] = f'Server=localhost,3038;Database=master;User Id=sa;Password="{quoted}";TrustServerCertificate=True;Connect Timeout=5'
 result = subprocess.run([str(root/'scripts/dotnet.sh'), 'test', str(root/'KanbanApi.Tests/KanbanApi.Tests.csproj'),
-    '--nologo', '--logger', 'trx;LogFileName=ph01.trx', '--results-directory', str(root/'TestResults')],
+    '--nologo', '--logger', 'trx;LogFileName=' + (sys.argv[1] if len(sys.argv) > 1 else 'ph01') + '.trx', '--results-directory', str(root/'TestResults')],
     cwd=root, env=env)
 sys.exit(result.returncode)
