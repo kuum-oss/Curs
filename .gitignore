@@ -12,3 +12,5 @@
 *.user
 *.suo
 .DS_Store
+.tools/
+TestResults/
