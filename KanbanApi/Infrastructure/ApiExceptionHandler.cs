@@ -16,6 +16,7 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problems) : IExce
             _ => (500, "internal_error", "Не вдалося виконати запит."),
         };
         context.Response.StatusCode = status;
+        if (status == 401) context.Response.Headers.WWWAuthenticate = "Bearer";
         return await problems.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = context,

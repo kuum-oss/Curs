@@ -11,6 +11,17 @@ public static class DatabaseConfiguration
     {
         var configured = Environment.GetEnvironmentVariable("ConnectionStrings__Default");
         if (!string.IsNullOrWhiteSpace(configured)) return configured;
+        var password = ReadLocalValue("MSSQL_SA_PASSWORD");
+        if (string.IsNullOrWhiteSpace(password)) return null;
+        return new SqlConnectionStringBuilder
+        {
+            DataSource = "localhost,3038", InitialCatalog = "KanbanDB", UserID = "sa",
+            Password = password, TrustServerCertificate = true, ConnectTimeout = 5,
+        }.ConnectionString;
+    }
+
+    public static string? ReadLocalValue(string key)
+    {
         var directory = new DirectoryInfo(Directory.GetCurrentDirectory());
         while (directory is not null)
         {
@@ -18,14 +29,9 @@ public static class DatabaseConfiguration
             {
                 var file = Path.Combine(directory.FullName, ".env");
                 if (!File.Exists(file)) return null;
-                var line = File.ReadLines(file).FirstOrDefault(x => x.StartsWith("MSSQL_SA_PASSWORD=", StringComparison.Ordinal));
-                if (line is null) return null;
-                return new SqlConnectionStringBuilder
-                {
-                    DataSource = "localhost,3038", InitialCatalog = "KanbanDB", UserID = "sa",
-                    Password = line["MSSQL_SA_PASSWORD=".Length..].Trim().Trim('"', '\''),
-                    TrustServerCertificate = true, ConnectTimeout = 5,
-                }.ConnectionString;
+                var prefix = key + "=";
+                var line = File.ReadLines(file).FirstOrDefault(x => x.StartsWith(prefix, StringComparison.Ordinal));
+                return line?[prefix.Length..].Trim().Trim('"', '\'');
             }
             directory = directory.Parent;
         }

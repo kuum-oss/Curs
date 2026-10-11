@@ -21,6 +21,7 @@ public sealed class ApiFoundationTests
             {
                 ["ConnectionStrings:Default"] = connection,
                 ["Database:ApplyMigrationsOnStartup"] = "false",
+                ["Jwt:Key"] = "test-only-key-for-kanban-api-at-least-32-bytes-long-enough-for-hs384",
             }));
             builder.ConfigureServices(services => services.AddControllers().AddApplicationPart(typeof(ProbeController).Assembly));
         });

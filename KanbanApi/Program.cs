@@ -1,6 +1,7 @@
 using KanbanApi.Application;
 using KanbanApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -11,6 +12,16 @@ if (builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(builder.Con
     var local = DatabaseConfiguration.ReadLocalConnection();
     if (local is not null) builder.Configuration["ConnectionStrings:Default"] = local;
 }
+builder.Services.AddSingleton(sp => JwtSettings.Load(sp.GetRequiredService<IConfiguration>(), builder.Environment.IsDevelopment()));
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<JwtService>();
+builder.Services.AddSingleton<PasswordService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer();
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<JwtSettings>((options, settings) => JwtService.Configure(options, settings));
+builder.Services.AddAuthorization();
 builder.Services.AddDbContext<KanbanDbContext>(options =>
 {
     var connection = builder.Configuration.GetConnectionString("Default")
@@ -43,6 +54,8 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
 
 var app = builder.Build();
+// Validate secrets after the final configuration (including test host overrides) has been composed.
+_ = app.Services.GetRequiredService<JwtSettings>();
 if (app.Configuration.GetValue("Database:ApplyMigrationsOnStartup", true))
 {
     await using var scope = app.Services.CreateAsyncScope();
@@ -51,6 +64,8 @@ if (app.Configuration.GetValue("Database:ApplyMigrationsOnStartup", true))
 }
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" }));
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
