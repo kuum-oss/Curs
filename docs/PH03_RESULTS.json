@@ -1,0 +1,451 @@
+{
+  "phase": "PH-03",
+  "completed_at": "2026-10-12T00:10:26+03:00",
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0,
+    "result": "passed"
+  },
+  "environment": {
+    "sdk": "10.0.103",
+    "avalonia": "11.3.12",
+    "ef_core": "10.0.12",
+    "database": "MSSQL 2022 Developer 16.0.4295.3",
+    "architecture": "macOS ARM64; SQL container emulated linux/amd64; native API and desktop"
+  },
+  "model_changes_pending": false,
+  "tests": {
+    "total": 49,
+    "passed": 49,
+    "failed": 0,
+    "skipped": 0,
+    "real_sql_tests": 30,
+    "results": [
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ParentDeletionDoesNotSilentlyCascadeAndRollbackPreservesData",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.ValidationAndNetworkFailuresAreVisibleAndPasswordIsErased",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ForeignKeysAndSingleCoverAreEnforced",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.EveryBoardRouteRequiresAuthentication",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.OutsiderCannotReadOrMutateBoardOrLearnItsVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.LogoutDuringPendingLoginCannotRestoreTheSession",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.ValidationProblemFieldsSurviveTheClientBoundary",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.UnauthorizedClearsSessionAndReturnsToLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.RevocationClearsOnlyThisBoardsAssignmentsAndPreservesHistory",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardTests.DestructiveActionRequiresConfirmationAndCancelSendsNothing",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardTests.FailedConflictRefreshIsReportedWithoutEscapingTheCommand",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.DuplicateEmailIsRejectedWithoutCaseSensitivity",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ModelTests.RelationalModelHasNineTablesAndNoCascadePaths",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.ConcurrentEditorsWithSameVersionHaveOneWinner",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.StaleRowVersionCannotOverwriteAnotherEditor",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiReadinessTests.MissingDatabaseIsNotReadyAndConnectionIsNotExposed",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.MemberIdFromAnotherBoardCannotBeChangedOrRemoved",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.RegistrationStoresSaltedBcryptAndIssuesExactly24HourToken",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardIntegrationTests.DesktopWorkflowCreatesEditsSharesRestrictsRevokesAndDeletesRealBoard",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.InvalidInputAndStaleVersionsCannotChangeBoard",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.FailedAnonymousLoginKeepsEmailAndShowsError",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiReadinessTests.ReadyOnlyWhenRealDatabaseIsMigrated",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.LoginAndLogoutUpdateScreenAndEraseAllSessionFields",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.TokenCannotReadADeletedAccount",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.FailedRevocationRollsBackAssignmentsMembershipAndVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.NavigationRequiresSessionAndValidBoardId",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.MembershipRejectsDuplicatesAndMissingUsersAndProtectsAdmin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.MissingInvalidExpiredOrMisaddressedTokensAreRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiFoundationTests.LivenessDoesNotDependOnDatabaseAndMissingRoutesAreProblemDetails",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardTests.LogoutDuringLoadingCannotRestorePrivateBoardCache",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.JwtConfigurationTests.MissingShortOrPlaceholderSecretFailsConfiguration",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.MembersReadButAllAdministrativeMutationsAreForbidden",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.CancellationIsPropagatedAndAbsoluteUrlsAreRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.RegistrationRouteAndExpiredSessionReturnToLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.PermissionsAndRevocationAffectNextRequestsWithSameToken",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardTests.ConflictRefreshesVersionPreservesDraftAndDoesNotRetryMutation",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.FailedBoardDeletionRollsBackEntireGraphAndVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.ParallelRegistrationLeavesOnlyOneAccount",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiFoundationTests.PublicErrorAndInternalErrorHaveStableCodes",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.LoginNormalizesEmailAndUnknownAccountMatchesWrongPasswordResponse",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.CheckConstraintsRejectBadPriorityPositionAndImageSize",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.AuthorizationIsAddedPerRequestAndDisappearsOnLogout",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.BoardLifecycleCreatesAdministratorAndPersistsEdits",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.CompleteGraphRoundTripsUnicodeDatesBinaryAndVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.AResponseFromAnOlderSessionCannotClearNewLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ABoardCannotHaveTwoAdministrators",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.MigrationCreatesExactlyNineTablesAndIsIdempotent",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.InvalidFieldsAndUtf8PasswordBoundaryAreEnforced",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.DeletingFullBoardRemovesItsGraphAndPreservesOtherBoardAndUsers",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  "http_checks": [
+    {
+      "method": "POST",
+      "route": "/api/auth/register",
+      "status": 201,
+      "duration_ms": 996,
+      "code": null
+    },
+    {
+      "method": "POST",
+      "route": "/api/auth/register",
+      "status": 201,
+      "duration_ms": 305,
+      "code": null
+    },
+    {
+      "method": "POST",
+      "route": "/api/auth/register",
+      "status": 201,
+      "duration_ms": 303,
+      "code": null
+    },
+    {
+      "method": "POST",
+      "route": "/api/boards",
+      "status": 201,
+      "duration_ms": 148,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards",
+      "status": 200,
+      "duration_ms": 27,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 404,
+      "duration_ms": 17,
+      "code": "not_found"
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards",
+      "status": 200,
+      "duration_ms": 5,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards",
+      "status": 401,
+      "duration_ms": 4,
+      "code": "unauthorized"
+    },
+    {
+      "method": "POST",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac/members",
+      "status": 201,
+      "duration_ms": 79,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 200,
+      "duration_ms": 3,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 200,
+      "duration_ms": 3,
+      "code": null
+    },
+    {
+      "method": "PUT",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 403,
+      "duration_ms": 11,
+      "code": "forbidden"
+    },
+    {
+      "method": "DELETE",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac?expectedBoardVersion=AAAAAAAAB9I%3D",
+      "status": 403,
+      "duration_ms": 15,
+      "code": "forbidden"
+    },
+    {
+      "method": "POST",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac/members",
+      "status": 409,
+      "duration_ms": 9,
+      "code": "member_exists"
+    },
+    {
+      "method": "PATCH",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac/members/24ab0f87-e902-4fe1-a3e4-f422122ae960",
+      "status": 200,
+      "duration_ms": 38,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 200,
+      "duration_ms": 4,
+      "code": null
+    },
+    {
+      "method": "PUT",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 409,
+      "duration_ms": 6,
+      "code": "concurrency_conflict"
+    },
+    {
+      "method": "PUT",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 200,
+      "duration_ms": 27,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 200,
+      "duration_ms": 3,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac/members",
+      "status": 200,
+      "duration_ms": 37,
+      "code": null
+    },
+    {
+      "method": "DELETE",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac/members/9222c611-eb88-4f6b-907a-6cb73827b724?expectedBoardVersion=AAAAAAAAB9Y%3D",
+      "status": 409,
+      "duration_ms": 15,
+      "code": "admin_protected"
+    },
+    {
+      "method": "DELETE",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac/members/24ab0f87-e902-4fe1-a3e4-f422122ae960?expectedBoardVersion=AAAAAAAAB9Y%3D",
+      "status": 204,
+      "duration_ms": 51,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 404,
+      "duration_ms": 3,
+      "code": "not_found"
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards",
+      "status": 200,
+      "duration_ms": 3,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac",
+      "status": 200,
+      "duration_ms": 3,
+      "code": null
+    },
+    {
+      "method": "DELETE",
+      "route": "/api/boards/73ae1db4-b575-49c1-914a-553c79b36dac?expectedBoardVersion=AAAAAAAAB9g%3D",
+      "status": 204,
+      "duration_ms": 77,
+      "code": null
+    },
+    {
+      "method": "GET",
+      "route": "/api/boards",
+      "status": 200,
+      "duration_ms": 3,
+      "code": null
+    }
+  ],
+  "temporary_database_removed": true,
+  "cleanup_verification": "Independent sys.databases query returned 0 for the generated HTTP/GUI database",
+  "gui_checks": [
+    "Empty own-board list rendered",
+    "Created board and automatically became administrator",
+    "Renamed board and saved to real MSSQL",
+    "Added existing synthetic member by email",
+    "Saved both member card permissions as false",
+    "Administrator membership controls disabled and no removal button",
+    "Delete confirmation shown; Cancel preserved board",
+    "Logged out and logged in as member",
+    "Member opened board with restricted card flags and no administrator controls",
+    "Access revoked through native API while member session remained active",
+    "Member Refresh removed board and member cache and displayed safe error",
+    "Logout cleared forms; admin login retrieved persisted updated board name"
+  ],
+  "screenshots": [
+    "screenshots/ph03/01-empty-boards.jpg",
+    "screenshots/ph03/02-member-permissions.jpg",
+    "screenshots/ph03/03-delete-confirmation.jpg",
+    "screenshots/ph03/04-member-view.jpg",
+    "screenshots/ph03/05-access-revoked.jpg",
+    "screenshots/ph03/06-persisted-board-list.jpg"
+  ],
+  "scope_notes": [
+    "Card CRUD and enforcement of card create/delete restrictions belong to PH-04",
+    "Periodic board polling and drag-and-drop belong to PH-05",
+    "GUI deletion confirmation and cancellation verified; actual deletion verified through HTTP and ViewModel integration tests",
+    "No 20-user load acceptance or full API Docker deployment claimed"
+  ],
+  "code_commits": [
+    "0aa2033",
+    "a114067",
+    "b775dbe",
+    "bf8543d",
+    "7003dcb"
+  ]
+}
