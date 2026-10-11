@@ -1,0 +1,14 @@
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# Generated .NET output
+**/bin/
+**/obj/
+
+# Local IDE and macOS files
+.idea/
+*.user
+*.suo
+.DS_Store
