@@ -1,0 +1,152 @@
+{
+  "phase": "PH-01",
+  "completed_at": "2026-10-11T23:26:22+03:00",
+  "sdk": "10.0.103 (complete local SDK in .tools/dotnet)",
+  "runtime": "10.0.3",
+  "ef_core": "10.0.12",
+  "avalonia": "11.3.12",
+  "sql_server": "2022 Developer 16.0.4295.3",
+  "build": {
+    "configuration": "Release",
+    "result": "passed",
+    "warnings": 0,
+    "errors": 0
+  },
+  "migration": {
+    "name": "20261011201833_InitialCreate",
+    "database": "KanbanDB",
+    "domain_tables": 9,
+    "repeat_application": "no changes",
+    "pending_model_changes": false,
+    "users": 0,
+    "boards": 0
+  },
+  "tests": {
+    "total": 19,
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "results": [
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.DuplicateEmailIsRejectedWithoutCaseSensitivity",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.MigrationCreatesExactlyNineTablesAndIsIdempotent",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.StaleRowVersionCannotOverwriteAnotherEditor",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiReadinessTests.ReadyOnlyWhenRealDatabaseIsMigrated",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiFoundationTests.LivenessDoesNotDependOnDatabaseAndMissingRoutesAreProblemDetails",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiFoundationTests.PublicErrorAndInternalErrorHaveStableCodes",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.CancellationIsPropagatedAndAbsoluteUrlsAreRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ABoardCannotHaveTwoAdministrators",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ForeignKeysAndSingleCoverAreEnforced",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.AuthorizationIsAddedPerRequestAndDisappearsOnLogout",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.UnauthorizedClearsSessionAndReturnsToLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.NavigationRequiresSessionAndValidBoardId",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ParentDeletionDoesNotSilentlyCascadeAndRollbackPreservesData",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiReadinessTests.MissingDatabaseIsNotReadyAndConnectionIsNotExposed",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ModelTests.RelationalModelHasNineTablesAndNoCascadePaths",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.ValidationProblemFieldsSurviveTheClientBoundary",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.AResponseFromAnOlderSessionCannotClearNewLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.CheckConstraintsRejectBadPriorityPositionAndImageSize",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.CompleteGraphRoundTripsUnicodeDatesBinaryAndVersion",
+        "outcome": "Passed"
+      }
+    ]
+  },
+  "http_checks": [
+    {
+      "route": "/health/live",
+      "status": 200,
+      "response": {
+        "status": "live"
+      }
+    },
+    {
+      "route": "/health/ready",
+      "status": 200,
+      "response": {
+        "status": "ready"
+      }
+    },
+    {
+      "route": "/api/missing",
+      "status": 404,
+      "response": {
+        "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+        "title": "Not Found",
+        "status": 404,
+        "traceId": "00-30ea006299502fef8ed6244189f90243-57c3262a4bdc8492-00",
+        "code": "not_found"
+      }
+    },
+    {
+      "route": "/__test/unknown-error",
+      "status": 404,
+      "response": {
+        "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+        "title": "Not Found",
+        "status": 404,
+        "traceId": "00-56344ce1d9ced82d53383f74b9edc834-7d4810467c509fcc-00",
+        "code": "not_found"
+      }
+    }
+  ],
+  "scope_notes": [
+    "SQL tests use an isolated temporary database and remove it afterwards.",
+    "Production API has health endpoints only; authentication and board endpoints are future phases.",
+    "No GUI runtime or 20-user load test is claimed in PH-01.",
+    "API was tested as a native development process; Dockerfile belongs to PH-07."
+  ]
+}
