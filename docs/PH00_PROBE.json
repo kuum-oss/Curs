@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-11",
+  "project": "kanban-ph00-57df3aa10d",
+  "image": "mcr.microsoft.com/mssql/server:2022-latest",
+  "platform": "linux/amd64",
+  "success": true,
+  "checks": [
+    {
+      "check": "Compose configuration",
+      "result": "valid"
+    },
+    {
+      "check": "Initial readiness",
+      "result": "SQL SELECT 1 succeeded; container healthy"
+    },
+    {
+      "check": "SQL Server version",
+      "result": "VERSION=16.0.4295.3;MAJOR=16;EDITION=Developer Edition (64-bit)"
+    },
+    {
+      "check": "SQL types and write",
+      "result": "nvarchar, date, varbinary(max), rowversion: round trip passed"
+    },
+    {
+      "check": "Readiness after restart",
+      "result": "SQL SELECT 1 succeeded; container healthy"
+    },
+    {
+      "check": "Persistence after restart",
+      "result": "control row and binary data preserved"
+    }
+  ],
+  "image_id": "sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090",
+  "repo_digests": [
+    "mcr.microsoft.com/mssql/server@sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090"
+  ],
+  "image_architecture": "amd64",
+  "sql_version": "VERSION=16.0.4295.3;MAJOR=16;EDITION=Developer Edition (64-bit)",
+  "cleanup_success": true,
+  "cleanup_scope": "Only the randomly named probe Compose project and its volume/network; image and local .env preserved.",
+  "elapsed_seconds": 37.55,
+  "completed_at": "2026-10-11T23:04:57+03:00"
+}
