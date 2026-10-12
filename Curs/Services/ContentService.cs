@@ -22,5 +22,7 @@ public sealed class ContentService(ApiClient api)
     public Task<TagDto?> CreateTag(Guid board,CreateTagRequest body,CancellationToken token) => api.SendAsync<TagDto>(HttpMethod.Post,$"api/boards/{board}/tags",body,token);
     public async Task<PagedResult<CommentDto>> Comments(Guid card,int offset,CancellationToken token) => await api.SendAsync<PagedResult<CommentDto>>(HttpMethod.Get,$"api/cards/{card}/comments?offset={offset}&limit=100",cancellationToken:token) ?? throw new InvalidOperationException();
     public Task<CommentDto?> AddComment(Guid card,CreateCommentRequest body,CancellationToken token) => api.SendAsync<CommentDto>(HttpMethod.Post,$"api/cards/{card}/comments",body,token);
+    public Task<OrderResultDto?> ReorderColumns(Guid board, ReorderColumnsRequest body, CancellationToken token) => api.SendAsync<OrderResultDto>(HttpMethod.Put,$"api/boards/{board}/columns/order",body,token);
+    public Task<MoveResultDto?> MoveCard(Guid card, MoveCardRequest body, CancellationToken token) => api.SendAsync<MoveResultDto>(HttpMethod.Post,$"api/cards/{card}/move",body,token);
     private static string Query(ResourceVersionQuery v) => "?expectedBoardVersion="+Uri.EscapeDataString(v.ExpectedBoardVersion)+"&expectedVersion="+Uri.EscapeDataString(v.ExpectedVersion);
 }

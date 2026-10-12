@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -20,7 +21,7 @@ public sealed class CardItemViewModel
     public CardItemViewModel(CardSummaryDto card, BoardContentViewModel workspace)
     { Card = card; OpenCommand = new ActionCommand(() => _ = workspace.OpenCardAsync(card.Id), () => !workspace.IsBusy); }
 }
-public sealed class ColumnItemViewModel
+public sealed class ColumnItemViewModel : ViewModelBase
 {
     public ColumnDto Column { get; }
     public string Name => Column.Name;
@@ -35,7 +36,7 @@ public sealed class ColumnItemViewModel
         SelectCommand = new ActionCommand(() => workspace.SelectColumn(this), () => !workspace.IsBusy);
         AddCommand = new ActionCommand(() => workspace.NewCard(this), () => workspace.CanCreate && !workspace.IsBusy);
     }
-    public void Refresh() { SelectCommand.Refresh(); AddCommand.Refresh(); foreach (var c in Cards) c.OpenCommand.Refresh(); }
+    public void Refresh() { Notify(nameof(CanCreate)); SelectCommand.Refresh(); AddCommand.Refresh(); foreach (var c in Cards) c.OpenCommand.Refresh(); }
 }
 public sealed class TagChoiceViewModel(TagDto tag) : ViewModelBase
 {
@@ -59,6 +60,18 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     private ColumnDto? selectedColumn;
     private CardDetailsDto? selectedCard;
     private bool busy, visible, editor;
+    private bool dragging, complete, filtered, pendingRemote, polling;
+    public bool IsPolling => polling;
+    public Guid? BoardId => board?.Id;
+    public bool IsDragging { get => dragging; private set { dragging = value; Notify(); NotifyDrag(); } }
+    public bool IsComplete => complete;
+    public bool CardsFiltered { get => filtered; set { filtered = value; Notify(); NotifyDrag(); } }
+    public bool CanDragColumns => IsVisible && complete && !IsBusy && !polling && !IsDragging && !EditorVisible && !HasColumn;
+    public bool CanDragCards => CanDragColumns && !CardsFiltered;
+    public bool RemoteChangesPending { get => pendingRemote; private set { pendingRemote = value; Notify(); } }
+    private string syncMessage = "Оновлення кожні 5 секунд.";
+    public string SyncMessage { get => syncMessage; private set { syncMessage = value; Notify(); } }
+    public double LastReorderFeedbackMilliseconds { get; private set; }
     private string error = "", status = "", newColumnName = "", columnName = "", title = "", description = "", dueDate = "", commentText = "", tagName = "", tagColor = "#64748B";
     private string? pendingDelete;
     private CardPriority priority = CardPriority.Medium;
@@ -68,7 +81,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     public ObservableCollection<AssigneeOption> Assignees { get; } = [];
     public ObservableCollection<CommentItemViewModel> Comments { get; } = [];
     public bool IsVisible { get => visible; private set { visible = value; Notify(); } }
-    public bool IsBusy { get => busy; private set { busy = value; Notify(); Notify(nameof(CanEdit)); RefreshCommands(); } }
+    public bool IsBusy { get => busy; private set { busy = value; Notify(); Notify(nameof(CanEdit)); NotifyDrag(); RefreshCommands(); } }
     public bool CanEdit => !IsBusy;
     public bool CanCreate => board is not null && (board.Role == BoardRole.Admin || board.CanCreateCards);
     public bool CanDeleteCard => selectedCard is not null && board is not null && (board.Role == BoardRole.Admin || board.CanDeleteCards);
@@ -121,10 +134,26 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         CancelCommand = new ActionCommand(CancelConfirmation, () => !IsBusy);
         services.Session.Changed += SessionChanged;
     }
-    private ActionCommand Command(Func<Task> action, Func<bool>? allowed = null) => new(() => _ = action(), () => !IsBusy && IsVisible && (allowed?.Invoke() ?? true));
+    private ActionCommand Command(Func<Task> action, Func<bool>? allowed = null) => new(() => _ = action(), () => !IsBusy && !polling && IsVisible && (allowed?.Invoke() ?? true));
     private void SessionChanged() { if (services.Session.AccessToken is null) Clear(); }
     public Task OpenAsync(Guid id) => Run(async token => { ClearData(); await Load(id, token); IsVisible = true; });
-    public Task RefreshAsync() => Run(async token => { if (board is not null) await Load(board.Id, token); });
+    public Task RefreshAsync() => Run(async token => { if (board is not null && !IsDragging) await Load(board.Id, token); });
+    public Task PollAsync()
+    {
+        if (IsBusy || polling || IsDragging || !IsVisible || board is null) return Task.CompletedTask;
+        return Run(async token =>
+        {
+            var current = await services.Boards.GetAsync(board.Id, token); token.ThrowIfCancellationRequested();
+            if (current.Version == board.Version) return;
+            if (EditorVisible || HasColumn)
+            {
+                // Keep the original versions and draft fields; the next write must still detect a conflict.
+                board = board with { Role = current.Role, CanCreateCards = current.CanCreateCards, CanDeleteCards = current.CanDeleteCards };
+                RemoteChangesPending = true; SyncMessage = "Дошку змінено. Чернетку збережено; закрийте редактор, щоб оновити вміст."; NotifyState();
+            }
+            else { await Load(board.Id, token); SyncMessage = "Отримано зміни спільної дошки."; }
+        }, background: true);
+    }
     private async Task Load(Guid id, CancellationToken token)
     {
         var metadata = await services.Boards.GetAsync(id, token);
@@ -150,7 +179,8 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         if (selectedColumn is not null && columns.All(c => c.Id != selectedColumn.Id)) selectedColumn = null;
         Tags.Clear(); foreach (var t in tags) Tags.Add(new TagChoiceViewModel(t) { Selected = tagIds.Contains(t.Id) });
         Assignees.Clear(); Assignees.Add(new(null, "Без відповідального")); foreach (var member in members) Assignees.Add(new(member.User.Id, member.User.Name));
-        Assignee = Assignees.FirstOrDefault(a => a.Id == assigneeId) ?? Assignees[0]; NotifyState();
+        Assignee = Assignees.FirstOrDefault(a => a.Id == assigneeId) ?? Assignees[0];
+        complete = true; RemoteChangesPending = false; SyncMessage = "Оновлення кожні 5 секунд."; NotifyState();
     }
     private static ApiClientException Conflict() => new(409, new ApiProblem { Code = "concurrency_conflict", Title = "Дошку змінено під час завантаження. Оновіть дані." });
     public void SelectColumn(ColumnItemViewModel row) { if (IsBusy) return; CloseEditor(); selectedColumn = row.Column; ColumnName = row.Name; NotifyState(); }
@@ -235,11 +265,67 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         else return;
         token.ThrowIfCancellationRequested(); CloseEditor(); selectedColumn = null; await Load(board.Id, token); NotifyState(); Status = "Видалення завершено.";
     });
-    public void CloseEditor() { selectedCard = null; Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
-    private async Task Run(Func<CancellationToken, Task> action)
+    public void CloseEditor() { selectedCard = null; selectedColumn = null; ColumnName = ""; Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
+
+    public bool BeginDrag(Guid id, bool card)
     {
-        if (IsBusy || services.Session.AccessToken is null) return;
-        using var cancellation = new CancellationTokenSource(); operation = cancellation; IsBusy = true; Error = ""; Status = "";
+        if (card ? !CanDragCards || !Columns.Any(c => c.Cards.Any(x => x.Card.Id == id)) : !CanDragColumns || !Columns.Any(c => c.Column.Id == id)) return false;
+        IsDragging = true; return true;
+    }
+    public void EndDrag() => IsDragging = false;
+    public Task MoveCardAsync(Guid id, Guid targetColumn, Guid? beforeCard = null) => Run(async token =>
+    {
+        if (board is null || !complete || CardsFiltered || EditorVisible || HasColumn) return;
+        var source = Columns.FirstOrDefault(c => c.Cards.Any(x => x.Card.Id == id));
+        var target = Columns.FirstOrDefault(c => c.Column.Id == targetColumn);
+        if (source is null || target is null || beforeCard == id) return;
+        var card = source.Cards.Single(x => x.Card.Id == id);
+        var index = beforeCard is Guid before ? target.Cards.ToList().FindIndex(c => c.Card.Id == before) : target.Cards.Count;
+        if (index < 0) return;
+        var original = Columns.ToDictionary(c => c, c => c.Cards.ToList());
+        var body = new MoveCardRequest { TargetColumnId = targetColumn, BeforeCardId = beforeCard, ExpectedBoardVersion = board.Version, ExpectedVersion = card.Card.Version };
+        var started = Stopwatch.GetTimestamp();
+        source.Cards.Remove(card);
+        index = beforeCard is Guid anchor ? target.Cards.ToList().FindIndex(c => c.Card.Id == anchor) : target.Cards.Count;
+        target.Cards.Insert(index, card);
+        LastReorderFeedbackMilliseconds = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+        try
+        {
+            await services.Content.MoveCard(id, body, token); await Load(board.Id, token); Status = "Картку переміщено.";
+        }
+        catch
+        {
+            if (!token.IsCancellationRequested)
+                foreach (var pair in original) { pair.Key.Cards.Clear(); foreach (var row in pair.Value) pair.Key.Cards.Add(row); }
+            throw;
+        }
+    });
+    public Task ReorderColumnAsync(Guid id, Guid? beforeColumn = null) => Run(async token =>
+    {
+        if (board is null || !complete || EditorVisible || HasColumn || beforeColumn == id) return;
+        var original = Columns.ToList(); var row = Columns.FirstOrDefault(c => c.Column.Id == id);
+        if (row is null || (beforeColumn is Guid target && Columns.All(c => c.Column.Id != target))) return;
+        var started = Stopwatch.GetTimestamp(); Columns.Remove(row);
+        var index = beforeColumn is Guid before ? Columns.ToList().FindIndex(c => c.Column.Id == before) : Columns.Count;
+        Columns.Insert(index, row); LastReorderFeedbackMilliseconds = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+        try
+        {
+            await services.Content.ReorderColumns(board.Id, new() { ColumnIds = Columns.Select(c => c.Column.Id).ToList(), ExpectedBoardVersion = board.Version }, token);
+            await Load(board.Id, token); Status = "Порядок колонок збережено.";
+        }
+        catch
+        {
+            if (!token.IsCancellationRequested) { Columns.Clear(); foreach (var item in original) Columns.Add(item); }
+            throw;
+        }
+    });
+    private async Task Run(Func<CancellationToken, Task> action, bool background = false)
+    {
+        if (IsBusy || polling || services.Session.AccessToken is null) return;
+        using var cancellation = new CancellationTokenSource(); operation = cancellation;
+        if (background) { polling = true; Notify(nameof(IsPolling)); NotifyDrag(); RefreshCommands(); }
+        else IsBusy = true;
+        if (!background) { Error = ""; Status = ""; }
         try { await action(cancellation.Token); }
         catch (ApiClientException ex)
         {
@@ -267,12 +353,23 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         catch (OperationCanceledException) { if (!cancellation.IsCancellationRequested) Error = "Сервер не відповів вчасно."; }
         catch (HttpRequestException) { if (!cancellation.IsCancellationRequested) Error = "Не вдалося підключитися до сервера."; }
         catch (Exception) { if (!cancellation.IsCancellationRequested) Error = "Не вдалося виконати дію. Оновіть дошку."; }
-        finally { if (ReferenceEquals(operation, cancellation)) { operation = null; IsBusy = false; } }
+        finally
+        {
+            if (ReferenceEquals(operation, cancellation))
+            {
+                operation = null; polling = false; Notify(nameof(IsPolling)); IsBusy = false;
+            }
+        }
     }
     private void NotifyState()
     {
         foreach (var name in new[] { nameof(CanCreate), nameof(CanDeleteCard), nameof(CanDeleteColumn), nameof(HasColumn), nameof(ExistingCard), nameof(EditorHeading), nameof(ShowConfirmation), nameof(ConfirmationText) }) Notify(name);
         RefreshCommands();
+        NotifyDrag();
+    }
+    private void NotifyDrag()
+    {
+        Notify(nameof(CanDragColumns)); Notify(nameof(CanDragCards)); Notify(nameof(IsComplete));
     }
     private void RefreshCommands()
     {
@@ -281,10 +378,12 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private void ClearData()
     {
-        board = null; selectedColumn = null; selectedCard = null; Columns.Clear(); Tags.Clear(); Assignees.Clear(); Comments.Clear();
+        board = null; complete = false; dragging = false; filtered = false; RemoteChangesPending = false;
+        SyncMessage = "Оновлення кожні 5 секунд.";
+        selectedColumn = null; selectedCard = null; Columns.Clear(); Tags.Clear(); Assignees.Clear(); Comments.Clear();
         NewColumnName = ""; ColumnName = ""; Title = ""; Description = ""; DueDate = ""; CommentText = ""; TagName = ""; TagColor = "#64748B"; Priority = CardPriority.Medium; Assignee = null;
         EditorVisible = false; IsVisible = false; pendingDelete = null; NotifyState();
     }
-    public void Clear() { operation?.Cancel(); operation = null; IsBusy = false; ClearData(); Error = ""; Status = ""; }
+    public void Clear() { operation?.Cancel(); operation = null; polling = false; Notify(nameof(IsPolling)); IsBusy = false; ClearData(); Error = ""; Status = ""; }
     public void Dispose() { Clear(); services.Session.Changed -= SessionChanged; }
 }

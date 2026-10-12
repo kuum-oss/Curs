@@ -9,21 +9,27 @@
             </Grid>
             <TextBlock Text="Завантаження…" IsVisible="{Binding IsBusy}" />
             <TextBlock Text="{Binding Status}" Foreground="#237A4B" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding SyncMessage}" TextWrapping="Wrap" Foreground="#58677D" />
+            <TextBlock Text="Перетягуйте заголовки колонок або картки, щоб змінити порядок. Для цього закрийте редактор." TextWrapping="Wrap" Foreground="#58677D" />
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" MaxHeight="450">
                 <ItemsControl ItemsSource="{Binding Columns}">
                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:ColumnItemViewModel">
-                            <Border Width="280" Background="#EDF3FF" Padding="14" Margin="0,0,14,0" CornerRadius="10">
+                            <Border Width="280" Background="#EDF3FF" Padding="14" Margin="0,0,14,0" CornerRadius="10"
+                                    DragDrop.AllowDrop="True" DragDrop.DragOver="DragOver" DragDrop.Drop="Drop" DragDrop.DragLeave="DragLeave">
                                 <StackPanel Spacing="10">
-                                    <TextBlock Text="{Binding Name}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding Name}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" Cursor="SizeAll"
+                                               PointerPressed="DragPressed" PointerMoved="DragMoved" PointerReleased="DragReleased" />
                                     <Button Content="Керувати колонкою" Command="{Binding SelectCommand}" />
                                     <Button Content="+ Картка" Command="{Binding AddCommand}" IsVisible="{Binding CanCreate}" />
                                     <ScrollViewer MaxHeight="280">
                                         <ItemsControl ItemsSource="{Binding Cards}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="vm:CardItemViewModel">
-                                                    <Border Background="White" Padding="12" Margin="0,0,0,10" CornerRadius="8">
+                                                    <Border Background="White" Padding="12" Margin="0,0,0,10" CornerRadius="8"
+                                                            PointerPressed="DragPressed" PointerMoved="DragMoved" PointerReleased="DragReleased"
+                                                            DragDrop.AllowDrop="True" DragDrop.DragOver="DragOver" DragDrop.Drop="Drop" DragDrop.DragLeave="DragLeave">
                                                         <StackPanel Spacing="8">
                                                             <TextBlock Text="{Binding Title}" TextWrapping="Wrap" FontWeight="SemiBold" />
                                                             <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" Foreground="#58677D" />
@@ -41,6 +47,10 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+            <Border Background="#EDF3FF" Padding="12" CornerRadius="8" DragDrop.AllowDrop="True"
+                    DragDrop.DragOver="DragOver" DragDrop.Drop="Drop" DragDrop.DragLeave="DragLeave">
+                <TextBlock Text="Перетягніть колонку сюди, щоб поставити її в кінці." TextWrapping="Wrap" />
+            </Border>
             <TextBlock Text="Нова колонка" FontSize="18" FontWeight="SemiBold" />
             <TextBox Text="{Binding NewColumnName,Mode=TwoWay}" Watermark="Назва колонки" MaxLength="100" IsEnabled="{Binding CanEdit}" />
             <Button Content="Створити колонку" Command="{Binding CreateColumnCommand}" />
@@ -51,6 +61,7 @@
                     <WrapPanel>
                         <Button Content="Перейменувати" Command="{Binding RenameColumnCommand}" Margin="0,0,12,0" />
                         <Button Content="Видалити колонку" Command="{Binding DeleteColumnCommand}" IsVisible="{Binding CanDeleteColumn}" Foreground="#B42318" />
+                        <Button Content="Закрити редагування" Command="{Binding CloseEditorCommand}" Margin="12,0,0,0" />
                     </WrapPanel>
                 </StackPanel>
             </Border>
