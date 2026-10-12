@@ -55,6 +55,8 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     private string error = "", status = "", newName = "", newDescription = "", editName = "", editDescription = "", memberEmail = "";
     public ObservableCollection<BoardListItemViewModel> Boards { get; } = [];
     public ObservableCollection<MemberViewModel> Members { get; } = [];
+    public BoardContentViewModel Content { get; }
+    public ActionCommand OpenContentCommand { get; }
     public BoardDetailsDto? SelectedBoard => selected;
     public bool ShowList => selected is null;
     public bool ShowBoard => selected is not null;
@@ -90,6 +92,8 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     public BoardWorkspaceViewModel(ClientServices services)
     {
         this.services = services;
+        Content = new BoardContentViewModel(services);
+        OpenContentCommand = new ActionCommand(() => { if (selected is not null) _ = Content.OpenAsync(selected.Id); }, () => !IsBusy && selected is not null);
         RefreshCommand = new ActionCommand(() => _ = RefreshAsync(), () => !IsBusy);
         CreateCommand = new ActionCommand(() => _ = CreateAsync(), () => !IsBusy && ShowList);
         SaveBoardCommand = new ActionCommand(() => _ = SaveBoardAsync(), () => !IsBusy && IsAdmin);
@@ -120,6 +124,7 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     {
         var board = await services.Boards.GetAsync(id, token);
         var members = await services.Boards.MembersAsync(id, token); token.ThrowIfCancellationRequested();
+        if (selected?.Id != id) Content.Clear();
         selected = board; Members.Clear(); foreach (var m in members) Members.Add(new MemberViewModel(m, this));
         if (!preserveDraft) { EditName = board.Name; EditDescription = board.Description ?? ""; }
         NotifyBoard(); services.Navigation.OpenBoard(id);
@@ -158,7 +163,7 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
         if (confirmDelete)
         {
             await services.Boards.DeleteAsync(selected.Id, selected.Version, token); token.ThrowIfCancellationRequested();
-            selected = null; Members.Clear(); CancelConfirmation(); NotifyBoard();
+            Content.Clear(); selected = null; Members.Clear(); CancelConfirmation(); NotifyBoard();
             await LoadCoreAsync(token); services.Navigation.OpenBoards(); Status = "Дошку видалено.";
         }
         else if (pendingMember is not null)
@@ -208,11 +213,13 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     }
     private async Task LostAccessAsync(CancellationToken token)
     {
+        Content.Clear();
         selected = null; Members.Clear(); EditName = ""; EditDescription = ""; MemberEmail = ""; CancelConfirmation(); NotifyBoard();
         await LoadCoreAsync(token); services.Navigation.OpenBoards();
     }
     private void Back()
     {
+        Content.Clear();
         selected = null; Members.Clear(); EditName = ""; EditDescription = ""; MemberEmail = ""; Error = ""; Status = "";
         CancelConfirmation(); NotifyBoard(); services.Navigation.OpenBoards();
     }
@@ -224,14 +231,15 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     private void NotifyConfirmation() { Notify(nameof(ShowConfirmation)); Notify(nameof(ConfirmationText)); ConfirmCommand.Refresh(); }
     private void RefreshCommands()
     {
-        foreach (var command in new[] { RefreshCommand, CreateCommand, SaveBoardCommand, AddMemberCommand, BackCommand, DeleteCommand, ConfirmCommand, CancelCommand }) command.Refresh();
+        foreach (var command in new[] { OpenContentCommand, RefreshCommand, CreateCommand, SaveBoardCommand, AddMemberCommand, BackCommand, DeleteCommand, ConfirmCommand, CancelCommand }) command.Refresh();
         foreach (var row in Members) row.Refresh(); foreach (var board in Boards) board.OpenCommand.Refresh();
     }
     public void Clear()
     {
+        Content.Clear();
         operation?.Cancel(); operation = null; IsBusy = false;
         Boards.Clear(); Members.Clear(); selected = null; NewName = ""; NewDescription = ""; EditName = ""; EditDescription = ""; MemberEmail = "";
         Error = ""; Status = ""; CancelConfirmation(); NotifyBoard(); Notify(nameof(HasBoards)); Notify(nameof(IsEmpty));
     }
-    public void Dispose() { Clear(); services.Session.Changed -= SessionChanged; services.Navigation.Changed -= NavigationChanged; }
+    public void Dispose() { Clear(); Content.Dispose(); services.Session.Changed -= SessionChanged; services.Navigation.Changed -= NavigationChanged; }
 }

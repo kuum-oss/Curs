@@ -12,6 +12,7 @@ public sealed class ClientServices : IDisposable
     public ApiClient Api { get; }
     public AuthService Auth { get; }
     public BoardService Boards { get; }
+    public ContentService Content { get; }
 
     public ClientServices(Uri baseAddress, Action<Action>? dispatch = null, HttpMessageHandler? transport = null)
     {
@@ -25,6 +26,7 @@ public sealed class ClientServices : IDisposable
         Api = new ApiClient(http);
         Auth = new AuthService(Api, Session, Navigation);
         Boards = new BoardService(Api);
+        Content = new ContentService(Api);
     }
 
     public void Dispose() { Session.Clear(); Navigation.Dispose(); http.Dispose(); }
