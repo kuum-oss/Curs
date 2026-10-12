@@ -1,0 +1,1237 @@
+{
+  "phase": "PH-05",
+  "completed_at": "2026-10-12T14:55:25+03:00",
+  "branch": "ph-05",
+  "base_main_commit": "389aab99c74402022ffb4306a2546e52c9b71b9b",
+  "publication_order": [
+    "Verify phase checks",
+    "Push ph-05 and verify remote HEAD",
+    "Fast-forward main, push and verify remote HEAD"
+  ],
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0,
+    "result": "passed"
+  },
+  "environment": {
+    "sdk": "10.0.103",
+    "avalonia": "11.3.12",
+    "ef_core": "10.0.12",
+    "database": "MSSQL 2022 Developer; emulated linux/amd64",
+    "desktop": "Native macOS Avalonia",
+    "api": "Native ASP.NET Core"
+  },
+  "model_changes_pending": false,
+  "tests": {
+    "total": 80,
+    "passed": 80,
+    "failed": 0,
+    "skipped": 0,
+    "real_sql_tests": 53,
+    "results": [
+      {
+        "name": "KanbanApi.Tests.BoardTests.MembershipRejectsDuplicatesAndMissingUsersAndProtectsAdmin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.NavigationRequiresSessionAndValidBoardId",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopOrderingUnitTests.IncompleteSnapshotNeverEnablesDragging",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopOrderingUnitTests.OptimisticMoveAppearsBeforeReplyAndFailureRestoresExactOrder(offline: False)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.AResponseFromAnOlderSessionCannotClearNewLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopOrderingUnitTests.OptimisticMoveAppearsBeforeReplyAndFailureRestoresExactOrder(offline: True)",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.CompleteGraphRoundTripsUnicodeDatesBinaryAndVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopContentTests.DesktopLoadsEveryCardAndCommentPage",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.PermissionsAndRevocationAffectNextRequestsWithSameToken",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.RevokedMemberCannotUseExistingCardAndCommentRoutesWithOldJwt",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.LoginAndLogoutUpdateScreenAndEraseAllSessionFields",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.EveryBoardRouteRequiresAuthentication",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.OrderingTests.ColumnOrderRequiresCompleteUniquePermutationAndPersistsVersions",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.EveryContentRouteRequiresAuthentication",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.StaleRowVersionCannotOverwriteAnotherEditor",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardTests.LogoutDuringLoadingCannotRestorePrivateBoardCache",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.RegistrationStoresSaltedBcryptAndIssuesExactly24HourToken",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardTests.ConflictRefreshesVersionPreservesDraftAndDoesNotRetryMutation",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiReadinessTests.ReadyOnlyWhenRealDatabaseIsMigrated",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardIntegrationTests.DesktopWorkflowCreatesEditsSharesRestrictsRevokesAndDeletesRealBoard",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.LogoutDuringPendingLoginCannotRestoreTheSession",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.OrderingTests.LateColumnOrderFailureRollsBackWholePermutation",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.MigrationCreatesExactlyNineTablesAndIsIdempotent",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.LateColumnDeletionFailureRollsBackCardsCommentsAndVersions",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.OrderingTests.LateMoveFailureRollsBackEveryPositionAndBothVersions",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.ResourceVersionConflictsRollbackBoardAndDeletingMiddleCardClosesPositionGap",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.DeletingFullBoardRemovesItsGraphAndPreservesOtherBoardAndUsers",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopOrderingUnitTests.UnchangedPollReadsOnlyMetadataAndKeepsRowIdentity",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.InvalidInputAndStaleVersionsCannotChangeBoard",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.ParallelRegistrationLeavesOnlyOneAccount",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.MemberIdFromAnotherBoardCannotBeChangedOrRemoved",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.OrderingTests.SimultaneousMovesHaveOneWinnerAndNoDuplicatePositions",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.TokenCannotReadADeletedAccount",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.FailedRevocationRollsBackAssignmentsMembershipAndVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.ValidationAndNetworkFailuresAreVisibleAndPasswordIsErased",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiReadinessTests.MissingDatabaseIsNotReadyAndConnectionIsNotExposed",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.OrderingTests.ForeignTargetsWrongAnchorsAndPrivateIdsCannotChangeOrder",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.CancellationIsPropagatedAndAbsoluteUrlsAreRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.DuplicateEmailIsRejectedWithoutCaseSensitivity",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.AuthorizationIsAddedPerRequestAndDisappearsOnLogout",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopOrderingUnitTests.OptimisticColumnFailureRestoresPermutationAndFilteredCardsCannotDrag",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.CheckConstraintsRejectBadPriorityPositionAndImageSize",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.OutsiderCannotReadOrMutateBoardOrLearnItsVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.ValidationAndDuplicateTagsDoNotChangeBoard",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.FailedBoardDeletionRollsBackEntireGraphAndVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopOrderingUnitTests.DragSuspendsPollingAndLogoutDoesNotRestoreOptimisticCache",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.JwtConfigurationTests.MissingShortOrPlaceholderSecretFailsConfiguration",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ForeignKeysAndSingleCoverAreEnforced",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.LoginNormalizesEmailAndUnknownAccountMatchesWrongPasswordResponse",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiFoundationTests.PublicErrorAndInternalErrorHaveStableCodes",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.FailedAnonymousLoginKeepsEmailAndShowsError",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.ColumnRenameAndDeletesKeepPositionsAndRemoveOnlyItsSubtree",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardTests.DestructiveActionRequiresConfirmationAndCancelSendsNothing",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.MissingInvalidExpiredOrMisaddressedTokensAreRejected",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopAuthTests.RegistrationRouteAndExpiredSessionReturnToLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopContentTests.ConflictKeepsDraftAndRevocationClearsContent",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.ValidationProblemFieldsSurviveTheClientBoundary",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.FieldLimitsAndInvalidCommentDoNotAdvanceVersions",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.BoardLifecycleCreatesAdministratorAndPersistsEdits",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.OrderingTests.RestrictedMemberCanMoveAndReorderButRevokedMemberCannot",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ParentDeletionDoesNotSilentlyCascadeAndRollbackPreservesData",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.ForeignColumnTagsAssigneeAndPrivateCardIdentifiersCannotBypassBoardBoundary",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.MembersReadButAllAdministrativeMutationsAreForbidden",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopContentSessionTests.LogoutDuringContentReadCannotRestoreBoardCache",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopOrderingTests.TwoClientsPollMoveReorderProtectDraftAndResolveConflict",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ApiFoundationTests.LivenessDoesNotDependOnDatabaseAndMissingRoutesAreProblemDetails",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.RevocationClearsOnlyThisBoardsAssignmentsAndPreservesHistory",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.RestrictedMemberCannotCreateOrDeleteCardsOrNonemptyColumnButCanEditCommentAndDeleteEmpty",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ModelTests.RelationalModelHasNineTablesAndNoCascadePaths",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ClientFoundationTests.UnauthorizedClearsSessionAndReturnsToLogin",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.ConcurrentCardCreationWithSameBoardVersionHasOneWinner",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.BoardTests.ConcurrentEditorsWithSameVersionHaveOneWinner",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopBoardTests.FailedConflictRefreshIsReportedWithoutEscapingTheCommand",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopOrderingUnitTests.SlowPollNeverOverlapsOrDisablesDraftFields",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.ContentTests.CardFieldsTagsAssigneeAndCommentsPersistAndPagesCarryVersion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopOrderingTests.PollDetectsRevocationEvenWithAnOpenDraft",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.OrderingTests.MovesBetweenAndWithinColumnsPersistBeginningMiddleAndEnd",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.SqlSchemaTests.ABoardCannotHaveTwoAdministrators",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.DesktopContentTests.DesktopContentCreatesEditsReopensCommentsAndConfirmsDeletion",
+        "outcome": "Passed"
+      },
+      {
+        "name": "KanbanApi.Tests.AuthTests.InvalidFieldsAndUtf8PasswordBoundaryAreEnforced",
+        "outcome": "Passed"
+      }
+    ],
+    "same_card_concurrent_edit_and_move": "passed; one 200 and one 409, no partial merge"
+  },
+  "native_http": {
+    "database": "KanbanPh05_87d45e83a57949d783dc07d09b8dfc8a",
+    "checks": [
+      {
+        "method": "POST",
+        "route": "/api/auth/register",
+        "status": 201,
+        "duration_ms": 2145,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/auth/register",
+        "status": 201,
+        "duration_ms": 735,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/auth/register",
+        "status": 201,
+        "duration_ms": 364,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards",
+        "status": 201,
+        "duration_ms": 218,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards",
+        "status": 200,
+        "duration_ms": 35,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 404,
+        "duration_ms": 21,
+        "code": "not_found"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards",
+        "status": 401,
+        "duration_ms": 4,
+        "code": "unauthorized"
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562/members",
+        "status": 201,
+        "duration_ms": 93,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 200,
+        "duration_ms": 2,
+        "code": null
+      },
+      {
+        "method": "PUT",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 403,
+        "duration_ms": 11,
+        "code": "forbidden"
+      },
+      {
+        "method": "DELETE",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562?expectedBoardVersion=AAAAAAAAB9I%3D",
+        "status": 403,
+        "duration_ms": 15,
+        "code": "forbidden"
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562/members",
+        "status": 409,
+        "duration_ms": 11,
+        "code": "member_exists"
+      },
+      {
+        "method": "PATCH",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562/members/e7264a50-cbe7-435d-a131-18fba8c9eb4d",
+        "status": 200,
+        "duration_ms": 41,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "PUT",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 409,
+        "duration_ms": 7,
+        "code": "concurrency_conflict"
+      },
+      {
+        "method": "PUT",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 200,
+        "duration_ms": 25,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562/members",
+        "status": 200,
+        "duration_ms": 40,
+        "code": null
+      },
+      {
+        "method": "DELETE",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562/members/93dce740-868e-498c-8e90-fffaed58d7cb?expectedBoardVersion=AAAAAAAAB9Y%3D",
+        "status": 409,
+        "duration_ms": 19,
+        "code": "admin_protected"
+      },
+      {
+        "method": "DELETE",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562/members/e7264a50-cbe7-435d-a131-18fba8c9eb4d?expectedBoardVersion=AAAAAAAAB9Y%3D",
+        "status": 204,
+        "duration_ms": 57,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 404,
+        "duration_ms": 3,
+        "code": "not_found"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards",
+        "status": 200,
+        "duration_ms": 2,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "DELETE",
+        "route": "/api/boards/302d769f-313d-421b-a2b6-81ac6a485562?expectedBoardVersion=AAAAAAAAB9g%3D",
+        "status": 204,
+        "duration_ms": 74,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards",
+        "status": 201,
+        "duration_ms": 8,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns",
+        "status": 201,
+        "duration_ms": 48,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns",
+        "status": 201,
+        "duration_ms": 10,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "PUT",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns/4aaf4c0e-dd1d-4bae-94b6-ef3c58c45599",
+        "status": 200,
+        "duration_ms": 39,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns",
+        "status": 200,
+        "duration_ms": 20,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/tags",
+        "status": 201,
+        "duration_ms": 39,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/tags",
+        "status": 200,
+        "duration_ms": 28,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/cards",
+        "status": 201,
+        "duration_ms": 162,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc",
+        "status": 404,
+        "duration_ms": 29,
+        "code": "not_found"
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc/comments",
+        "status": 401,
+        "duration_ms": 1,
+        "code": "unauthorized"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "PUT",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc",
+        "status": 400,
+        "duration_ms": 28,
+        "code": "invalid_assignee"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc/comments",
+        "status": 201,
+        "duration_ms": 42,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc",
+        "status": 200,
+        "duration_ms": 17,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "PUT",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc",
+        "status": 409,
+        "duration_ms": 9,
+        "code": "concurrency_conflict"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "PUT",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc",
+        "status": 200,
+        "duration_ms": 28,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc/comments?offset=0&limit=1",
+        "status": 200,
+        "duration_ms": 59,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/cards?offset=0&limit=1",
+        "status": 200,
+        "duration_ms": 64,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/members",
+        "status": 201,
+        "duration_ms": 12,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "PATCH",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/members/e7264a50-cbe7-435d-a131-18fba8c9eb4d",
+        "status": 200,
+        "duration_ms": 12,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/cards",
+        "status": 403,
+        "duration_ms": 7,
+        "code": "forbidden"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 2,
+        "code": null
+      },
+      {
+        "method": "DELETE",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns/4aaf4c0e-dd1d-4bae-94b6-ef3c58c45599?expectedBoardVersion=AAAAAAAAB%2Bw%3D&expectedVersion=AAAAAAAAB%2BA%3D",
+        "status": 403,
+        "duration_ms": 24,
+        "code": "forbidden"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "DELETE",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc?expectedBoardVersion=AAAAAAAAB%2Bw%3D&expectedVersion=AAAAAAAAB%2Bo%3D",
+        "status": 403,
+        "duration_ms": 14,
+        "code": "forbidden"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "DELETE",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns/e0a5f023-4e12-45a5-a557-9bbf3237c060?expectedBoardVersion=AAAAAAAAB%2Bw%3D&expectedVersion=AAAAAAAAB94%3D",
+        "status": 204,
+        "duration_ms": 56,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc/comments",
+        "status": 201,
+        "duration_ms": 11,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc",
+        "status": 200,
+        "duration_ms": 10,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc/comments",
+        "status": 200,
+        "duration_ms": 6,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/cards",
+        "status": 201,
+        "duration_ms": 27,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "DELETE",
+        "route": "/api/cards/a3e38d5f-471f-4d86-9eb5-f997422ffc60?expectedBoardVersion=AAAAAAAAB%2FM%3D&expectedVersion=AAAAAAAAB%2FQ%3D",
+        "status": 204,
+        "duration_ms": 42,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/cards",
+        "status": 200,
+        "duration_ms": 11,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns",
+        "status": 201,
+        "duration_ms": 9,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns",
+        "status": 201,
+        "duration_ms": 9,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/cards",
+        "status": 201,
+        "duration_ms": 15,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/cards",
+        "status": 201,
+        "duration_ms": 15,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/cards/0b498b72-afac-49e5-8013-8c848ae40f77/move",
+        "status": 200,
+        "duration_ms": 68,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/0b498b72-afac-49e5-8013-8c848ae40f77",
+        "status": 200,
+        "duration_ms": 9,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/cards/0b498b72-afac-49e5-8013-8c848ae40f77/move",
+        "status": 400,
+        "duration_ms": 11,
+        "code": "invalid_anchor"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "PUT",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns/order",
+        "status": 200,
+        "duration_ms": 31,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "PUT",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns/order",
+        "status": 400,
+        "duration_ms": 7,
+        "code": "invalid_order"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "PUT",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns/order",
+        "status": 200,
+        "duration_ms": 12,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc",
+        "status": 200,
+        "duration_ms": 8,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 2,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc/move",
+        "status": 200,
+        "duration_ms": 24,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc",
+        "status": 200,
+        "duration_ms": 8,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc/move",
+        "status": 200,
+        "duration_ms": 34,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc",
+        "status": 200,
+        "duration_ms": 12,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc/move",
+        "status": 409,
+        "duration_ms": 10,
+        "code": "concurrency_conflict"
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards",
+        "status": 201,
+        "duration_ms": 7,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/cef0deec-d03c-46cf-ac8e-9a3b4ffc4022/columns",
+        "status": 201,
+        "duration_ms": 9,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/cards/6f883240-6b49-41f3-8701-ea86d17cf5dc/move",
+        "status": 404,
+        "duration_ms": 8,
+        "code": "not_found"
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/cef0deec-d03c-46cf-ac8e-9a3b4ffc4022",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "DELETE",
+        "route": "/api/boards/cef0deec-d03c-46cf-ac8e-9a3b4ffc4022?expectedBoardVersion=AAAAAAAACBY%3D",
+        "status": 204,
+        "duration_ms": 52,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns",
+        "status": 201,
+        "duration_ms": 8,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns",
+        "status": 201,
+        "duration_ms": 10,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7",
+        "status": 200,
+        "duration_ms": 3,
+        "code": null
+      },
+      {
+        "method": "POST",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns",
+        "status": 201,
+        "duration_ms": 10,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/columns",
+        "status": 200,
+        "duration_ms": 4,
+        "code": null
+      },
+      {
+        "method": "GET",
+        "route": "/api/boards/67a6f71e-89a6-4311-821f-0cc7fd27f0c7/cards",
+        "status": 200,
+        "duration_ms": 15,
+        "code": null
+      }
+    ]
+  },
+  "gui": {
+    "card_cross_column": true,
+    "card_within_column": true,
+    "card_empty_target": true,
+    "column_reorder": true,
+    "second_window_timer_update_without_manual_refresh": true,
+    "draft_retained_during_external_edit": true,
+    "stale_save_rejected": true,
+    "revocation_clears_content_and_editor": true,
+    "persisted_after_client_restart": true,
+    "independent_http_snapshot": {
+      "column_order": [
+        "Готово",
+        "В роботі",
+        "Огляд",
+        "Тестування",
+        "Архів",
+        "Черга"
+      ],
+      "card_positions": [
+        {
+          "title": "Друга картка",
+          "column": "Готово",
+          "position": 0
+        },
+        {
+          "title": "Третя картка",
+          "column": "В роботі",
+          "position": 0
+        },
+        {
+          "title": "Зміна адміністратора PH-05",
+          "column": "Огляд",
+          "position": 0
+        }
+      ],
+      "concurrent_save_did_not_overwrite": true,
+      "metadata_preserved": true,
+      "revocation_sent": true
+    },
+    "edge_scroll": {
+      "before": 0,
+      "after": 14,
+      "target_column": "Тестування",
+      "release_build": true
+    },
+    "local_feedback_ms": {
+      "maximum_handler": 2.349,
+      "maximum_collection_reorder": 7.171,
+      "measurement_scope": "Stopwatch inside GUI handlers; excludes screen render/network"
+    },
+    "screenshots": "screenshots/ph05/README.md"
+  },
+  "cleanup": {
+    "temporary_database_removed": true,
+    "independent_sql_remaining_KanbanPh05_databases": 0,
+    "test_clients_and_api_stopped": true
+  },
+  "limits": {
+    "twenty_user_load": "PH-08",
+    "full_api_two_second_requirement": "PH-08; one cold registration took 2145 ms in native run",
+    "container_api": "PH-07",
+    "filters_images": "PH-06"
+  }
+}
