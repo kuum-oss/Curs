@@ -35,6 +35,10 @@ public sealed class OrderingTests(SqlFixture fixture)
     public async Task MovesBetweenAndWithinColumnsPersistBeginningMiddleAndEnd()
     {
         using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=Client(app,await User());var b=await Board(c);var a=await Col(c,b.Id);var z=await Col(c,b.Id);var one=await Card(c,b.Id,a.Id,"1");var two=await Card(c,b.Id,a.Id,"2");var three=await Card(c,b.Id,z.Id,"3");
+        var owner=(await c.GetFromJsonAsync<UserDto>("/api/auth/me"))!;
+        var tag=await Create<TagDto>(await c.PostAsJsonAsync($"/api/boards/{b.Id}/tags",new CreateTagRequest{Name="Збережений тег",ExpectedBoardVersion=await V(c,b.Id)}));
+        var edited=await c.PutAsJsonAsync($"/api/cards/{two.Card.Id}",new UpdateCardRequest{Title=two.Card.Title,Description=two.Description,DueDate=two.Card.DueDate,Priority=two.Card.Priority,AssigneeId=owner.Id,TagIds=[tag.Id],ExpectedBoardVersion=await V(c,b.Id),ExpectedVersion=two.Card.Version});Assert.Equal(HttpStatusCode.OK,edited.StatusCode);two=(await edited.Content.ReadFromJsonAsync<CardDetailsDto>())!;
+        await using(var imageDb=fixture.CreateContext()){imageDb.CardImages.Add(new CardImage{CardId=two.Card.Id,ContentType="image/png",OriginalName="test.png",SizeBytes=1,OriginalData=[1],ThumbnailData=[1],ThumbnailContentType="image/png"});await imageDb.SaveChangesAsync();}
         await Create<CommentDto>(await c.PostAsJsonAsync($"/api/cards/{two.Card.Id}/comments",new CreateCommentRequest{Text="Історія",ExpectedBoardVersion=await V(c,b.Id),ExpectedVersion=two.Card.Version}));
         foreach(var step in new[]{(two.Card.Id,z.Id,(Guid?)three.Card.Id),(one.Card.Id,z.Id,(Guid?)null),(one.Card.Id,z.Id,(Guid?)two.Card.Id),(one.Card.Id,a.Id,(Guid?)null)})
         {
@@ -44,6 +48,7 @@ public sealed class OrderingTests(SqlFixture fixture)
         }
         var final=(await Cards(c,b.Id)).Items;Assert.Equal(new[]{two.Card.Id,three.Card.Id},final.Where(x=>x.ColumnId==z.Id).Select(x=>x.Id));
         var details=(await c.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{two.Card.Id}"))!;Assert.Equal(two.Description,details.Description);Assert.Equal(two.Card.Priority,details.Card.Priority);Assert.Equal(two.Card.DueDate,details.Card.DueDate);Assert.Equal(1,(await c.GetFromJsonAsync<PagedResult<CommentDto>>($"/api/cards/{two.Card.Id}/comments"))!.TotalCount);
+        Assert.Equal(owner.Id,details.Card.Assignee!.Id);Assert.Equal(tag.Id,Assert.Single(details.Card.Tags).Id);Assert.True(details.Card.HasImage);Assert.Equal("image/png",details.ImageContentType);
     }
     [SqlFact]
     public async Task ColumnOrderRequiresCompleteUniquePermutationAndPersistsVersions()
