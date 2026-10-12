@@ -86,6 +86,18 @@ public sealed class OrderingTests(SqlFixture fixture)
         using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=Client(app,await User());var b=await Board(c);var a=await Col(c,b.Id);var z=await Col(c,b.Id);var one=await Card(c,b.Id,a.Id,"1");var two=await Card(c,b.Id,a.Id,"2");var first=await Move(c,b.Id,one.Card.Id,z.Id);var second=await Move(c,b.Id,two.Card.Id,z.Id);
         var responses=await Task.WhenAll(c.PostAsJsonAsync($"/api/cards/{one.Card.Id}/move",first),c.PostAsJsonAsync($"/api/cards/{two.Card.Id}/move",second));Assert.Single(responses,x=>x.StatusCode==HttpStatusCode.OK);Assert.Single(responses,x=>x.StatusCode==HttpStatusCode.Conflict);
         var rows=(await Cards(c,b.Id)).Items;Assert.Equal(2,rows.Select(x=>x.Id).Distinct().Count());Positions(rows.Where(x=>x.ColumnId==a.Id));Positions(rows.Where(x=>x.ColumnId==z.Id));
+
+        // A move and an edit of the same card must not merge silently or partly win.
+        var original=(await c.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{one.Card.Id}"))!;
+        var target=original.Card.ColumnId==a.Id?z.Id:a.Id;var v=await V(c,b.Id);
+        var edit=new UpdateCardRequest{Title="Редаговано",Description="Конкурентна зміна",Priority=CardPriority.Critical,ExpectedBoardVersion=v,ExpectedVersion=original.Card.Version};
+        var move=new MoveCardRequest{TargetColumnId=target,ExpectedBoardVersion=v,ExpectedVersion=original.Card.Version};
+        var mixed=await Task.WhenAll(c.PutAsJsonAsync($"/api/cards/{one.Card.Id}",edit),c.PostAsJsonAsync($"/api/cards/{one.Card.Id}/move",move));
+        Assert.Single(mixed,x=>x.StatusCode==HttpStatusCode.OK);Assert.Single(mixed,x=>x.StatusCode==HttpStatusCode.Conflict);
+        var saved=(await c.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{one.Card.Id}"))!;
+        if(mixed[0].StatusCode==HttpStatusCode.OK){Assert.Equal(edit.Title,saved.Card.Title);Assert.Equal(edit.Description,saved.Description);Assert.Equal(original.Card.ColumnId,saved.Card.ColumnId);}
+        else {Assert.Equal(original.Card.Title,saved.Card.Title);Assert.Equal(original.Description,saved.Description);Assert.Equal(target,saved.Card.ColumnId);}
+        rows=(await Cards(c,b.Id)).Items;Assert.Equal(2,rows.Select(x=>x.Id).Distinct().Count());Positions(rows.Where(x=>x.ColumnId==a.Id));Positions(rows.Where(x=>x.ColumnId==z.Id));
     }
     [SqlFact]
     public async Task LateMoveFailureRollsBackEveryPositionAndBothVersions()
