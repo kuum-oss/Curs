@@ -72,13 +72,17 @@ public sealed class DesktopOrderingUnitTests
         }
         public void Dispose(){View.Dispose();Services.Dispose();}
     }
-    [Fact]
-    public async Task OptimisticMoveAppearsBeforeReplyAndFailureRestoresExactOrder()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OptimisticMoveAppearsBeforeReplyAndFailureRestoresExactOrder(bool offline)
     {
         using var h=new Harness();await h.View.OpenAsync(h.Board);var move=h.View.MoveCardAsync(h.Card,h.Two);await h.Reached.Task.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Empty(h.View.Columns[0].Cards);Assert.Equal(h.Card,h.View.Columns[1].Cards[0].Card.Id);Assert.True(h.View.LastReorderFeedbackMilliseconds<100);
         var reads=h.Reads;await h.View.PollAsync();await h.View.PollAsync();Assert.Equal(reads,h.Reads);
-        h.Finish.SetResult(Response(new ApiProblem{Code="internal_error",Title="Помилка"},HttpStatusCode.InternalServerError));await move;
+        if (offline) h.Finish.SetException(new HttpRequestException("offline"));
+        else h.Finish.SetResult(Response(new ApiProblem{Code="internal_error",Title="Помилка"},HttpStatusCode.InternalServerError));
+        await move;
         Assert.Equal(h.Card,h.View.Columns[0].Cards[0].Card.Id);Assert.Empty(h.View.Columns[1].Cards);Assert.True(h.View.HasError);
     }
     [Fact]
