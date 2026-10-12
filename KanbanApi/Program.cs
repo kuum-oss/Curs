@@ -20,6 +20,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<BoardAccess>();
 builder.Services.AddScoped<BoardService>();
 builder.Services.AddScoped<ContentService>();
+builder.Services.AddScoped<OrderingService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
