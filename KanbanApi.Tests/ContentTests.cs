@@ -119,4 +119,42 @@ public sealed class ContentTests(SqlFixture fixture)
         var results=await Task.WhenAll(Enumerable.Range(0,2).Select(i=>c.PostAsJsonAsync($"/api/boards/{b.Id}/cards",new CreateCardRequest { ColumnId=col.Id,Title="Картка "+i,ExpectedBoardVersion=v })));
         Assert.Single(results,x=>x.StatusCode==HttpStatusCode.Created);Assert.Single(results,x=>x.StatusCode==HttpStatusCode.Conflict);Assert.Equal(1,(await c.GetFromJsonAsync<PagedResult<CardSummaryDto>>($"/api/boards/{b.Id}/cards"))!.TotalCount);
     }
+    [SqlFact]
+    public async Task EveryContentRouteRequiresAuthentication()
+    {
+        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=app.CreateClient();var b=Guid.NewGuid();var id=Guid.NewGuid();var version=Convert.ToBase64String(new byte[8]);
+        var routes=new (HttpMethod Method,string Path,object? Body)[] {
+            (HttpMethod.Get,$"/api/boards/{b}/columns",null),(HttpMethod.Post,$"/api/boards/{b}/columns",new CreateColumnRequest{Name="Колонка",ExpectedBoardVersion=version}),
+            (HttpMethod.Put,$"/api/boards/{b}/columns/{id}",new UpdateColumnRequest{Name="Колонка",ExpectedBoardVersion=version,ExpectedVersion=version}),(HttpMethod.Delete,$"/api/boards/{b}/columns/{id}"+Q(version,version),null),
+            (HttpMethod.Get,$"/api/boards/{b}/cards",null),(HttpMethod.Post,$"/api/boards/{b}/cards",new CreateCardRequest{Title="Картка",ColumnId=id,ExpectedBoardVersion=version}),
+            (HttpMethod.Get,$"/api/cards/{id}",null),(HttpMethod.Put,$"/api/cards/{id}",new UpdateCardRequest{Title="Картка",ExpectedBoardVersion=version,ExpectedVersion=version}),(HttpMethod.Delete,$"/api/cards/{id}"+Q(version,version),null),
+            (HttpMethod.Get,$"/api/boards/{b}/tags",null),(HttpMethod.Post,$"/api/boards/{b}/tags",new CreateTagRequest{Name="Тег",ExpectedBoardVersion=version}),
+            (HttpMethod.Get,$"/api/cards/{id}/comments",null),(HttpMethod.Post,$"/api/cards/{id}/comments",new CreateCommentRequest{Text="Коментар",ExpectedBoardVersion=version,ExpectedVersion=version})};
+        foreach(var route in routes) { using var request=new HttpRequestMessage(route.Method,route.Path);if(route.Body is not null)request.Content=JsonContent.Create(route.Body);Assert.Equal(HttpStatusCode.Unauthorized,(await c.SendAsync(request)).StatusCode); }
+    }
+    [SqlFact]
+    public async Task LateColumnDeletionFailureRollsBackCardsCommentsAndVersions()
+    {
+        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=Client(app,await User());var b=await Create(c);var col=await Col(c,b.Id);var card=await Card(c,b.Id,col.Id);
+        var comment=await Created<CommentDto>(await c.PostAsJsonAsync($"/api/cards/{card.Card.Id}/comments",new CreateCommentRequest{Text="Не втрачати",ExpectedBoardVersion=await V(c,b.Id),ExpectedVersion=card.Card.Version}));var version=await V(c,b.Id);
+        await using var db=fixture.CreateContext();
+        await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER Ph04ColumnFailure ON [Columns] AFTER DELETE AS BEGIN THROW 51000, 'Synthetic PH04 failure', 1; END;");
+        try
+        {
+            Assert.Equal(HttpStatusCode.InternalServerError,(await c.DeleteAsync($"/api/boards/{b.Id}/columns/{col.Id}"+Q(version,col.Version))).StatusCode);
+            Assert.Equal(version,await V(c,b.Id));Assert.True(await db.Columns.AnyAsync(x=>x.Id==col.Id));Assert.True(await db.Cards.AnyAsync(x=>x.Id==card.Card.Id));Assert.True(await db.Comments.AnyAsync(x=>x.Id==comment.Id));
+        }
+        finally { await db.Database.ExecuteSqlRawAsync("DROP TRIGGER Ph04ColumnFailure;"); }
+    }
+    [SqlFact]
+    public async Task FieldLimitsAndInvalidCommentDoNotAdvanceVersions()
+    {
+        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=Client(app,await User());var b=await Create(c);var col=await Col(c,b.Id);var card=await Card(c,b.Id,col.Id);var version=await V(c,b.Id);
+        Assert.Equal(HttpStatusCode.BadRequest,(await c.PostAsJsonAsync($"/api/boards/{b.Id}/columns",new CreateColumnRequest{Name=new('x',101),ExpectedBoardVersion=version})).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest,(await c.PostAsJsonAsync($"/api/boards/{b.Id}/tags",new CreateTagRequest{Name=new('x',51),ExpectedBoardVersion=version})).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest,(await c.PutAsJsonAsync($"/api/cards/{card.Card.Id}",new UpdateCardRequest{Title=new('x',201),ExpectedBoardVersion=version,ExpectedVersion=card.Card.Version})).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest,(await c.PutAsJsonAsync($"/api/cards/{card.Card.Id}",new UpdateCardRequest{Title="Назва",Description=new('x',10001),ExpectedBoardVersion=version,ExpectedVersion=card.Card.Version})).StatusCode);
+        foreach(var text in new[]{" ",new string('x',4001)})Assert.Equal(HttpStatusCode.BadRequest,(await c.PostAsJsonAsync($"/api/cards/{card.Card.Id}/comments",new CreateCommentRequest{Text=text,ExpectedBoardVersion=version,ExpectedVersion=card.Card.Version})).StatusCode);
+        Assert.Equal(version,await V(c,b.Id));Assert.Equal(card.Card.Version,(await c.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{card.Card.Id}"))!.Card.Version);
+    }
 }
