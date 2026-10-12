@@ -108,6 +108,10 @@ public sealed class ContentTests(SqlFixture fixture)
         using var app=ApiFoundationTests.Factory(fixture.ConnectionString);var person=await User();using var a=Client(app,await User());using var m=Client(app,person);var b=await Create(a);var col=await Col(a,b.Id);var card=await Card(a,b.Id,col.Id);
         await a.PostAsJsonAsync($"/api/boards/{b.Id}/members",new AddMemberRequest { Email=person.Email,ExpectedBoardVersion=await V(a,b.Id) });
         var comment=await Created<CommentDto>(await m.PostAsJsonAsync($"/api/cards/{card.Card.Id}/comments",new CreateCommentRequest { Text="Зберегти історію",ExpectedBoardVersion=await V(a,b.Id),ExpectedVersion=card.Card.Version }));
+        card=(await a.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{card.Card.Id}"))!;
+        var reply=await Created<CommentDto>(await a.PostAsJsonAsync($"/api/cards/{card.Card.Id}/comments",new CreateCommentRequest { Text="Відповідь адміністратора",ExpectedBoardVersion=await V(a,b.Id),ExpectedVersion=card.Card.Version }));
+        var thread=(await a.GetFromJsonAsync<PagedResult<CommentDto>>($"/api/cards/{card.Card.Id}/comments"))!;
+        Assert.Equal(2,thread.TotalCount);Assert.Equal(person.Id,thread.Items[0].Author.Id);Assert.NotEqual(person.Id,reply.Author.Id);Assert.Equal(reply.Author.Id,thread.Items[1].Author.Id);Assert.Equal(reply.Text,thread.Items[1].Text);
         card=(await a.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{card.Card.Id}"))!;var v=await V(a,b.Id);await a.DeleteAsync($"/api/boards/{b.Id}/members/{person.Id}?expectedBoardVersion="+Uri.EscapeDataString(v));
         Assert.Equal(HttpStatusCode.NotFound,(await m.GetAsync($"/api/cards/{card.Card.Id}")).StatusCode);Assert.Equal(HttpStatusCode.NotFound,(await m.PostAsJsonAsync($"/api/cards/{card.Card.Id}/comments",new CreateCommentRequest { Text="Немає доступу",ExpectedBoardVersion=v,ExpectedVersion=card.Card.Version })).StatusCode);
         Assert.Equal(comment.Id,(await a.GetFromJsonAsync<PagedResult<CommentDto>>($"/api/cards/{card.Card.Id}/comments"))!.Items[0].Id);

@@ -128,6 +128,10 @@ with (output / 'ph04-api.log').open('w') as log:
         request('DELETE',base+'/columns/'+col['id']+resource_query(col['version']),token=member,expected=403)
         request('DELETE',detail+resource_query(card['card']['version']),token=member,expected=403)
         request('DELETE',base+'/columns/'+empty['id']+resource_query(empty['version']),token=member,expected=204)
+        request('POST',detail+'/comments',{'text':'Коментар другого автора','expectedBoardVersion':fresh(),'expectedVersion':card['card']['version']},member,201)
+        card=request('GET',detail,token=admin)
+        thread=request('GET',detail+'/comments',token=member)
+        assert len({item['author']['id'] for item in thread['items']})==2
         disposable=request('POST',base+'/cards',{'title':'Тимчасова картка','columnId':col['id'],'expectedBoardVersion':fresh()},admin,201)
         request('DELETE','/api/cards/'+disposable['card']['id']+resource_query(disposable['card']['version']),token=admin,expected=204)
         assert request('GET',base+'/cards',token=admin)['totalCount']==1
