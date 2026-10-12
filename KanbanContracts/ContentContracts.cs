@@ -4,28 +4,28 @@ namespace KanbanContracts;
 
 public class BoardMutationRequest
 {
-    [Required, RowVersion] public string ExpectedBoardVersion { get; set; } = "";
+    [Required(ErrorMessage = "Оновіть дошку перед зміною."), RowVersion] public string ExpectedBoardVersion { get; set; } = "";
 }
 public class ResourceVersionQuery : BoardMutationRequest
 {
-    [Required, RowVersion] public string ExpectedVersion { get; set; } = "";
+    [Required(ErrorMessage = "Оновіть дані перед зміною."), RowVersion] public string ExpectedVersion { get; set; } = "";
 }
 public class CreateColumnRequest : BoardMutationRequest
 {
-    [Required, StringLength(FieldLimits.ColumnName)] public string Name { get; set; } = "";
+    [Required(ErrorMessage = "Введіть назву колонки."), StringLength(FieldLimits.ColumnName, ErrorMessage = "Назва колонки: не більше 100 символів.")] public string Name { get; set; } = "";
 }
 public sealed class UpdateColumnRequest : CreateColumnRequest
 {
-    [Required, RowVersion] public string ExpectedVersion { get; set; } = "";
+    [Required(ErrorMessage = "Оновіть дані перед зміною."), RowVersion] public string ExpectedVersion { get; set; } = "";
 }
 public class CardFieldsRequest : BoardMutationRequest
 {
-    [Required, StringLength(FieldLimits.CardTitle)] public string Title { get; set; } = "";
-    [StringLength(FieldLimits.CardDescription)] public string? Description { get; set; }
+    [Required(ErrorMessage = "Введіть назву картки."), StringLength(FieldLimits.CardTitle, ErrorMessage = "Назва картки: не більше 200 символів.")] public string Title { get; set; } = "";
+    [StringLength(FieldLimits.CardDescription, ErrorMessage = "Опис картки: не більше 10 000 символів.")] public string? Description { get; set; }
     public DateOnly? DueDate { get; set; }
-    [EnumDataType(typeof(CardPriority))] public CardPriority Priority { get; set; } = CardPriority.Medium;
+    [EnumDataType(typeof(CardPriority), ErrorMessage = "Оберіть допустимий пріоритет.")] public CardPriority Priority { get; set; } = CardPriority.Medium;
     public Guid? AssigneeId { get; set; }
-    [Required, MaxLength(100)] public List<Guid> TagIds { get; set; } = [];
+    [Required(ErrorMessage = "Передайте список тегів."), MaxLength(100, ErrorMessage = "Не більше 100 тегів на картку.")] public List<Guid> TagIds { get; set; } = [];
 }
 public sealed class CreateCardRequest : CardFieldsRequest
 {
@@ -33,19 +33,19 @@ public sealed class CreateCardRequest : CardFieldsRequest
 }
 public sealed class UpdateCardRequest : CardFieldsRequest
 {
-    [Required, RowVersion] public string ExpectedVersion { get; set; } = "";
+    [Required(ErrorMessage = "Оновіть дані перед зміною."), RowVersion] public string ExpectedVersion { get; set; } = "";
 }
 public sealed class CreateTagRequest : BoardMutationRequest
 {
-    [Required, StringLength(FieldLimits.TagName)] public string Name { get; set; } = "";
-    [Required, RegularExpression("^#[0-9A-Fa-f]{6}$")] public string Color { get; set; } = "#64748B";
+    [Required(ErrorMessage = "Введіть назву тегу."), StringLength(FieldLimits.TagName, ErrorMessage = "Назва тегу: не більше 50 символів.")] public string Name { get; set; } = "";
+    [Required(ErrorMessage = "Введіть колір тегу."), RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Колір тегу має формат #RRGGBB.")] public string Color { get; set; } = "#64748B";
 }
 public sealed class CreateCommentRequest : ResourceVersionQuery
 {
-    [Required, StringLength(FieldLimits.Comment)] public string Text { get; set; } = "";
+    [Required(ErrorMessage = "Введіть текст коментаря."), StringLength(FieldLimits.Comment, ErrorMessage = "Коментар: не більше 4000 символів.")] public string Text { get; set; } = "";
 }
 public sealed class PageQuery
 {
-    [Range(0, int.MaxValue)] public int Offset { get; set; }
-    [Range(1, 500)] public int Limit { get; set; } = 100;
+    [Range(0, int.MaxValue, ErrorMessage = "Зміщення не може бути від’ємним.")] public int Offset { get; set; }
+    [Range(1, 500, ErrorMessage = "Розмір сторінки: від 1 до 500.")] public int Limit { get; set; } = 100;
 }
