@@ -15,7 +15,7 @@ public sealed class DesktopFilterImageTests
     private sealed class Harness:IDisposable
     {
         public Guid Board=Guid.NewGuid(),Column=Guid.NewGuid(),Tag=Guid.NewGuid(),User=Guid.NewGuid();public ClientServices Services;public BoardContentViewModel View;
-        public List<string> Queries=[];public bool HoldOld;public bool OldCancelled;public DateOnly Today=new(2026,10,14);
+        public List<string> Queries=[];public bool Many;public bool HoldOld;public bool OldCancelled;public DateOnly Today=new(2026,10,14);
         public TaskCompletionSource OldReached=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Harness()
         {
@@ -29,6 +29,12 @@ public sealed class DesktopFilterImageTests
                     {OldReached.TrySetResult();try{await Task.Delay(Timeout.Infinite,t);}catch(OperationCanceledException){OldCancelled=true;throw;}}
                     var text=r.RequestUri.Query.Contains("search=new")?"new":"all";
                     body=new PagedResult<CardSummaryDto>([new(Guid.NewGuid(),Column,text,null,CardPriority.High,null,7,[],false,v)],1,0,100,v);
+                    if(Many)
+                    {
+                        var offset=r.RequestUri.Query.Contains("offset=100")?100:0;
+                        body=new PagedResult<CardSummaryDto>(Enumerable.Range(offset,Math.Min(100,101-offset)).Select(i=>new CardSummaryDto(Guid.NewGuid(),Column,text+i,null,CardPriority.High,null,i,[],false,v)).ToList(),101,offset,100,v);
+                    }
+
                 }
                 else if(path.EndsWith("/columns"))body=new[]{new ColumnDto(Column,Board,"Колонка",0,v)};
                 else if(path.EndsWith("/tags"))body=new[]{new TagDto(Tag,"Тег","#64748B")};
@@ -46,6 +52,13 @@ public sealed class DesktopFilterImageTests
         h.View.Search="завдання %";h.View.FilterPriority=h.View.PriorityFilters.Single(p=>p.Value==CardPriority.High);h.View.FilterTag=h.View.TagFilters.Single(t=>t.Id==h.Tag);h.View.FilterAssignee=h.View.AssigneeFilters.Single(a=>a.Id==h.User);h.View.FilterDeadline=h.View.DeadlineFilters.Single(d=>d.Value==DeadlineFilter.Today);
         Assert.False(h.View.CanDragCards);await h.View.Filtering;var q=Assert.Single(h.Queries);Assert.Contains("search="+Uri.EscapeDataString("завдання %"),q);Assert.Contains("priority=High",q);Assert.Contains("tagId="+h.Tag,q);Assert.Contains("assigneeId="+h.User,q);Assert.Contains("deadline=Today&today=2026-10-14",q);Assert.True(h.View.CanDragColumns);Assert.False(h.View.CanDragCards);Assert.Equal(7,h.View.Columns[0].Cards[0].Card.Position);
         h.View.ResetFilters();await h.View.Filtering;Assert.DoesNotContain("search=",h.Queries.Last());Assert.DoesNotContain("priority=",h.Queries.Last());Assert.True(h.View.CanDragCards);
+    }
+    [Fact]
+    public async Task FilteredSnapshotLoadsEveryPageAndResetEnablesCardMovesOnlyAfterCompletion()
+    {
+        using var h=new Harness();await h.View.OpenAsync(h.Board);h.Many=true;h.Queries.Clear();h.View.FilterPriority=h.View.PriorityFilters.Single(p=>p.Value==CardPriority.High);await h.View.Filtering;
+        Assert.Equal(2,h.Queries.Count);Assert.All(h.Queries,q=>Assert.Contains("priority=High",q));Assert.Contains("offset=100",h.Queries[1]);Assert.Equal(101,h.View.Columns[0].Cards.Count);Assert.True(h.View.CanDragColumns);Assert.False(h.View.CanDragCards);
+        h.View.ResetFilters();Assert.False(h.View.CanDragCards);await h.View.Filtering;Assert.True(h.View.CanDragCards);Assert.Equal(101,h.View.Columns[0].Cards.Count);
     }
     [Fact]
     public async Task NewSearchCancelsOldRequestAndOldReplyCannotPublish()
