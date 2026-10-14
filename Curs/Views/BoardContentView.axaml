@@ -11,6 +11,23 @@
             <TextBlock Text="{Binding Status}" Foreground="#237A4B" TextWrapping="Wrap" />
             <TextBlock Text="{Binding SyncMessage}" TextWrapping="Wrap" Foreground="#58677D" />
             <TextBlock Text="Перетягуйте заголовки колонок або картки, щоб змінити порядок. Для цього закрийте редактор." TextWrapping="Wrap" Foreground="#58677D" />
+            <TextBox Text="{Binding Search,Mode=TwoWay}" Watermark="Пошук за назвою" MaxLength="200" IsEnabled="{Binding CanFilter}" />
+            <WrapPanel>
+                <ComboBox ItemsSource="{Binding PriorityFilters}" SelectedItem="{Binding FilterPriority,Mode=TwoWay}" IsEnabled="{Binding CanFilter}" Margin="0,0,12,12">
+                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:PriorityFilterOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+                <ComboBox ItemsSource="{Binding TagFilters}" SelectedItem="{Binding FilterTag,Mode=TwoWay}" IsEnabled="{Binding CanFilter}" Margin="0,0,12,12">
+                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:TagFilterOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+                <ComboBox ItemsSource="{Binding AssigneeFilters}" SelectedItem="{Binding FilterAssignee,Mode=TwoWay}" IsEnabled="{Binding CanFilter}" Margin="0,0,12,12">
+                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AssigneeOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+                <ComboBox ItemsSource="{Binding DeadlineFilters}" SelectedItem="{Binding FilterDeadline,Mode=TwoWay}" IsEnabled="{Binding CanFilter}" Margin="0,0,12,12">
+                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:DeadlineFilterOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Content="Скинути фільтри" Command="{Binding ResetFiltersCommand}" Margin="0,0,0,12" />
+            </WrapPanel>
+            <TextBlock Text="Переміщення карток вимкнено за активних фільтрів. Колонки можна переставляти." IsVisible="{Binding CardsFiltered}" TextWrapping="Wrap" Foreground="#58677D" />
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" MaxHeight="450">
                 <ItemsControl ItemsSource="{Binding Columns}">
                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
@@ -29,8 +46,9 @@
                                                 <DataTemplate x:DataType="vm:CardItemViewModel">
                                                     <Border Background="White" Padding="12" Margin="0,0,0,10" CornerRadius="8"
                                                             PointerPressed="DragPressed" PointerMoved="DragMoved" PointerReleased="DragReleased" PointerCaptureLost="DragCaptureLost"
-                                                            Tag="CardDropTarget">
+                                                            Tag="CardDropTarget" AttachedToVisualTree="CoverAttached">
                                                         <StackPanel Spacing="8">
+                                                            <Image Source="{Binding Thumbnail}" Height="145" Stretch="UniformToFill" IsVisible="{Binding HasImage}" />
                                                             <TextBlock Text="{Binding Title}" TextWrapping="Wrap" FontWeight="SemiBold" />
                                                             <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" Foreground="#58677D" />
                                                             <TextBlock Text="{Binding Tags}" TextWrapping="Wrap" Foreground="#234E8D" />
@@ -79,6 +97,13 @@
                     <ComboBox ItemsSource="{Binding Assignees}" SelectedItem="{Binding Assignee,Mode=TwoWay}" IsEnabled="{Binding CanEdit}">
                         <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AssigneeOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
                     </ComboBox>
+                    <TextBlock Text="Фото-обкладинка" FontSize="18" />
+                    <TextBlock Text="Спочатку збережіть картку. JPG, PNG, WEBP — до 5 МіБ." TextWrapping="Wrap" />
+                    <Image Source="{Binding FullImage}" MaxHeight="400" Stretch="Uniform" IsVisible="{Binding HasCover}" />
+                    <WrapPanel>
+                        <Button Content="Завантажити / замінити фото" Click="ChooseCover" IsEnabled="{Binding CanChangeCover}" Margin="0,0,12,0" />
+                        <Button Content="Прибрати фото" Command="{Binding RemoveCoverCommand}" IsVisible="{Binding HasCover}" />
+                    </WrapPanel>
                     <TextBlock Text="Теги" />
                     <ItemsControl ItemsSource="{Binding Tags}" IsEnabled="{Binding CanEdit}">
                         <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>

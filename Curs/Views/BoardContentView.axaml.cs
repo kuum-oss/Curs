@@ -2,6 +2,10 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.IO;
+using Avalonia.Platform.Storage;
+using Avalonia.Interactivity;
+using KanbanContracts;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -16,6 +20,7 @@ namespace Curs.Views;
 [SuppressMessage("ReSharper", "PartialTypeWithSinglePart", Justification = "Avalonia generates a second class declaration during compilation.")]
 public partial class BoardContentView : UserControl
 {
+    private readonly DispatcherTimer covers = new() { Interval = TimeSpan.FromMilliseconds(100) };
     private readonly DispatcherTimer poll = new() { Interval = TimeSpan.FromSeconds(5) };
     private readonly DispatcherTimer scroll = new() { Interval = TimeSpan.FromMilliseconds(40) };
     private Control? candidate;
@@ -34,10 +39,41 @@ public partial class BoardContentView : UserControl
     public BoardContentView()
     {
         AvaloniaXamlLoader.Load(this);
-        poll.Tick += async (_, _) => { if (Model is { } model) await model.PollAsync(); };
+        poll.Tick += async (_, _) => { if (Model is { } model) await model.PollAsync(); covers.Start(); };
+        covers.Tick += (_,_) => { covers.Stop(); LoadVisibleCovers(); };
+        AddHandler(ScrollViewer.ScrollChangedEvent, (_,_) => covers.Start());
         scroll.Tick += (_, _) => ScrollAtEdges();
-        AttachedToVisualTree += (_, _) => poll.Start();
-        DetachedFromVisualTree += (_, _) => { poll.Stop(); CancelDrag(); };
+        AttachedToVisualTree += (_, _) => { poll.Start(); covers.Start(); };
+        DetachedFromVisualTree += (_, _) => { poll.Stop(); covers.Stop(); CancelDrag(); };
+    }
+    private void CoverAttached(object? sender, Avalonia.VisualTreeAttachmentEventArgs e) => covers.Start();
+    private void LoadVisibleCovers()
+    {
+        if(Model is not {} model)return;
+        foreach(var border in this.GetVisualDescendants().OfType<Border>().Where(b=>b.Tag is "CardDropTarget"))
+        {
+            if(border.DataContext is not CardItemViewModel row||!row.HasImage||border.Bounds.Width==0)continue;
+            var visible=true;
+            foreach(var clip in border.GetVisualAncestors().OfType<Control>().Where(c=>c is ScrollViewer||c is TopLevel))
+            {
+                if(border.TranslatePoint(new Point(),clip) is not {} origin||!new Rect(origin,border.Bounds.Size).Intersects(new Rect(clip.Bounds.Size))){visible=false;break;}
+            }
+            if(visible)_ = model.LoadThumbnailAsync(row);
+        }
+    }
+    private async void ChooseCover(object? sender,RoutedEventArgs e)
+    {
+        if(Model is not {} model||!model.CanChangeCover||TopLevel.GetTopLevel(this) is not {} root)return;
+        var board=model.BoardId;var card=model.EditingCardId;
+        try
+        {
+            var files=await root.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions {Title="Фото-обкладинка",AllowMultiple=false,FileTypeFilter=[new FilePickerFileType("JPG, PNG, WEBP"){Patterns=["*.jpg","*.jpeg","*.png","*.webp"],MimeTypes=["image/jpeg","image/png","image/webp"]}]});
+            if(files.Count==0||(model.BoardId!=board||model.EditingCardId!=card)||!model.CanChangeCover)return;
+            await using var input=await files[0].OpenReadAsync();using var bytes=new MemoryStream();var chunk=new byte[65536];int read;
+            while((read=await input.ReadAsync(chunk))!=0){if(bytes.Length+read>ImageLimits.MaxBytes){model.ImageError("Фото: не більше 5 МіБ.");return;}await bytes.WriteAsync(chunk.AsMemory(0,read));}
+            if(model.BoardId==board&&model.EditingCardId==card&&model.CanChangeCover)await model.UploadCoverAsync(bytes.ToArray(),files[0].Name);
+        }
+        catch(Exception){model.ImageError("Не вдалося відкрити фото.");}
     }
     private void DragPressed(object? sender, PointerPressedEventArgs e)
     {

@@ -8,11 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Curs.Services;
 using KanbanContracts;
+using Avalonia.Media.Imaging;
+using System.IO;
 
 namespace Curs.ViewModels;
 
-public sealed class CardItemViewModel
+public sealed class CardItemViewModel : ViewModelBase, IDisposable
 {
+    private Bitmap? thumbnail;
+    public Bitmap? Thumbnail { get => thumbnail; internal set { thumbnail = value; Notify(); } }
+    internal bool ImageRequested;
+    public bool HasImage => Card.HasImage;
+    public void Dispose() { var old = Thumbnail; Thumbnail = null; old?.Dispose(); }
     public CardSummaryDto Card { get; }
     public string Title => Card.Title;
     public string Summary => $"{Card.Priority} · {Card.DueDate?.ToString("yyyy-MM-dd") ?? "Без дедлайну"}\n{Card.Assignee?.Name ?? "Без відповідального"}";
@@ -52,8 +59,103 @@ public sealed record CommentItemViewModel(CommentDto Comment)
     public string Text => Comment.Text;
 }
 
+public sealed record PriorityFilterOption(CardPriority? Value, string Name);
+public sealed record DeadlineFilterOption(DeadlineFilter? Value, string Name);
+public sealed record TagFilterOption(Guid? Id, string Name);
+
 public sealed class BoardContentViewModel : ViewModelBase, IDisposable
 {
+    private CancellationTokenSource? filterDelay;
+    private CancellationTokenSource imagesLifetime = new();
+    private int filterRevision;
+    private readonly Func<DateOnly> localToday;
+    private DateOnly loadedFilterDay;
+    private bool filtering, suppressFilters;
+    private string search = "";
+    private PriorityFilterOption? filterPriority;
+    private DeadlineFilterOption? filterDeadline;
+    private TagFilterOption? filterTag;
+    private AssigneeOption? filterAssignee;
+    private Bitmap? fullImage;
+    public Bitmap? FullImage { get => fullImage; private set { var old=fullImage; fullImage=value; Notify(); old?.Dispose(); } }
+    public Guid? EditingCardId => selectedCard?.Card.Id;
+    public bool HasCover => selectedCard?.Card.HasImage == true;
+    public bool CanChangeCover => ExistingCard && CanEdit && !polling;
+    public bool CanFilter => !IsBusy || filtering;
+    public string Search { get => search; set { if(search==value)return; search=value; Notify(); ScheduleFilters(); } }
+    public PriorityFilterOption? FilterPriority { get => filterPriority; set { if(filterPriority==value)return; filterPriority=value; Notify(); ScheduleFilters(); } }
+    public DeadlineFilterOption? FilterDeadline { get => filterDeadline; set { if(filterDeadline==value)return; filterDeadline=value; Notify(); ScheduleFilters(); } }
+    public TagFilterOption? FilterTag { get => filterTag; set { if(filterTag==value)return; filterTag=value; Notify(); ScheduleFilters(); } }
+    public AssigneeOption? FilterAssignee { get => filterAssignee; set { if(filterAssignee==value)return; filterAssignee=value; Notify(); ScheduleFilters(); } }
+    public PriorityFilterOption[] PriorityFilters { get; } = [new(null,"Усі пріоритети"),..Enum.GetValues<CardPriority>().Select(p=>new PriorityFilterOption(p,p.ToString()))];
+    public DeadlineFilterOption[] DeadlineFilters { get; } = [new(null,"Усі дедлайни"),new(DeadlineFilter.Overdue,"Прострочені"),new(DeadlineFilter.Today,"Сьогодні"),new(DeadlineFilter.Upcoming,"Майбутні")];
+    public ObservableCollection<TagFilterOption> TagFilters { get; } = [];
+    public ObservableCollection<AssigneeOption> AssigneeFilters { get; } = [];
+    public ActionCommand ResetFiltersCommand { get; }
+    public ActionCommand RemoveCoverCommand { get; }
+    public Task Filtering { get; private set; } = Task.CompletedTask;
+    private CardQuery Query() => new() { Search=Search,Priority=FilterPriority?.Value,TagId=FilterTag?.Id,AssigneeId=FilterAssignee?.Id,Deadline=FilterDeadline?.Value,Today=localToday() };
+    private void ScheduleFilters()
+    {
+        if(suppressFilters)return;
+        filterRevision++; CardsFiltered=!string.IsNullOrWhiteSpace(Search)||FilterPriority?.Value is not null||FilterTag?.Id is not null||FilterAssignee?.Id is not null||FilterDeadline?.Value is not null;
+        filterDelay?.Cancel();filterDelay?.Dispose();filterDelay=new(); if(filtering)operation?.Cancel();
+        if(board is null)return;
+        complete=false;NotifyDrag(); var id=board.Id; var revision=filterRevision; var token=filterDelay.Token;
+        Filtering=Apply();
+        async Task Apply()
+        {
+            try
+            {
+                await Task.Delay(300,token);
+                while(IsBusy||polling||IsDragging){await Task.Delay(30,token);}
+                token.ThrowIfCancellationRequested(); if(revision!=filterRevision||BoardId!=id)return;
+                filtering=true;Notify(nameof(CanFilter));
+                try{await Run(t=>Load(id,t));}finally{filtering=false;Notify(nameof(CanFilter));}
+            }
+            catch(OperationCanceledException) { }
+        }
+    }
+    public void ResetFilters()
+    {
+        suppressFilters=true; Search=""; FilterPriority=PriorityFilters[0];FilterDeadline=DeadlineFilters[0];FilterTag=TagFilters.FirstOrDefault();FilterAssignee=AssigneeFilters.FirstOrDefault();suppressFilters=false;ScheduleFilters();
+    }
+    private void DisposeRows() { foreach(var row in Columns.SelectMany(c=>c.Cards))row.Dispose(); }
+    private void CancelImages(){imagesLifetime.Cancel();imagesLifetime.Dispose();imagesLifetime=new();}
+    public async Task LoadThumbnailAsync(CardItemViewModel row)
+    {
+        if(row.ImageRequested||!row.Card.HasImage||board is null)return; row.ImageRequested=true;
+        var token=imagesLifetime.Token; var id=board.Id;
+        try
+        {
+            var bytes=await services.Images.Read(row.Card.Id,row.Card.Version,true,token);token.ThrowIfCancellationRequested();
+            if(BoardId!=id||!Columns.Any(c=>c.Cards.Contains(row)))return;
+            row.Thumbnail=new Bitmap(new MemoryStream(bytes));
+        }
+        catch(OperationCanceledException) { }
+        catch(ApiClientException ex) when(ex.Status==404) { services.Images.Clear(); row.ImageRequested=false; }
+        catch(Exception) { row.ImageRequested=false; }
+    }
+    private async Task LoadFullImage(CancellationToken token)
+    {
+        if(selectedCard is not {Card.HasImage:true} card){FullImage=null;return;}
+        var bytes=await services.Images.Read(card.Card.Id,card.Card.Version,false,token);token.ThrowIfCancellationRequested();
+        FullImage=new Bitmap(new MemoryStream(bytes));
+    }
+    public Task UploadCoverAsync(byte[] bytes,string filename)=>Run(async token=>
+    {
+        if(board is null||selectedCard is null)return;
+        if(bytes.Length>ImageLimits.MaxBytes){Error="Фото: не більше 5 МіБ.";return;}
+        await services.Images.Upload(selectedCard.Card.Id,bytes,filename,new(){ExpectedBoardVersion=board.Version,ExpectedVersion=selectedCard.Card.Version},token);
+        token.ThrowIfCancellationRequested();services.Images.Clear();selectedCard=await services.Content.Card(selectedCard.Card.Id,token);await Load(board.Id,token);await LoadFullImage(token);NotifyState();Status="Обкладинку збережено.";
+    });
+    public Task RemoveCoverAsync()=>Run(async token=>
+    {
+        if(board is null||selectedCard is null)return;
+        await services.Images.Delete(selectedCard.Card.Id,new(){ExpectedBoardVersion=board.Version,ExpectedVersion=selectedCard.Card.Version},token);
+        token.ThrowIfCancellationRequested();services.Images.Clear();FullImage=null;selectedCard=await services.Content.Card(selectedCard.Card.Id,token);await Load(board.Id,token);NotifyState();Status="Обкладинку прибрано.";
+    });
+    public void ImageError(string message){Error=message;}
     private readonly ClientServices services;
     private CancellationTokenSource? operation;
     private BoardDetailsDto? board;
@@ -118,9 +220,12 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     public ActionCommand ConfirmCommand { get; }
     public ActionCommand CancelCommand { get; }
 
-    public BoardContentViewModel(ClientServices services)
+    public BoardContentViewModel(ClientServices services, Func<DateOnly>? localToday = null)
     {
-        this.services = services;
+        this.services = services; this.localToday=localToday??(()=>DateOnly.FromDateTime(DateTime.Today));
+        filterPriority=PriorityFilters[0];filterDeadline=DeadlineFilters[0];
+        ResetFiltersCommand=new ActionCommand(ResetFilters,()=>CanFilter);
+        RemoveCoverCommand=new ActionCommand(()=>_ = RemoveCoverAsync(),()=>CanChangeCover&&HasCover);
         RefreshCommand = Command(RefreshAsync);
         CreateColumnCommand = Command(CreateColumnAsync);
         RenameColumnCommand = Command(RenameColumnAsync, () => HasColumn);
@@ -144,7 +249,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         return Run(async token =>
         {
             var current = await services.Boards.GetAsync(board.Id, token); token.ThrowIfCancellationRequested();
-            if (current.Version == board.Version) return;
+            if (current.Version == board.Version && (FilterDeadline?.Value is null || loadedFilterDay==localToday())) return;
             if (EditorVisible || HasColumn)
             {
                 // Keep the original versions and draft fields; the next write must still detect a conflict.
@@ -156,6 +261,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private async Task Load(Guid id, CancellationToken token)
     {
+        var revision=filterRevision;var query=Query();
         var metadata = await services.Boards.GetAsync(id, token);
         var columns = await services.Content.Columns(id, token);
         var tags = await services.Content.Tags(id, token);
@@ -164,14 +270,15 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         PagedResult<CardSummaryDto> page;
         do
         {
-            page = await services.Content.Cards(id, cards.Count, token);
+            page = await services.Content.Cards(id, cards.Count, token, query);
             if (page.BoardVersion != metadata.Version || (page.Items.Count == 0 && cards.Count < page.TotalCount)) throw Conflict();
             cards.AddRange(page.Items);
         } while (cards.Count < page.TotalCount);
         var latest = await services.Boards.GetAsync(id, token); token.ThrowIfCancellationRequested();
         if (latest.Version != metadata.Version) throw Conflict();
+        if(revision!=filterRevision)throw new OperationCanceledException();
         var tagIds = Tags.Where(t => t.Selected).Select(t => t.Tag.Id).ToHashSet(); var assigneeId = Assignee?.Id;
-        board = metadata; Columns.Clear();
+        CancelImages();DisposeRows();board = metadata; Columns.Clear();
         foreach (var col in columns)
         {
             var row = new ColumnItemViewModel(col, this); foreach (var card in cards.Where(c => c.ColumnId == col.Id)) row.Cards.Add(new CardItemViewModel(card, this)); Columns.Add(row);
@@ -180,7 +287,14 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         Tags.Clear(); foreach (var t in tags) Tags.Add(new TagChoiceViewModel(t) { Selected = tagIds.Contains(t.Id) });
         Assignees.Clear(); Assignees.Add(new(null, "Без відповідального")); foreach (var member in members) Assignees.Add(new(member.User.Id, member.User.Name));
         Assignee = Assignees.FirstOrDefault(a => a.Id == assigneeId) ?? Assignees[0];
-        complete = true; RemoteChangesPending = false; SyncMessage = "Оновлення кожні 5 секунд."; NotifyState();
+        suppressFilters=true;
+        var oldTag=FilterTag;var oldAssignee=FilterAssignee;
+        TagFilters.Clear();TagFilters.Add(new(null,"Усі теги"));foreach(var tag in tags)TagFilters.Add(new(tag.Id,tag.Name));
+        if(oldTag?.Id is {} oldTagId&&TagFilters.All(t=>t.Id!=oldTagId))TagFilters.Add(oldTag);
+        AssigneeFilters.Clear();AssigneeFilters.Add(new(null,"Усі відповідальні"));foreach(var member in members)AssigneeFilters.Add(new(member.User.Id,member.User.Name));
+        if(oldAssignee?.Id is {} oldUser&&AssigneeFilters.All(a=>a.Id!=oldUser))AssigneeFilters.Add(oldAssignee);
+        FilterTag=TagFilters.FirstOrDefault(t=>t.Id==oldTag?.Id)??TagFilters[0];FilterAssignee=AssigneeFilters.FirstOrDefault(a=>a.Id==oldAssignee?.Id)??AssigneeFilters[0];suppressFilters=false;
+        loadedFilterDay=query.Today??localToday();complete = true; RemoteChangesPending = false; SyncMessage = "Оновлення кожні 5 секунд."; NotifyState();
     }
     private static ApiClientException Conflict() => new(409, new ApiProblem { Code = "concurrency_conflict", Title = "Дошку змінено під час завантаження. Оновіть дані." });
     public void SelectColumn(ColumnItemViewModel row) { if (IsBusy) return; CloseEditor(); selectedColumn = row.Column; ColumnName = row.Name; NotifyState(); }
@@ -210,7 +324,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         Title = card.Card.Title; Description = card.Description ?? ""; DueDate = card.Card.DueDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? ""; Priority = card.Card.Priority;
         Assignee = Assignees.FirstOrDefault(a => a.Id == card.Card.Assignee?.Id) ?? Assignees.FirstOrDefault();
         foreach (var tag in Tags) tag.Selected = card.Card.Tags.Any(t => t.Id == tag.Tag.Id);
-        Comments.Clear(); foreach (var c in comments) Comments.Add(new(c)); CommentText = ""; EditorVisible = true; CancelConfirmation(); NotifyState();
+        Comments.Clear(); foreach (var c in comments) Comments.Add(new(c)); CommentText = ""; EditorVisible = true; CancelConfirmation(); await LoadFullImage(token); NotifyState();
     });
     private async Task<System.Collections.Generic.List<CommentDto>> GetComments(Guid card, CancellationToken token)
     {
@@ -265,7 +379,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         else return;
         token.ThrowIfCancellationRequested(); CloseEditor(); selectedColumn = null; await Load(board.Id, token); NotifyState(); Status = "Видалення завершено.";
     });
-    public void CloseEditor() { selectedCard = null; selectedColumn = null; ColumnName = ""; Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
+    public void CloseEditor() { FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
 
     public bool BeginDrag(Guid id, bool card)
     {
@@ -369,6 +483,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private void NotifyDrag()
     {
+        Notify(nameof(CanFilter));Notify(nameof(HasCover));Notify(nameof(CanChangeCover));RemoveCoverCommand.Refresh();ResetFiltersCommand.Refresh();
         Notify(nameof(CanDragColumns)); Notify(nameof(CanDragCards)); Notify(nameof(IsComplete));
     }
     private void RefreshCommands()
@@ -378,6 +493,8 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private void ClearData()
     {
+        filterDelay?.Cancel();filterRevision++;CancelImages();DisposeRows();FullImage=null;services.Images.Clear();
+        suppressFilters=true;Search="";FilterPriority=PriorityFilters[0];FilterDeadline=DeadlineFilters[0];FilterTag=null;FilterAssignee=null;TagFilters.Clear();AssigneeFilters.Clear();suppressFilters=false;
         board = null; complete = false; dragging = false; filtered = false; RemoteChangesPending = false;
         SyncMessage = "Оновлення кожні 5 секунд.";
         selectedColumn = null; selectedCard = null; Columns.Clear(); Tags.Clear(); Assignees.Clear(); Comments.Clear();
