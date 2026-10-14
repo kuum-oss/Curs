@@ -44,7 +44,7 @@ public sealed class CreateCommentRequest : ResourceVersionQuery
 {
     [Required(ErrorMessage = "Введіть текст коментаря."), StringLength(FieldLimits.Comment, ErrorMessage = "Коментар: не більше 4000 символів.")] public string Text { get; set; } = "";
 }
-public sealed class PageQuery
+public class PageQuery
 {
     [Range(0, int.MaxValue, ErrorMessage = "Зміщення не може бути від’ємним.")] public int Offset { get; set; }
     [Range(1, 500, ErrorMessage = "Розмір сторінки: від 1 до 500.")] public int Limit { get; set; } = 100;
