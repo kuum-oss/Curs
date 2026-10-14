@@ -71,6 +71,19 @@ public sealed class FilterImageTests(SqlFixture fixture)
         using var invalid=new MultipartFormDataContent();invalid.Add(new ByteArrayContent(good),"File","x.png");Assert.Equal(HttpStatusCode.BadRequest,(await c.PutAsync($"/api/cards/{s.Card.Id}/image",invalid)).StatusCode);
     }
     [SqlFact]
+    public async Task ExactFiveMiBValidPngIsAcceptedAndOneExtraByteIsRejected()
+    {
+        var s=await Seed();using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=Client(app,s.User);
+        var png=Image(MagickFormat.Png,10,10);var length=ImageLimits.MaxBytes-png.Length-12;var chunk=new byte[length+12];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(chunk,length);"tEXt"u8.CopyTo(chunk.AsSpan(4));"Comment\0"u8.CopyTo(chunk.AsSpan(8));chunk.AsSpan(16,length-8).Fill((byte)'x');
+        uint crc=uint.MaxValue;foreach(var value in chunk.AsSpan(4,length+4)){crc^=value;for(var bit=0;bit<8;bit++)crc=(crc&1)!=0?(crc>>1)^0xedb88320u:crc>>1;}
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(chunk.AsSpan(length+8),~crc);
+        var bytes=png[..^12].Concat(chunk).Concat(png[^12..]).ToArray();Assert.Equal(ImageLimits.MaxBytes,bytes.Length);
+        Assert.Equal(HttpStatusCode.OK,(await Put(c,s.Board.Id,s.Card.Id,bytes)).StatusCode);
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge,(await Put(c,s.Board.Id,s.Card.Id,bytes.Concat(new byte[]{0}).ToArray())).StatusCode);
+        Assert.Equal(bytes,await c.GetByteArrayAsync($"/api/cards/{s.Card.Id}/image"));
+    }
+    [SqlFact]
     public async Task ImageRoutesHideForeignCardsAndOldTokensAfterRevocation()
     {
         var s=await Seed();var outsider=await Seed();using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var owner=Client(app,s.User);using var other=Client(app,outsider.User);using var anonymous=app.CreateClient();var image=Image(MagickFormat.WebP);await Put(owner,s.Board.Id,s.Card.Id,image);
