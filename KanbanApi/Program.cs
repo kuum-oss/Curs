@@ -39,6 +39,12 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
     {
+        if (context.HttpContext.Request.Path.Value?.EndsWith("/image",StringComparison.Ordinal)==true &&
+            (context.HttpContext.Request.ContentLength > KanbanContracts.ImageLimits.RequestBytes ||
+             context.ModelState.Values.SelectMany(v=>v.Errors).Any(e=>e.Exception is BadHttpRequestException {StatusCode:413} || e.Exception?.InnerException is BadHttpRequestException {StatusCode:413})))
+            return new ObjectResult(new ProblemDetails { Status=413,Title="Фото: не більше 5 МіБ.",Extensions={ ["code"]="image_too_large" } })
+                {StatusCode=413,ContentTypes={"application/problem+json"}};
+
         var problem = new ValidationProblemDetails(context.ModelState)
         {
             Status = 400, Title = "Дані запиту некоректні.",

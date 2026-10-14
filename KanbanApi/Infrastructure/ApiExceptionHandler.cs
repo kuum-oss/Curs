@@ -12,6 +12,7 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problems) : IExce
         var (status, code, message) = exception switch
         {
             ApiException known when known.Status is >= 400 and < 500 => (known.Status, known.Code, known.Message),
+            BadHttpRequestException { StatusCode: 413 } => (413, "image_too_large", "Запит завеликий. Фото: не більше 5 МіБ."),
             DbUpdateConcurrencyException => (409, "concurrency_conflict", "Дані змінилися. Оновіть їх і повторіть дію."),
             _ => (500, "internal_error", "Не вдалося виконати запит."),
         };
