@@ -25,7 +25,7 @@ public sealed class ContentController(ContentService content) : ControllerBase
         await content.DeleteColumn(boardId, columnId, UserId, request, token); return NoContent();
     }
     [HttpGet("boards/{boardId:guid}/cards")]
-    public async Task<IActionResult> Cards(Guid boardId, [FromQuery] PageQuery page, CancellationToken token) => Ok(await content.Cards(boardId, UserId, page, token));
+    public async Task<IActionResult> Cards(Guid boardId, [FromQuery] CardQuery page, CancellationToken token) => Ok(await content.Cards(boardId, UserId, page, token));
     [HttpPost("boards/{boardId:guid}/cards")]
     public async Task<IActionResult> CreateCard(Guid boardId, CreateCardRequest request, CancellationToken token)
     {

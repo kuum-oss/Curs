@@ -65,7 +65,7 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
         await db.Comments.Where(x => ids.Contains(x.CardId)).ExecuteDeleteAsync(token);
         await cards.ExecuteDeleteAsync(token);
     }
-    public async Task<PagedResult<CardSummaryDto>> Cards(Guid boardId, Guid userId, PageQuery page, CancellationToken token)
+    public async Task<PagedResult<CardSummaryDto>> Cards(Guid boardId, Guid userId, CardQuery page, CancellationToken token)
     {
         await access.RequireAsync(boardId, userId, false, token);
         // Hold a consistent read view for this page and its version, including tag/assignee metadata.
@@ -74,6 +74,22 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, token);
         var board = await db.Boards.AsNoTracking().SingleOrDefaultAsync(x => x.Id == boardId, token) ?? throw Missing();
         var query = BoardCards(boardId).AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(page.Search))
+        {
+            var term = page.Search.Trim();
+            query = query.Where(c => EF.Functions.Collate(c.Title, "Latin1_General_100_CI_AS_SC").Contains(term));
+        }
+        if (page.Priority is { } priority) query = query.Where(c => c.Priority == priority);
+        if (page.TagId is { } tag) query = query.Where(c => db.CardTags.Any(ct => ct.CardId == c.Id && ct.TagId == tag));
+        if (page.AssigneeId is { } assignee) query = query.Where(c => c.AssigneeId == assignee);
+        if (page.Deadline is { } deadline && page.Today is { } today)
+            query = deadline switch
+            {
+                DeadlineFilter.Overdue => query.Where(c => c.DueDate < today),
+                DeadlineFilter.Today => query.Where(c => c.DueDate == today),
+                _ => query.Where(c => c.DueDate > today),
+            };
+
         var total = await query.CountAsync(token);
         var rows = await (from c in query join col in db.Columns on c.ColumnId equals col.Id
                           orderby col.Position, c.Position, c.Id select c).Skip(page.Offset).Take(page.Limit).ToListAsync(token);
