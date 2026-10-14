@@ -42,6 +42,29 @@ public sealed class ApiClient(HttpClient http)
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         if (payload is not null) request.Content = JsonContent.Create(payload, options: Json);
         using var response = await http.SendAsync(request, cancellationToken);
+        await EnsureSuccess(response, cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NoContent) return default;
+        return await response.Content.ReadFromJsonAsync<T>(Json, cancellationToken);
+    }
+    public async Task<byte[]> BytesAsync(string path, CancellationToken token)
+    {
+        ValidatePath(path);
+        using var response = await http.GetAsync(path, token); await EnsureSuccess(response, token);
+        return await response.Content.ReadAsByteArrayAsync(token);
+    }
+    public async Task<T?> MultipartAsync<T>(string path, HttpContent content, CancellationToken token)
+    {
+        ValidatePath(path);
+        using var response = await http.PutAsync(path, content, token); await EnsureSuccess(response, token);
+        return await response.Content.ReadFromJsonAsync<T>(Json, token);
+    }
+    private static void ValidatePath(string path)
+    {
+        if (!Uri.TryCreate(path, UriKind.Relative, out _) || path.StartsWith("//", StringComparison.Ordinal))
+            throw new ArgumentException("Use a relative API path.", nameof(path));
+    }
+    private static async Task EnsureSuccess(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
         if (!response.IsSuccessStatusCode)
         {
             ApiProblem? problem = null;
@@ -50,7 +73,6 @@ public sealed class ApiClient(HttpClient http)
             throw new ApiClientException((int)response.StatusCode, problem ?? new ApiProblem
                 { Status = (int)response.StatusCode, Title = "Не вдалося виконати запит.", Code = "http_error" });
         }
-        if (response.StatusCode == HttpStatusCode.NoContent) return default;
-        return await response.Content.ReadFromJsonAsync<T>(Json, cancellationToken);
     }
+
 }
