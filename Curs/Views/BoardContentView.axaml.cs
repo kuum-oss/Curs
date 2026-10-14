@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.IO;
+using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using Avalonia.Interactivity;
 using KanbanContracts;
@@ -68,9 +69,10 @@ public partial class BoardContentView : UserControl
         try
         {
             var files=await root.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions {Title="Фото-обкладинка",AllowMultiple=false,FileTypeFilter=[new FilePickerFileType("JPG, PNG, WEBP"){Patterns=["*.jpg","*.jpeg","*.png","*.webp"],MimeTypes=["image/jpeg","image/png","image/webp"]}]});
-            if(files.Count==0||(model.BoardId!=board||model.EditingCardId!=card)||!model.CanChangeCover)return;
+            if(files.Count==0||(model.BoardId!=board||model.EditingCardId!=card)||!model.CanEdit)return;
             await using var input=await files[0].OpenReadAsync();using var bytes=new MemoryStream();var chunk=new byte[65536];int read;
             while((read=await input.ReadAsync(chunk))!=0){if(bytes.Length+read>ImageLimits.MaxBytes){model.ImageError("Фото: не більше 5 МіБ.");return;}await bytes.WriteAsync(chunk.AsMemory(0,read));}
+            while(model.IsPolling&&model.BoardId==board&&model.EditingCardId==card)await Task.Delay(30);
             if(model.BoardId==board&&model.EditingCardId==card&&model.CanChangeCover)await model.UploadCoverAsync(bytes.ToArray(),files[0].Name);
         }
         catch(Exception){model.ImageError("Не вдалося відкрити фото.");}

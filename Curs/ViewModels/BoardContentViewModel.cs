@@ -155,7 +155,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         await services.Images.Delete(selectedCard.Card.Id,new(){ExpectedBoardVersion=board.Version,ExpectedVersion=selectedCard.Card.Version},token);
         token.ThrowIfCancellationRequested();services.Images.Clear();FullImage=null;selectedCard=await services.Content.Card(selectedCard.Card.Id,token);await Load(board.Id,token);NotifyState();Status="Обкладинку прибрано.";
     });
-    public void ImageError(string message){Error=message;}
+    public void ImageError(string message){Error=message;Status="";}
     private readonly ClientServices services;
     private CancellationTokenSource? operation;
     private BoardDetailsDto? board;
@@ -502,5 +502,5 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         EditorVisible = false; IsVisible = false; pendingDelete = null; NotifyState();
     }
     public void Clear() { operation?.Cancel(); operation = null; polling = false; Notify(nameof(IsPolling)); IsBusy = false; ClearData(); Error = ""; Status = ""; }
-    public void Dispose() { Clear(); services.Session.Changed -= SessionChanged; }
+    public void Dispose() { Clear();imagesLifetime.Dispose();filterDelay?.Dispose();services.Session.Changed -= SessionChanged; }
 }
