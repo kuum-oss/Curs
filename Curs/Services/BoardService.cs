@@ -27,5 +27,16 @@ public sealed class BoardService(ApiClient api)
         api.SendAsync<MemberDto>(HttpMethod.Patch, $"api/boards/{id}/members/{userId}", request, token);
     public Task<object?> RemoveMemberAsync(Guid id, Guid userId, string version, CancellationToken token) =>
         api.SendAsync<object>(HttpMethod.Delete, $"api/boards/{id}/members/{userId}" + VersionQuery(version), cancellationToken: token);
+    public Task<System.Collections.Generic.List<MemberDto>?> Settings(Guid board,UpdateMembersRequest body,CancellationToken token) =>
+        api.SendAsync<System.Collections.Generic.List<MemberDto>>(HttpMethod.Put,$"api/boards/{board}/members",body,token);
+    public Task<object?> Favorite(Guid board,bool favorite,CancellationToken token)=>api.SendAsync<object>(HttpMethod.Put,$"api/boards/{board}/favorite",new FavoriteRequest{Favorite=favorite},token);
+    public Task<object?> Visit(Guid board,CancellationToken token)=>api.SendAsync<object>(HttpMethod.Post,$"api/boards/{board}/visit",cancellationToken:token);
+    public Task<BoardDetailsDto?> Archive(Guid board,bool archived,string version,CancellationToken token)=>api.SendAsync<BoardDetailsDto>(HttpMethod.Put,$"api/boards/{board}/archive",new SetArchiveRequest{Archived=archived,ExpectedBoardVersion=version},token);
+    public async Task<BoardDetailsDto?> Cover(Guid board,byte[] bytes,string filename,string version,CancellationToken token)
+    {
+        using var form=MediaForm.Create(bytes,filename,"ExpectedBoardVersion",version);
+        return await api.MultipartAsync<BoardDetailsDto>($"api/boards/{board}/cover",form,token);
+    }
+    public Task<BoardDetailsDto?> RemoveCover(Guid board,string version,CancellationToken token)=>api.SendAsync<BoardDetailsDto>(HttpMethod.Delete,$"api/boards/{board}/cover"+VersionQuery(version),cancellationToken:token);
     private static string VersionQuery(string version) => "?expectedBoardVersion=" + Uri.EscapeDataString(version);
 }

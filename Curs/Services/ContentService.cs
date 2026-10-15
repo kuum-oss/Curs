@@ -24,10 +24,15 @@ public sealed class ContentService(ApiClient api)
     public Task<CommentDto?> AddComment(Guid card,CreateCommentRequest body,CancellationToken token) => api.SendAsync<CommentDto>(HttpMethod.Post,$"api/cards/{card}/comments",body,token);
     public Task<OrderResultDto?> ReorderColumns(Guid board, ReorderColumnsRequest body, CancellationToken token) => api.SendAsync<OrderResultDto>(HttpMethod.Put,$"api/boards/{board}/columns/order",body,token);
     public Task<MoveResultDto?> MoveCard(Guid card, MoveCardRequest body, CancellationToken token) => api.SendAsync<MoveResultDto>(HttpMethod.Post,$"api/cards/{card}/move",body,token);
+    public Task<CardDetailsDto?> Archive(Guid card,bool archived,ResourceVersionQuery version,CancellationToken token)=>api.SendAsync<CardDetailsDto>(HttpMethod.Put,$"api/cards/{card}/archive",new ArchiveCardRequest{Archived=archived,ExpectedBoardVersion=version.ExpectedBoardVersion,ExpectedVersion=version.ExpectedVersion},token);
+    public Task<CommentDto?> EditComment(Guid card,Guid comment,UpdateCommentRequest request,CancellationToken token)=>api.SendAsync<CommentDto>(HttpMethod.Put,$"api/cards/{card}/comments/{comment}",request,token);
+    public Task<object?> DeleteComment(Guid card,Guid comment,CommentVersionQuery version,CancellationToken token)=>api.SendAsync<object>(HttpMethod.Delete,$"api/cards/{card}/comments/{comment}"+Query(version)+"&expectedCommentVersion="+Uri.EscapeDataString(version.ExpectedCommentVersion),cancellationToken:token);
+    public async Task<PagedResult<PersonalCardDto>> Overview(int offset,bool archived,bool assignedOnly,CancellationToken token)=>await api.SendAsync<PagedResult<PersonalCardDto>>(HttpMethod.Get,$"api/me/cards?offset={offset}&limit=100&archived={archived}&assignedOnly={assignedOnly}",cancellationToken:token)??throw new InvalidOperationException();
+    public async Task<System.Collections.Generic.List<UserDto>> Team(CancellationToken token)=>await api.SendAsync<System.Collections.Generic.List<UserDto>>(HttpMethod.Get,"api/me/team",cancellationToken:token)??[];
     private static string Filters(CardQuery? f)
     {
         if(f is null)return "";
-        var result="";
+        var result=f.Archived?"&archived=true":"";
         if(!string.IsNullOrWhiteSpace(f.Search))result+="&search="+Uri.EscapeDataString(f.Search.Trim());
         if(f.Priority is {} priority)result+="&priority="+priority;
         if(f.TagId is {} tag)result+="&tagId="+tag;

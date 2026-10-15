@@ -1,0 +1,5 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:Curs.ViewModels" x:Class="Curs.Views.AvatarView" x:DataType="vm:AvatarViewModel" Width="34" Height="34" ToolTip.Tip="{Binding Name}">
+  <Border CornerRadius="100" Background="#E1E7F6" ClipToBounds="True">
+    <Grid><TextBlock Text="{Binding Initials}" Foreground="#65749D" FontSize="12" HorizontalAlignment="Center"/><Image Source="{Binding Image}" Stretch="UniformToFill" IsVisible="{Binding HasImage}"/></Grid>
+  </Border>
+</UserControl>

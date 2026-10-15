@@ -23,6 +23,11 @@ public sealed class SessionService
         dispatch(() => Changed?.Invoke());
     }
 
+    public void UpdateUser(UserDto updated)
+    {
+        lock(gate) { if(accessToken is null || user?.Id!=updated.Id)return; user=updated; }
+        dispatch(()=>Changed?.Invoke());
+    }
     public void Clear() => ClearIfCurrent(AccessToken);
 
     public bool ClearIfCurrent(string? observedToken)

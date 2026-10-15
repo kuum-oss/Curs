@@ -13,22 +13,22 @@ using System.IO;
 
 namespace Curs.ViewModels;
 
-public sealed class CardItemViewModel : ViewModelBase, IDisposable
+public sealed partial class CardItemViewModel : ViewModelBase, IDisposable
 {
     private Bitmap? thumbnail;
     public Bitmap? Thumbnail { get => thumbnail; internal set { thumbnail = value; Notify(); } }
     internal bool ImageRequested;
     public bool HasImage => Card.HasImage;
-    public void Dispose() { var old = Thumbnail; Thumbnail = null; old?.Dispose(); }
+    public void Dispose() { var old = Thumbnail; Thumbnail = null; old?.Dispose(); Avatar?.Dispose(); }
     public CardSummaryDto Card { get; }
     public string Title => Card.Title;
     public string Summary => $"{Card.Priority} · {Card.DueDate?.ToString("yyyy-MM-dd") ?? "Без дедлайну"}\n{Card.Assignee?.Name ?? "Без відповідального"}";
     public string Tags => string.Join(" · ", Card.Tags.Select(t => t.Name));
     public ActionCommand OpenCommand { get; }
     public CardItemViewModel(CardSummaryDto card, BoardContentViewModel workspace)
-    { Card = card; OpenCommand = new ActionCommand(() => _ = workspace.OpenCardAsync(card.Id), () => !workspace.IsBusy); }
+    { Card = card; Avatar=card.Assignee is {} user?new(user):null; OpenCommand = new ActionCommand(() => _ = workspace.OpenCardAsync(card.Id), () => !workspace.IsBusy); }
 }
-public sealed class ColumnItemViewModel : ViewModelBase
+public sealed partial class ColumnItemViewModel : ViewModelBase
 {
     public ColumnDto Column { get; }
     public string Name => Column.Name;
@@ -39,31 +39,30 @@ public sealed class ColumnItemViewModel : ViewModelBase
     public bool CanCreate => workspace.CanCreate;
     public ColumnItemViewModel(ColumnDto col, BoardContentViewModel workspace)
     {
-        Column = col; this.workspace = workspace;
+        Column = col; this.workspace = workspace; Cards.CollectionChanged+=(_,_)=>Notify(nameof(Count));
         SelectCommand = new ActionCommand(() => workspace.SelectColumn(this), () => !workspace.IsBusy);
         AddCommand = new ActionCommand(() => workspace.NewCard(this), () => workspace.CanCreate && !workspace.IsBusy);
     }
     public void Refresh() { Notify(nameof(CanCreate)); SelectCommand.Refresh(); AddCommand.Refresh(); foreach (var c in Cards) c.OpenCommand.Refresh(); }
 }
-public sealed class TagChoiceViewModel(TagDto tag) : ViewModelBase
+public sealed class TagChoiceViewModel : ViewModelBase
 {
     private bool selected;
-    public TagDto Tag { get; } = tag;
+    public TagDto Tag { get; }
     public string Name => Tag.Name;
-    public bool Selected { get => selected; set { selected = value; Notify(); } }
+    public event Action? SelectionChanged;
+    public bool Selected { get => selected; set { selected=value;Notify();SelectionChanged?.Invoke(); } }
+    public ActionCommand RemoveCommand { get; }
+    public Avalonia.Media.IBrush Background => TagPillViewModel.Pastel(Tag.Color);
+    public Avalonia.Media.IBrush Foreground => Avalonia.Media.Brush.Parse(Tag.Color);
+    public TagChoiceViewModel(TagDto tag){Tag=tag;RemoveCommand=new(()=>Selected=false);}
 }
 public sealed record AssigneeOption(Guid? Id, string Name);
-public sealed record CommentItemViewModel(CommentDto Comment)
-{
-    public string Heading => $"{Comment.Author.Name} · {Comment.CreatedAtUtc.ToLocalTime():dd.MM.yyyy HH:mm}";
-    public string Text => Comment.Text;
-}
-
 public sealed record PriorityFilterOption(CardPriority? Value, string Name);
 public sealed record DeadlineFilterOption(DeadlineFilter? Value, string Name);
 public sealed record TagFilterOption(Guid? Id, string Name);
 
-public sealed class BoardContentViewModel : ViewModelBase, IDisposable
+public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
 {
     private CancellationTokenSource? filterDelay;
     private CancellationTokenSource imagesLifetime = new();
@@ -168,7 +167,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     public bool IsDragging { get => dragging; private set { dragging = value; Notify(); NotifyDrag(); } }
     public bool IsComplete => complete;
     public bool CardsFiltered { get => filtered; set { filtered = value; Notify(); NotifyDrag(); } }
-    public bool CanDragColumns => IsVisible && complete && !IsBusy && !polling && !IsDragging && !EditorVisible && !HasColumn;
+    public bool CanDragColumns => !NewColumnVisible && IsVisible && complete && !IsBusy && !polling && !IsDragging && !EditorVisible && !HasColumn;
     public bool CanDragCards => CanDragColumns && !CardsFiltered;
     public bool RemoteChangesPending { get => pendingRemote; private set { pendingRemote = value; Notify(); } }
     private string syncMessage = "Оновлення кожні 5 секунд.";
@@ -201,7 +200,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     public string ColumnName { get => columnName; set { columnName = value; Notify(); } }
     public string Title { get => title; set { title = value; Notify(); } }
     public string Description { get => description; set { description = value; Notify(); } }
-    public string DueDate { get => dueDate; set { dueDate = value; Notify(); } }
+    public string DueDate { get => dueDate; set { dueDate = value; Notify(); Notify(nameof(CalendarDate)); } }
     public CardPriority Priority { get => priority; set { priority = value; Notify(); } }
     public CardPriority[] Priorities { get; } = Enum.GetValues<CardPriority>();
     public AssigneeOption? Assignee { get => assignee; set { assignee = value; Notify(); } }
@@ -237,7 +236,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         AddCommentCommand = Command(AddCommentAsync, () => ExistingCard);
         ConfirmCommand = Command(ConfirmAsync, () => ShowConfirmation);
         CancelCommand = new ActionCommand(CancelConfirmation, () => !IsBusy);
-        services.Session.Changed += SessionChanged;
+        services.Session.Changed += SessionChanged; InitializePresentation();
     }
     private ActionCommand Command(Func<Task> action, Func<bool>? allowed = null) => new(() => _ = action(), () => !IsBusy && !polling && IsVisible && (allowed?.Invoke() ?? true));
     private void SessionChanged() { if (services.Session.AccessToken is null) Clear(); }
@@ -284,7 +283,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
             var row = new ColumnItemViewModel(col, this); foreach (var card in cards.Where(c => c.ColumnId == col.Id)) row.Cards.Add(new CardItemViewModel(card, this)); Columns.Add(row);
         }
         if (selectedColumn is not null && columns.All(c => c.Id != selectedColumn.Id)) selectedColumn = null;
-        Tags.Clear(); foreach (var t in tags) Tags.Add(new TagChoiceViewModel(t) { Selected = tagIds.Contains(t.Id) });
+        Tags.Clear(); foreach (var t in tags) { var choice=new TagChoiceViewModel(t) { Selected = tagIds.Contains(t.Id) };choice.SelectionChanged+=NotifySelectedTags;Tags.Add(choice); }
         Assignees.Clear(); Assignees.Add(new(null, "Без відповідального")); foreach (var member in members) Assignees.Add(new(member.User.Id, member.User.Name));
         Assignee = Assignees.FirstOrDefault(a => a.Id == assigneeId) ?? Assignees[0];
         suppressFilters=true;
@@ -302,14 +301,14 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     {
         if (board is null) return;
         await services.Content.CreateColumn(board.Id, new() { Name = NewColumnName, ExpectedBoardVersion = board.Version }, token);
-        token.ThrowIfCancellationRequested(); NewColumnName = ""; await Load(board.Id, token); Status = "Колонку створено.";
+        token.ThrowIfCancellationRequested(); NewColumnName = ""; NewColumnVisible=false; await Load(board.Id, token); Status = "Колонку створено.";
     });
     public Task RenameColumnAsync() => Run(async token =>
     {
         if (board is null || selectedColumn is null) return;
         var updated = await services.Content.UpdateColumn(board.Id, selectedColumn.Id, new() { Name = ColumnName, ExpectedBoardVersion = board.Version, ExpectedVersion = selectedColumn.Version }, token);
         token.ThrowIfCancellationRequested(); selectedColumn = updated;
-        await Load(board.Id, token); Status = "Колонку перейменовано.";
+        selectedColumn=null; await Load(board.Id, token); Status = "Колонку перейменовано.";
     });
     public void NewCard(ColumnItemViewModel row)
     {
@@ -324,7 +323,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         Title = card.Card.Title; Description = card.Description ?? ""; DueDate = card.Card.DueDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? ""; Priority = card.Card.Priority;
         Assignee = Assignees.FirstOrDefault(a => a.Id == card.Card.Assignee?.Id) ?? Assignees.FirstOrDefault();
         foreach (var tag in Tags) tag.Selected = card.Card.Tags.Any(t => t.Id == tag.Tag.Id);
-        Comments.Clear(); foreach (var c in comments) Comments.Add(new(c)); CommentText = ""; EditorVisible = true; CancelConfirmation(); await LoadFullImage(token); NotifyState();
+        DisposeComments(); Comments.Clear(); foreach (var c in comments) Comments.Add(new(c,this)); CommentText = ""; EditorVisible = true; CancelConfirmation(); await LoadFullImage(token); NotifyState();
     });
     private async Task<System.Collections.Generic.List<CommentDto>> GetComments(Guid card, CancellationToken token)
     {
@@ -364,7 +363,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         if (board is null || selectedCard is null) return;
         await services.Content.AddComment(selectedCard.Card.Id, new() { Text = CommentText, ExpectedBoardVersion = board.Version, ExpectedVersion = selectedCard.Card.Version }, token);
         var card = await services.Content.Card(selectedCard.Card.Id, token); var comments = await GetComments(card.Card.Id, token); token.ThrowIfCancellationRequested();
-        selectedCard = card; CommentText = ""; Comments.Clear(); foreach (var c in comments) Comments.Add(new(c));
+        selectedCard = card; CommentText = ""; DisposeComments(); Comments.Clear(); foreach (var c in comments) Comments.Add(new(c,this));
         await Load(board.Id, token); NotifyState(); Status = "Коментар додано.";
     });
     private void RequestDelete(string kind) { if (IsBusy || (kind == "card" ? !CanDeleteCard : !CanDeleteColumn)) return; pendingDelete = kind; NotifyState(); }
@@ -379,7 +378,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         else return;
         token.ThrowIfCancellationRequested(); CloseEditor(); selectedColumn = null; await Load(board.Id, token); NotifyState(); Status = "Видалення завершено.";
     });
-    public void CloseEditor() { FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
+    public void CloseEditor() { NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
 
     public bool BeginDrag(Guid id, bool card)
     {
@@ -478,7 +477,7 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
     private void NotifyState()
     {
         foreach (var name in new[] { nameof(CanCreate), nameof(CanDeleteCard), nameof(CanDeleteColumn), nameof(HasColumn), nameof(ExistingCard), nameof(EditorHeading), nameof(ShowConfirmation), nameof(ConfirmationText) }) Notify(name);
-        RefreshCommands();
+        NotifyPresentation();RefreshCommands();
         NotifyDrag();
     }
     private void NotifyDrag()
@@ -497,9 +496,9 @@ public sealed class BoardContentViewModel : ViewModelBase, IDisposable
         suppressFilters=true;Search="";FilterPriority=PriorityFilters[0];FilterDeadline=DeadlineFilters[0];FilterTag=null;FilterAssignee=null;TagFilters.Clear();AssigneeFilters.Clear();suppressFilters=false;
         board = null; complete = false; dragging = false; filtered = false; RemoteChangesPending = false;
         SyncMessage = "Оновлення кожні 5 секунд.";
-        selectedColumn = null; selectedCard = null; Columns.Clear(); Tags.Clear(); Assignees.Clear(); Comments.Clear();
+        selectedColumn = null; selectedCard = null; Columns.Clear(); Tags.Clear(); Assignees.Clear(); DisposeComments(); Comments.Clear();
         NewColumnName = ""; ColumnName = ""; Title = ""; Description = ""; DueDate = ""; CommentText = ""; TagName = ""; TagColor = "#64748B"; Priority = CardPriority.Medium; Assignee = null;
-        EditorVisible = false; IsVisible = false; pendingDelete = null; NotifyState();
+        NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); EditorVisible = false; IsVisible = false; pendingDelete = null; NotifyState();
     }
     public void Clear() { operation?.Cancel(); operation = null; polling = false; Notify(nameof(IsPolling)); IsBusy = false; ClearData(); Error = ""; Status = ""; }
     public void Dispose() { Clear();imagesLifetime.Dispose();filterDelay?.Dispose();services.Session.Changed -= SessionChanged; }

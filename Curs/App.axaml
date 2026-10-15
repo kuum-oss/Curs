@@ -1,10 +1,31 @@
-<Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Curs.App"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
-
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
+<Application xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Curs.App" RequestedThemeVariant="Light">
+  <Application.Resources>
+    <Color x:Key="SystemAccentColor">#168C98</Color>
+    <Color x:Key="SystemAccentColorDark1">#117985</Color>
+    <Color x:Key="SystemAccentColorLight1">#30A0AB</Color>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+    <Style Selector="Window"><Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter"/><Setter Property="FontSize" Value="14"/><Setter Property="Foreground" Value="#18233A"/></Style>
+    <Style Selector="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/></Style>
+    <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="#788398"/></Style>
+    <Style Selector="TextBlock.label"><Setter Property="FontSize" Value="13"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+    <Style Selector="TextBlock.heading"><Setter Property="FontSize" Value="28"/><Setter Property="FontWeight" Value="Bold"/></Style>
+    <Style Selector="TextBlock.error"><Setter Property="Foreground" Value="#C83E46"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+    <Style Selector="TextBlock.success"><Setter Property="Foreground" Value="#268166"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+    <Style Selector="Button"><Setter Property="CornerRadius" Value="6"/><Setter Property="Padding" Value="14,9"/><Setter Property="MinHeight" Value="36"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#DCE3ED"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Foreground" Value="#54627A"/><Setter Property="Cursor" Value="Hand"/></Style>
+    <Style Selector="Button.primary"><Setter Property="Background" Value="#168C98"/><Setter Property="BorderBrush" Value="#168C98"/><Setter Property="Foreground" Value="White"/></Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="#127A86"/><Setter Property="Foreground" Value="White"/></Style>
+    <Style Selector="Button.danger"><Setter Property="Foreground" Value="#E44A50"/><Setter Property="BorderBrush" Value="#F0B4B7"/></Style>
+    <Style Selector="Button.ghost"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/></Style>
+    <Style Selector="Button.icon"><Setter Property="Padding" Value="5"/><Setter Property="Width" Value="34"/><Setter Property="MinHeight" Value="32"/><Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="FontSize" Value="20"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/></Style>
+    <Style Selector="Button.nav"><Setter Property="HorizontalAlignment" Value="Stretch"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Padding" Value="14,11"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/></Style>
+    <Style Selector="Button.nav:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="#E2F1F3"/><Setter Property="Foreground" Value="#168593"/></Style>
+    <Style Selector="TextBox"><Setter Property="CornerRadius" Value="6"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#DCE3ED"/><Setter Property="Padding" Value="12,9"/><Setter Property="MinHeight" Value="38"/></Style>
+    <Style Selector="ComboBox"><Setter Property="CornerRadius" Value="6"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#DCE3ED"/><Setter Property="MinHeight" Value="38"/><Setter Property="Padding" Value="10,7"/><Setter Property="HorizontalAlignment" Value="Stretch"/></Style>
+    <Style Selector="Border.modal"><Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="10"/><Setter Property="BoxShadow" Value="0 16 70 0 #350E2035"/><Setter Property="HorizontalAlignment" Value="Center"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
+    <Style Selector="Border.surface"><Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="8"/><Setter Property="BorderBrush" Value="#E1E6ED"/><Setter Property="BorderThickness" Value="1"/></Style>
+    <Style Selector="Border.overlay"><Setter Property="Background" Value="#700E1D32"/><Setter Property="Padding" Value="30"/></Style>
+    <Style Selector="MenuItem"><Setter Property="Padding" Value="12,8"/></Style>
+  </Application.Styles>
 </Application>

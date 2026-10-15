@@ -47,6 +47,10 @@ public partial class BoardContentView : UserControl
         AttachedToVisualTree += (_, _) => { poll.Start(); covers.Start(); };
         DetachedFromVisualTree += (_, _) => { poll.Stop(); covers.Stop(); CancelDrag(); };
     }
+    private void OpenMenu(object? sender,RoutedEventArgs e){if(sender is Button button)button.Flyout?.ShowAt(button);}
+    private void ColumnsSizeChanged(object? sender,SizeChangedEventArgs e){if(Model is {} model)model.ColumnWidth=Math.Max(225,(e.NewSize.Width-124)/4);}
+    private void OpenCard(object? sender,TappedEventArgs e){if(sender is Control{DataContext:CardItemViewModel row})row.OpenCommand.Execute(null);}
+    private void AvatarAttached(object? sender,Avalonia.VisualTreeAttachmentEventArgs e){if(sender is Control{DataContext:AvatarViewModel avatar})Model?.LoadAvatar(avatar);}
     private void CoverAttached(object? sender, Avalonia.VisualTreeAttachmentEventArgs e) => covers.Start();
     private void LoadVisibleCovers()
     {
@@ -83,7 +87,7 @@ public partial class BoardContentView : UserControl
             !e.GetCurrentPoint(source).Properties.IsLeftButtonPressed) return;
         if (e.Source is Visual visual && (visual is Button || visual.GetVisualAncestors().OfType<Button>().Any())) return;
         var allowed = source.DataContext is CardItemViewModel ? model.CanDragCards : source.DataContext is ColumnItemViewModel && model.CanDragColumns;
-        if (!allowed) return;
+        if (!allowed && source.DataContext is not CardItemViewModel) return;
         candidate = source; pressed = e.GetPosition(this); capturedPointer = e.Pointer;
         keyRoot = TopLevel.GetTopLevel(this); if (keyRoot is not null) keyRoot.KeyDown += DragKeyDown;
         e.Pointer.Capture(source); e.Handled = true;
@@ -105,9 +109,11 @@ public partial class BoardContentView : UserControl
     private async void DragReleased(object? sender, PointerReleasedEventArgs e)
     {
         var payload = active;
+        var clicked=candidate?.DataContext as CardItemViewModel;
         var destination = payload is not null ? FindDestination(e.GetPosition(this), payload) : null;
         CancelDrag(); e.Handled = payload is not null;
-        if (payload is null || destination is null) return;
+        if(payload is null){clicked?.OpenCommand.Execute(null);return;}
+        if(destination is null)return;
         if (payload.Card) await payload.Model.MoveCardAsync(payload.Id, destination.Value.Column, destination.Value.BeforeCard);
         else await payload.Model.ReorderColumnAsync(payload.Id, destination.Value.BeforeColumn);
         if (Environment.GetEnvironmentVariable("KANBAN_VERIFY_DRAG") == "1")

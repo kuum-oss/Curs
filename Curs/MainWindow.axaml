@@ -1,18 +1,6 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Curs.ViewModels" xmlns:views="using:Curs.Views"
-        x:Class="Curs.MainWindow" x:DataType="vm:MainWindowViewModel"
-        Title="{Binding Title}" Width="1100" Height="850" MinWidth="820" MinHeight="640"
-        Background="#F4F6FA" RequestedThemeVariant="Light">
-    <Grid RowDefinitions="Auto,*">
-        <Border Background="#17263E" Padding="28,20">
-            <StackPanel Spacing="4">
-                <TextBlock Text="KanbanBoard" FontSize="26" FontWeight="Bold" Foreground="White" />
-                <TextBlock Text="Командне планування завдань" Foreground="#BCCCE1" />
-            </StackPanel>
-        </Border>
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="28" Spacing="20" MaxWidth="1100" HorizontalAlignment="Stretch">
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:Curs.ViewModels" xmlns:views="using:Curs.Views" x:Class="Curs.MainWindow" x:DataType="vm:MainWindowViewModel" Title="{Binding Title}" Width="1480" Height="940" MinWidth="1100" MinHeight="740" Background="White" RequestedThemeVariant="Light">
+ <Grid>
+  <Grid IsVisible="{Binding ShowAuth}" Background="#F2F7F9" RowDefinitions="Auto,*"><StackPanel Margin="40" Spacing="8"><TextBlock Text="KanbanBoard" FontSize="28" FontWeight="Bold" Foreground="#168C98"/><TextBlock Text="Командне планування завдань" Classes="muted"/></StackPanel><Grid Grid.Row="1" Margin="0,0,0,60">
                 <Border MaxWidth="480" Width="480" HorizontalAlignment="Center" IsVisible="{Binding ShowAuth}" Background="White" CornerRadius="16" Padding="32">
                     <StackPanel Spacing="14">
                         <TextBlock Text="{Binding FormTitle}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
@@ -32,27 +20,11 @@
                         </StackPanel>
                         <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" Foreground="#B42318" TextWrapping="Wrap" />
                         <TextBlock IsVisible="{Binding IsBusy}" Text="Зачекайте…" Foreground="#58677D" />
-                        <Button Name="SubmitButton" Content="{Binding SubmitLabel}" Command="{Binding SubmitCommand}" IsDefault="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Background="#2563EB" Foreground="White" Padding="16,12" />
+                        <Button Name="SubmitButton" Content="{Binding SubmitLabel}" Command="{Binding SubmitCommand}" IsDefault="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Classes="primary" Padding="16,12" />
                         <Button Name="SwitchButton" Content="{Binding SwitchLabel}" Command="{Binding SwitchCommand}" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Border>
-                <Border IsVisible="{Binding IsSignedIn}" Background="White" CornerRadius="16" Padding="32">
-                    <StackPanel Spacing="16">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="{Binding UserName}" FontSize="18" />
-                                <TextBlock Text="{Binding UserEmail}" Foreground="#58677D" />
-                            </StackPanel>
-                            <Button Grid.Column="1" Name="LogoutButton" Content="Вийти" Command="{Binding LogoutCommand}" />
-                        </Grid>
-                        <Separator />
-                        <views:BoardWorkspaceView DataContext="{Binding Workspace}" />
-                        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Foreground="#237A4B" />
-                        <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" TextWrapping="Wrap" Foreground="#B42318" />
-                        <Button Name="CheckSessionButton" Content="Перевірити підключення" Command="{Binding CheckSessionCommand}" />
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
-    </Grid>
+  </Grid></Grid>
+  <Border IsVisible="{Binding IsSignedIn}"><views:BoardWorkspaceView DataContext="{Binding Workspace}"/></Border>
+ </Grid>
 </Window>

@@ -1,143 +1,72 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:Curs.ViewModels" x:Class="Curs.Views.BoardContentView" x:DataType="vm:BoardContentViewModel">
-    <StackPanel Spacing="12">
-        <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" TextWrapping="Wrap" Foreground="#B42318" />
-        <StackPanel Spacing="16" IsVisible="{Binding IsVisible}">
-            <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Text="Колонки та картки" FontSize="24" FontWeight="SemiBold" />
-                <Button Grid.Column="1" Content="Оновити вміст" Command="{Binding RefreshCommand}" />
-            </Grid>
-            <TextBlock Text="Завантаження…" IsVisible="{Binding IsBusy}" />
-            <TextBlock Text="{Binding Status}" Foreground="#237A4B" TextWrapping="Wrap" />
-            <TextBlock Text="{Binding SyncMessage}" TextWrapping="Wrap" Foreground="#58677D" />
-            <TextBlock Text="Перетягуйте заголовки колонок або картки, щоб змінити порядок. Для цього закрийте редактор." TextWrapping="Wrap" Foreground="#58677D" />
-            <TextBox Text="{Binding Search,Mode=TwoWay}" Watermark="Пошук за назвою" MaxLength="200" IsEnabled="{Binding CanFilter}" />
-            <WrapPanel>
-                <ComboBox ItemsSource="{Binding PriorityFilters}" SelectedItem="{Binding FilterPriority,Mode=TwoWay}" IsEnabled="{Binding CanFilter}" Margin="0,0,12,12">
-                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:PriorityFilterOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
-                </ComboBox>
-                <ComboBox ItemsSource="{Binding TagFilters}" SelectedItem="{Binding FilterTag,Mode=TwoWay}" IsEnabled="{Binding CanFilter}" Margin="0,0,12,12">
-                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:TagFilterOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
-                </ComboBox>
-                <ComboBox ItemsSource="{Binding AssigneeFilters}" SelectedItem="{Binding FilterAssignee,Mode=TwoWay}" IsEnabled="{Binding CanFilter}" Margin="0,0,12,12">
-                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AssigneeOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
-                </ComboBox>
-                <ComboBox ItemsSource="{Binding DeadlineFilters}" SelectedItem="{Binding FilterDeadline,Mode=TwoWay}" IsEnabled="{Binding CanFilter}" Margin="0,0,12,12">
-                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:DeadlineFilterOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
-                </ComboBox>
-                <Button Content="Скинути фільтри" Command="{Binding ResetFiltersCommand}" Margin="0,0,0,12" />
-            </WrapPanel>
-            <TextBlock Text="Переміщення карток вимкнено за активних фільтрів. Колонки можна переставляти." IsVisible="{Binding CardsFiltered}" TextWrapping="Wrap" Foreground="#58677D" />
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" MaxHeight="450">
-                <ItemsControl ItemsSource="{Binding Columns}">
-                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:ColumnItemViewModel">
-                            <Border Width="280" Background="#EDF3FF" Padding="14" Margin="0,0,14,0" CornerRadius="10"
-                                    Tag="ColumnDropTarget">
-                                <StackPanel Spacing="10">
-                                    <TextBlock Text="{Binding Name}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" Cursor="SizeAll"
-                                               PointerPressed="DragPressed" PointerMoved="DragMoved" PointerReleased="DragReleased" PointerCaptureLost="DragCaptureLost" />
-                                    <Button Content="Керувати колонкою" Command="{Binding SelectCommand}" />
-                                    <Button Content="+ Картка" Command="{Binding AddCommand}" IsVisible="{Binding CanCreate}" />
-                                    <ScrollViewer MaxHeight="280">
-                                        <ItemsControl ItemsSource="{Binding Cards}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="vm:CardItemViewModel">
-                                                    <Border Background="White" Padding="12" Margin="0,0,0,10" CornerRadius="8"
-                                                            PointerPressed="DragPressed" PointerMoved="DragMoved" PointerReleased="DragReleased" PointerCaptureLost="DragCaptureLost"
-                                                            Tag="CardDropTarget" AttachedToVisualTree="CoverAttached">
-                                                        <StackPanel Spacing="8">
-                                                            <Image Source="{Binding Thumbnail}" Height="145" Stretch="UniformToFill" IsVisible="{Binding HasImage}" />
-                                                            <TextBlock Text="{Binding Title}" TextWrapping="Wrap" FontWeight="SemiBold" />
-                                                            <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" Foreground="#58677D" />
-                                                            <TextBlock Text="{Binding Tags}" TextWrapping="Wrap" Foreground="#234E8D" />
-                                                            <Button Content="Відкрити картку" Command="{Binding OpenCommand}" />
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-            <Border Background="#EDF3FF" Padding="12" CornerRadius="8" Tag="ColumnsEndDropTarget">
-                <TextBlock Text="Перетягніть колонку сюди, щоб поставити її в кінці." TextWrapping="Wrap" />
-            </Border>
-            <TextBlock Text="Нова колонка" FontSize="18" FontWeight="SemiBold" />
-            <TextBox Text="{Binding NewColumnName,Mode=TwoWay}" Watermark="Назва колонки" MaxLength="100" IsEnabled="{Binding CanEdit}" />
-            <Button Content="Створити колонку" Command="{Binding CreateColumnCommand}" />
-            <Border IsVisible="{Binding HasColumn}" BorderBrush="#D7E1EF" BorderThickness="1" Padding="16" CornerRadius="8">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="Вибрана колонка" FontWeight="SemiBold" />
-                    <TextBox Text="{Binding ColumnName,Mode=TwoWay}" MaxLength="100" IsEnabled="{Binding CanEdit}" />
-                    <WrapPanel>
-                        <Button Content="Перейменувати" Command="{Binding RenameColumnCommand}" Margin="0,0,12,0" />
-                        <Button Content="Видалити колонку" Command="{Binding DeleteColumnCommand}" IsVisible="{Binding CanDeleteColumn}" Foreground="#B42318" />
-                        <Button Content="Закрити редагування" Command="{Binding CloseEditorCommand}" Margin="12,0,0,0" />
-                    </WrapPanel>
-                </StackPanel>
-            </Border>
-            <Border IsVisible="{Binding EditorVisible}" Background="#F5F7FC" Padding="20" CornerRadius="10">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="{Binding EditorHeading}" FontSize="22" FontWeight="SemiBold" />
-                    <TextBlock Text="Назва" />
-                    <TextBox Text="{Binding Title,Mode=TwoWay}" MaxLength="200" IsEnabled="{Binding CanEdit}" />
-                    <TextBlock Text="Опис" />
-                    <TextBox Text="{Binding Description,Mode=TwoWay}" MaxLength="10000" AcceptsReturn="True" Height="100" IsEnabled="{Binding CanEdit}" />
-                    <TextBlock Text="Дедлайн (РРРР-ММ-ДД, необов’язково)" />
-                    <TextBox Text="{Binding DueDate,Mode=TwoWay}" Watermark="2026-12-31" MaxLength="10" IsEnabled="{Binding CanEdit}" />
-                    <TextBlock Text="Пріоритет" />
-                    <ComboBox ItemsSource="{Binding Priorities}" SelectedItem="{Binding Priority,Mode=TwoWay}" IsEnabled="{Binding CanEdit}" />
-                    <TextBlock Text="Відповідальний" />
-                    <ComboBox ItemsSource="{Binding Assignees}" SelectedItem="{Binding Assignee,Mode=TwoWay}" IsEnabled="{Binding CanEdit}">
-                        <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AssigneeOption"><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <TextBlock Text="Фото-обкладинка" FontSize="18" />
-                    <TextBlock Text="Спочатку збережіть картку. JPG, PNG, WEBP — до 5 МіБ." TextWrapping="Wrap" />
-                    <Image Source="{Binding FullImage}" MaxHeight="400" Stretch="Uniform" IsVisible="{Binding HasCover}" />
-                    <WrapPanel>
-                        <Button Content="Завантажити / замінити фото" Click="ChooseCover" IsEnabled="{Binding CanChangeCover}" Margin="0,0,12,0" />
-                        <Button Content="Прибрати фото" Command="{Binding RemoveCoverCommand}" IsVisible="{Binding HasCover}" />
-                    </WrapPanel>
-                    <TextBlock Text="Теги" />
-                    <ItemsControl ItemsSource="{Binding Tags}" IsEnabled="{Binding CanEdit}">
-                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:TagChoiceViewModel"><CheckBox Content="{Binding Name}" IsChecked="{Binding Selected,Mode=TwoWay}" Margin="0,0,18,0" /></DataTemplate></ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <TextBox Text="{Binding TagName,Mode=TwoWay}" Watermark="Назва нового тегу" MaxLength="50" IsEnabled="{Binding CanEdit}" />
-                    <TextBox Text="{Binding TagColor,Mode=TwoWay}" Watermark="#64748B" MaxLength="7" IsEnabled="{Binding CanEdit}" />
-                    <Button Content="Створити тег" Command="{Binding CreateTagCommand}" />
-                    <WrapPanel>
-                        <Button Content="Зберегти картку" Command="{Binding SaveCardCommand}" Background="#2563EB" Foreground="White" Margin="0,0,12,0" />
-                        <Button Content="Закрити редактор" Command="{Binding CloseEditorCommand}" Margin="0,0,12,0" />
-                        <Button Content="Видалити картку" Command="{Binding DeleteCardCommand}" IsVisible="{Binding CanDeleteCard}" Foreground="#B42318" />
-                    </WrapPanel>
-                    <StackPanel Spacing="10" IsVisible="{Binding ExistingCard}">
-                        <TextBlock Text="Коментарі" FontSize="20" FontWeight="SemiBold" />
-                        <ItemsControl ItemsSource="{Binding Comments}">
-                            <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:CommentItemViewModel">
-                                <Border Background="White" Padding="12" Margin="0,0,0,8" CornerRadius="8"><StackPanel Spacing="6">
-                                    <TextBlock Text="{Binding Heading}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" />
-                                </StackPanel></Border>
-                            </DataTemplate></ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <TextBox Text="{Binding CommentText,Mode=TwoWay}" Watermark="Новий коментар" MaxLength="4000" AcceptsReturn="True" Height="70" IsEnabled="{Binding CanEdit}" />
-                        <Button Content="Додати коментар" Command="{Binding AddCommentCommand}" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-            <Border IsVisible="{Binding ShowConfirmation}" Background="#FFF1EC" Padding="18" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="{Binding ConfirmationText}" TextWrapping="Wrap" Foreground="#B42318" />
-                    <WrapPanel><Button Content="Підтвердити видалення" Command="{Binding ConfirmCommand}" Margin="0,0,12,0" /><Button Content="Скасувати" Command="{Binding CancelCommand}" /></WrapPanel>
-                </StackPanel>
-            </Border>
-        </StackPanel>
-    </StackPanel>
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:Curs.ViewModels" xmlns:views="using:Curs.Views" xmlns:contracts="using:KanbanContracts" x:Class="Curs.Views.BoardContentView" x:DataType="vm:BoardContentViewModel">
+ <Grid RowDefinitions="Auto,*,Auto">
+  <Grid ColumnDefinitions="2.5*,1.1*,1*,1.4*,1.1*,Auto" ColumnSpacing="12" Margin="0,0,0,18">
+   <TextBox Text="{Binding Search,Mode=TwoWay}" Watermark="⌕   Пошук карток" MaxLength="200" IsEnabled="{Binding CanFilter}"/>
+   <ComboBox Grid.Column="1" ItemsSource="{Binding PriorityFilters}" SelectedItem="{Binding FilterPriority,Mode=TwoWay}" IsEnabled="{Binding CanFilter}"><ComboBox.ItemTemplate><DataTemplate x:DataType="vm:PriorityFilterOption"><TextBlock Text="{Binding Name}" FontSize="12"/></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+   <ComboBox Grid.Column="2" ItemsSource="{Binding TagFilters}" SelectedItem="{Binding FilterTag,Mode=TwoWay}" IsEnabled="{Binding CanFilter}"><ComboBox.ItemTemplate><DataTemplate x:DataType="vm:TagFilterOption"><TextBlock Text="{Binding Name}" FontSize="12"/></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+   <ComboBox Grid.Column="3" ItemsSource="{Binding AssigneeFilters}" SelectedItem="{Binding FilterAssignee,Mode=TwoWay}" IsEnabled="{Binding CanFilter}"><ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AssigneeOption"><TextBlock Text="{Binding Name}" FontSize="12"/></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+   <ComboBox Grid.Column="4" ItemsSource="{Binding DeadlineFilters}" SelectedItem="{Binding FilterDeadline,Mode=TwoWay}" IsEnabled="{Binding CanFilter}"><ComboBox.ItemTemplate><DataTemplate x:DataType="vm:DeadlineFilterOption"><TextBlock Text="{Binding Name}" FontSize="12"/></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+   <Button Grid.Column="5" Content="Скинути" Command="{Binding ResetFiltersCommand}"/>
+  </Grid>
+  <ScrollViewer Grid.Row="1" Name="ColumnsScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" SizeChanged="ColumnsSizeChanged">
+   <StackPanel Orientation="Horizontal" Spacing="10">
+    <ItemsControl ItemsSource="{Binding Columns}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="10"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:ColumnItemViewModel">
+     <Border Width="{Binding $parent[UserControl].((vm:BoardContentViewModel)DataContext).ColumnWidth}" Background="{Binding Background}" CornerRadius="8" Padding="9" Tag="ColumnDropTarget">
+      <Grid RowDefinitions="Auto,Auto,*">
+       <Grid ColumnDefinitions="*,Auto" Margin="4,0,0,8"><StackPanel Orientation="Horizontal" Spacing="10" PointerPressed="DragPressed" PointerMoved="DragMoved" PointerReleased="DragReleased" PointerCaptureLost="DragCaptureLost" Cursor="SizeAll"><TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" MaxWidth="170" TextTrimming="CharacterEllipsis"/><Border Background="#DDE5F0" CornerRadius="12" Padding="7,2" VerticalAlignment="Center"><TextBlock Text="{Binding Count}" FontSize="11" Foreground="#65738A"/></Border></StackPanel><Button Grid.Column="1" Classes="icon" Content="⋮" Command="{Binding SelectCommand}" ToolTip.Tip="Керувати колонкою"/></Grid>
+       <Button Grid.Row="1" Content="＋  Картка" Command="{Binding AddCommand}" IsVisible="{Binding CanCreate}" Foreground="#168593" Background="#F8FCFF" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,0,10"/>
+       <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled"><ItemsControl ItemsSource="{Binding Cards}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:CardItemViewModel">
+        <Border Classes="surface" Padding="10" Margin="0,0,0,9" CornerRadius="7" Tag="CardDropTarget" AttachedToVisualTree="CoverAttached" PointerPressed="DragPressed" PointerMoved="DragMoved" PointerReleased="DragReleased" PointerCaptureLost="DragCaptureLost" DoubleTapped="OpenCard" Cursor="Hand">
+         <StackPanel Spacing="7">
+          <Border CornerRadius="5" ClipToBounds="True" IsVisible="{Binding HasImage}"><Image Source="{Binding Thumbnail}" Height="88" Stretch="UniformToFill"/></Border>
+          <Grid ColumnDefinitions="*,24"><TextBlock Text="{Binding Title}" TextWrapping="Wrap" FontWeight="SemiBold" FontSize="14"/><Button Grid.Column="1" Classes="icon" Width="24" MinHeight="20" Height="20" Content="⋮" Command="{Binding OpenCommand}" ToolTip.Tip="Відкрити картку"/></Grid>
+          <TextBlock Text="{Binding Description}" IsVisible="{Binding HasDescription}" TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis" Classes="muted" FontSize="12" LineHeight="16"/>
+          <WrapPanel><Border Background="{Binding PriorityBackground}" CornerRadius="12" Padding="9,4" Margin="0,0,5,5"><TextBlock Text="{Binding Priority}" Foreground="{Binding PriorityForeground}" FontWeight="SemiBold" FontSize="11"/></Border><ItemsControl ItemsSource="{Binding TagItems}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:TagPillViewModel"><Border Background="{Binding Background}" CornerRadius="5" Padding="7,4" Margin="0,0,5,5"><TextBlock Text="{Binding Name}" Foreground="{Binding Foreground}" FontSize="10"/></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></WrapPanel>
+          <Grid ColumnDefinitions="*,Auto,34" ColumnSpacing="12" Margin="0,2,0,0"><StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Width="13" Height="13" Foreground="{Binding DateForeground}" Data="M0,2 L14,2 14,16 0,16 Z M2,6 L2,14 12,14 12,6 Z M3,0 L5,0 5,4 3,4 Z M9,0 L11,0 11,4 9,4 Z"/><TextBlock Text="{Binding DateLabel}" Foreground="{Binding DateForeground}" FontSize="10"/></StackPanel><StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5"><PathIcon Width="14" Height="14" Foreground="#78869D" Data="M7,0 C-3,0 -3,12 4,12 L1,16 9,12 C18,10 17,0 7,0 M7,2 C15,2 15,10 7,10 L5,10 5,10 C-1,10 -1,2 7,2 Z"/><TextBlock Text="{Binding CommentCount}" FontSize="10" Classes="muted"/></StackPanel><Border Grid.Column="2" IsVisible="{Binding HasAssignee}"><views:AvatarView DataContext="{Binding Avatar}" Width="30" Height="30" AttachedToVisualTree="AvatarAttached"/></Border></Grid>
+         </StackPanel>
+        </Border>
+       </DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer>
+      </Grid>
+     </Border>
+    </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+    <Border Tag="ColumnsEndDropTarget" Background="#F8FAFC" BorderBrush="#DCE4ED" BorderThickness="1" CornerRadius="7" Width="80"><Button Classes="ghost" Command="{Binding ShowNewColumnCommand}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Top" Padding="0,20"><StackPanel Spacing="8"><TextBlock Text="＋" FontSize="25" HorizontalAlignment="Center"/><TextBlock Text="Колонка" FontSize="11"/></StackPanel></Button></Border>
+   </StackPanel>
+  </ScrollViewer>
+  <StackPanel Grid.Row="2" Margin="0,5,0,0" Spacing="2"><TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}" Classes="error" FontSize="12"/><TextBlock Text="{Binding Status}" Classes="success" FontSize="11"/><TextBlock Text="{Binding SyncMessage}" Classes="muted" FontSize="10" IsVisible="{Binding RemoteChangesPending}"/></StackPanel>
+  <Border Grid.RowSpan="3" Classes="overlay" IsVisible="{Binding NewColumnVisible}"><Border Classes="modal" Width="430" Padding="26"><StackPanel Spacing="18"><TextBlock Text="Нова колонка" FontSize="23" FontWeight="SemiBold"/><TextBox Text="{Binding NewColumnName,Mode=TwoWay}" Watermark="Назва колонки" MaxLength="100" IsEnabled="{Binding CanEdit}"/><TextBlock Text="{Binding Error}" Classes="error"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10"><Button Content="Скасувати" Command="{Binding CancelNewColumnCommand}"/><Button Content="Створити" Classes="primary" Command="{Binding CreateColumnCommand}"/></StackPanel></StackPanel></Border></Border>
+  <Border Grid.RowSpan="3" Classes="overlay" IsVisible="{Binding ColumnEditorVisible}"><Border Classes="modal" Width="450" Padding="26"><StackPanel Spacing="18"><TextBlock Text="Налаштування колонки" FontSize="23" FontWeight="SemiBold"/><TextBox Text="{Binding ColumnName,Mode=TwoWay}" MaxLength="100" IsEnabled="{Binding CanEdit}"/><TextBlock Text="{Binding Error}" Classes="error"/><Button Content="Видалити колонку" Classes="danger" Command="{Binding DeleteColumnCommand}" IsVisible="{Binding CanDeleteColumn}"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10"><Button Content="Скасувати" Command="{Binding CloseEditorCommand}"/><Button Content="Зберегти" Classes="primary" Command="{Binding RenameColumnCommand}"/></StackPanel></StackPanel></Border></Border>
+  <Border Grid.RowSpan="3" Classes="overlay" IsVisible="{Binding EditorVisible}" Padding="14"><Border Classes="modal" MaxWidth="1000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MaxHeight="830">
+   <Grid RowDefinitions="Auto,*,Auto">
+    <Border BorderBrush="#E7EBF1" BorderThickness="0,0,0,1" Padding="24,15"><Grid ColumnDefinitions="*,Auto"><StackPanel Orientation="Horizontal" Spacing="18"><TextBlock Text="Деталі картки" FontSize="16" FontWeight="SemiBold"/><Border Background="#E6F0FE" CornerRadius="6" Padding="10,4"><TextBlock Text="{Binding ColumnLabel}" Foreground="#4384CC" FontSize="11"/></Border></StackPanel><Button Grid.Column="1" Content="×" Classes="icon" Command="{Binding CloseEditorCommand}"/></Grid></Border>
+    <ScrollViewer Grid.Row="1"><Grid ColumnDefinitions="2.2*,1*">
+     <StackPanel Margin="24,16,24,20" Spacing="14">
+      <TextBox Text="{Binding Title,Mode=TwoWay}" Watermark="Назва картки" FontSize="23" FontWeight="SemiBold" BorderThickness="0" Padding="0,6" MaxLength="200" IsEnabled="{Binding CanEdit}"/>
+      <Border CornerRadius="6" ClipToBounds="True" IsVisible="{Binding HasCover}"><Button Classes="ghost" Command="{Binding ShowFullImageCommand}" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"><Image Source="{Binding FullImage}" Height="210" Stretch="UniformToFill"/></Button></Border>
+      <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="10"><Button Content="▧  Змінити фото" Click="ChooseCover" IsEnabled="{Binding CanChangeCover}" Foreground="#168593" FontSize="12"/><Button Grid.Column="1" Content="Прибрати" Command="{Binding RemoveCoverCommand}" IsVisible="{Binding HasCover}" FontSize="12"/><TextBlock Grid.Column="2" Text="JPG, PNG, WEBP · до 5 МіБ" Classes="muted" FontSize="10" HorizontalAlignment="Right" TextWrapping="Wrap"/></Grid>
+      <TextBlock Text="Збережіть нову картку, щоб додати фото та коментарі." Classes="muted" FontSize="11" IsVisible="{Binding !ExistingCard}" TextWrapping="Wrap"/>
+      <TextBlock Text="Опис" FontWeight="SemiBold"/><TextBox Text="{Binding Description,Mode=TwoWay}" MaxLength="10000" AcceptsReturn="True" MinHeight="86" MaxHeight="160" IsEnabled="{Binding CanEdit}" Watermark="Додайте опис завдання…"/>
+      <StackPanel IsVisible="{Binding ExistingCard}" Spacing="12">
+       <TextBlock Text="Коментарі" FontWeight="SemiBold" Margin="0,6,0,0"/>
+       <ItemsControl ItemsSource="{Binding Comments}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:CommentItemViewModel"><Grid ColumnDefinitions="36,*" ColumnSpacing="12" Margin="0,0,0,10"><views:AvatarView DataContext="{Binding Avatar}" AttachedToVisualTree="AvatarAttached"/><Border Grid.Column="1" Classes="surface" Background="#FBFCFD" Padding="12,8"><StackPanel Spacing="5"><Grid ColumnDefinitions="Auto,*,24" ColumnSpacing="9"><TextBlock Text="{Binding Heading}" FontWeight="SemiBold" FontSize="11"/><TextBlock Grid.Column="1" Text="{Binding Date}" Classes="muted" FontSize="10"/><Button Grid.Column="2" Classes="icon" Content="⋯" Width="24" MinHeight="20" Click="OpenMenu"><Button.Flyout><MenuFlyout><MenuItem Header="Редагувати" Command="{Binding EditCommand}" IsVisible="{Binding CanEdit}"/><MenuItem Header="Видалити" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}"/></MenuFlyout></Button.Flyout></Button></Grid><TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="12"/></StackPanel></Border></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12"><TextBox Text="{Binding CommentText,Mode=TwoWay}" Watermark="Написати коментар…" MaxLength="4000" IsEnabled="{Binding CanEdit}"/><Button Grid.Column="1" Content="Додати" Classes="primary" Command="{Binding AddCommentCommand}"/></Grid>
+      </StackPanel>
+     </StackPanel>
+     <Border Grid.Column="1" Background="#FCFCFE" BorderBrush="#E7EBF1" BorderThickness="1,0,0,0" Padding="20,24"><StackPanel Spacing="12">
+      <TextBlock Text="Пріоритет" Classes="label"/><ComboBox ItemsSource="{Binding Priorities}" SelectedItem="{Binding Priority,Mode=TwoWay}" IsEnabled="{Binding CanEdit}"/>
+      <TextBlock Text="Дедлайн" Classes="label" Margin="0,10,0,0"/><CalendarDatePicker SelectedDate="{Binding CalendarDate,Mode=TwoWay}" Watermark="Оберіть дату" IsEnabled="{Binding CanEdit}" HorizontalAlignment="Stretch"/>
+      <TextBlock Text="Відповідальний" Classes="label" Margin="0,10,0,0"/><ComboBox ItemsSource="{Binding Assignees}" SelectedItem="{Binding Assignee,Mode=TwoWay}" IsEnabled="{Binding CanEdit}"><ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AssigneeOption"><TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis"/></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+      <TextBlock Text="Теги" Classes="label" Margin="0,10,0,0"/>
+      <ItemsControl ItemsSource="{Binding SelectedTags}" IsEnabled="{Binding CanEdit}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:TagChoiceViewModel"><Border Background="{Binding Background}" CornerRadius="5" Padding="8,3" Margin="0,0,6,6"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{Binding Name}" Foreground="{Binding Foreground}" FontSize="12"/><Button Classes="icon" Content="×" Width="18" MinHeight="20" Height="20" FontSize="15" Command="{Binding RemoveCommand}" ToolTip.Tip="Прибрати тег"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+      <Expander Header="＋ Додати тег" IsExpanded="False"><StackPanel Spacing="10"><ItemsControl ItemsSource="{Binding Tags}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:TagChoiceViewModel"><CheckBox Content="{Binding Name}" IsChecked="{Binding Selected,Mode=TwoWay}" FontSize="12"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl><TextBox Text="{Binding TagName,Mode=TwoWay}" Watermark="Назва нового тегу" MaxLength="50" IsEnabled="{Binding CanEdit}"/><TextBox Text="{Binding TagColor,Mode=TwoWay}" Watermark="#64748B" MaxLength="7" IsEnabled="{Binding CanEdit}"/><Button Content="Створити тег" Command="{Binding CreateTagCommand}"/></StackPanel></Expander>
+      <Button Content="{Binding ArchiveCardLabel}" Command="{Binding ArchiveCardCommand}" IsVisible="{Binding CanDeleteCard}" Margin="0,18,0,0"/>
+     </StackPanel></Border>
+    </Grid></ScrollViewer>
+    <Border Grid.Row="2" BorderBrush="#E7EBF1" BorderThickness="0,1,0,0" Padding="24,12"><StackPanel Spacing="8"><TextBlock Text="{Binding Error}" Classes="error" FontSize="12"/><TextBlock Text="{Binding Status}" Classes="success" FontSize="11"/><Grid ColumnDefinitions="*,Auto"><Button Content="Видалити картку" Classes="danger" Command="{Binding DeleteCardCommand}" IsVisible="{Binding CanDeleteCard}"/><StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12"><Button Content="Скасувати" Command="{Binding CloseEditorCommand}"/><Button Content="Зберегти" Classes="primary" Command="{Binding SaveCardCommand}"/></StackPanel></Grid></StackPanel></Border>
+   </Grid>
+  </Border></Border>
+  <Border Grid.RowSpan="3" Classes="overlay" IsVisible="{Binding FullImageVisible}"><Border Classes="modal" Padding="20"><Grid RowDefinitions="Auto,*"><Button Content="×  Закрити" Command="{Binding CloseFullImageCommand}" HorizontalAlignment="Right" Margin="0,0,0,12"/><Image Grid.Row="1" Source="{Binding FullImage}" Stretch="Uniform" MaxWidth="1000" MaxHeight="650"/></Grid></Border></Border>
+  <Border Grid.RowSpan="3" Classes="overlay" IsVisible="{Binding CommentEditorVisible}"><Border Classes="modal" Width="520" Padding="26"><StackPanel Spacing="18"><TextBlock Text="Редагувати коментар" FontSize="22" FontWeight="SemiBold"/><TextBox Text="{Binding EditCommentText,Mode=TwoWay}" MaxLength="4000" AcceptsReturn="True" Height="140" IsEnabled="{Binding CanEdit}"/><TextBlock Text="{Binding Error}" Classes="error"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12"><Button Content="Скасувати" Command="{Binding CancelCommentCommand}"/><Button Content="Зберегти" Classes="primary" Command="{Binding SaveCommentCommand}"/></StackPanel></StackPanel></Border></Border>
+  <Border Grid.RowSpan="3" Classes="overlay" IsVisible="{Binding CommentDeleteVisible}"><Border Classes="modal" Width="450" Padding="26"><StackPanel Spacing="18"><TextBlock Text="Видалити коментар?" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Цю дію неможливо скасувати." Classes="muted"/><TextBlock Text="{Binding Error}" Classes="error"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12"><Button Content="Скасувати" Command="{Binding CancelDeleteCommentCommand}"/><Button Content="Видалити" Classes="danger" Command="{Binding DeleteCommentCommand}"/></StackPanel></StackPanel></Border></Border>
+  <Border Grid.RowSpan="3" Classes="overlay" IsVisible="{Binding ShowConfirmation}"><Border Classes="modal" Width="450" Padding="26"><StackPanel Spacing="18"><TextBlock Text="Підтвердження видалення" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="{Binding ConfirmationText}" TextWrapping="Wrap"/><TextBlock Text="{Binding Error}" Classes="error"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12"><Button Content="Скасувати" Command="{Binding CancelCommand}"/><Button Content="Видалити" Classes="danger" Command="{Binding ConfirmCommand}"/></StackPanel></StackPanel></Border></Border>
+ </Grid>
 </UserControl>

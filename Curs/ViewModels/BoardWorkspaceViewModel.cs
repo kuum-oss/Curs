@@ -9,7 +9,7 @@ using KanbanContracts;
 
 namespace Curs.ViewModels;
 
-public sealed class BoardListItemViewModel
+public sealed partial class BoardListItemViewModel : ViewModelBase, IDisposable
 {
     public BoardSummaryDto Board { get; }
     public string Name => Board.Name;
@@ -18,11 +18,11 @@ public sealed class BoardListItemViewModel
     public ActionCommand OpenCommand { get; }
     public BoardListItemViewModel(BoardSummaryDto board, BoardWorkspaceViewModel workspace)
     {
-        Board = board; OpenCommand = new ActionCommand(() => _ = workspace.OpenAsync(board.Id), () => !workspace.IsBusy);
+        Board = board; InitializeTile(workspace); OpenCommand = new ActionCommand(() => _ = workspace.OpenVisualAsync(board.Id), () => !workspace.IsBusy);
     }
 }
 
-public sealed class MemberViewModel : ViewModelBase
+public sealed partial class MemberViewModel : ViewModelBase
 {
     private readonly BoardWorkspaceViewModel workspace;
     private bool create, delete;
@@ -30,7 +30,7 @@ public sealed class MemberViewModel : ViewModelBase
     public string Name => Member.User.Name;
     public string Email => Member.User.Email;
     public string Role => Member.Role == BoardRole.Admin ? "Адміністратор" : "Учасник";
-    public bool CanManage => workspace.IsAdmin && Member.Role != BoardRole.Admin;
+    public bool CanManage => workspace.IsAdmin && Member.User.Id != workspace.SelectedBoard?.OwnerId && (Member.Role != BoardRole.Admin || workspace.SelectedBoard?.OwnerId==workspace.CurrentUser?.Id);
     public bool CanEdit => CanManage && !workspace.IsBusy;
     public bool CanCreateCards { get => create; set { create = value; Notify(); } }
     public bool CanDeleteCards { get => delete; set { delete = value; Notify(); } }
@@ -38,14 +38,14 @@ public sealed class MemberViewModel : ViewModelBase
     public ActionCommand RemoveCommand { get; }
     public MemberViewModel(MemberDto member, BoardWorkspaceViewModel workspace)
     {
-        this.workspace = workspace; Member = member; create = member.CanCreateCards; delete = member.CanDeleteCards;
+        this.workspace = workspace; Member = member; InitializeMember(); create = member.CanCreateCards; delete = member.CanDeleteCards;
         SaveCommand = new ActionCommand(() => _ = workspace.SavePermissionsAsync(this), () => CanEdit);
         RemoveCommand = new ActionCommand(() => workspace.RequestRemove(this), () => CanEdit);
     }
-    public void Refresh() { Notify(nameof(CanEdit)); SaveCommand.Refresh(); RemoveCommand.Refresh(); }
+    public void Refresh() { Notify(nameof(CanEdit)); Notify(nameof(CanChangeRole)); Notify(nameof(CanChangeRights)); SaveCommand.Refresh(); RemoveCommand.Refresh(); }
 }
 
-public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
+public sealed partial class BoardWorkspaceViewModel : ViewModelBase, IDisposable
 {
     private readonly ClientServices services;
     private CancellationTokenSource? operation;
@@ -102,7 +102,7 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
         DeleteCommand = new ActionCommand(RequestDelete, () => !IsBusy && IsAdmin);
         ConfirmCommand = new ActionCommand(() => _ = ConfirmAsync(), () => !IsBusy && ShowConfirmation);
         CancelCommand = new ActionCommand(CancelConfirmation, () => !IsBusy);
-        services.Session.Changed += SessionChanged; services.Navigation.Changed += NavigationChanged;
+        services.Session.Changed += SessionChanged; services.Navigation.Changed += NavigationChanged; InitializePresentation();
     }
 
     private void NavigationChanged()
@@ -110,14 +110,14 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
         if (services.Navigation.CurrentScreen == AppScreen.Boards && services.Session.AccessToken is not null)
             Loading = LoadAsync();
     }
-    private void SessionChanged() { if (services.Session.AccessToken is null) Clear(); }
+    private void SessionChanged() { if (services.Session.AccessToken is null) Clear(); RefreshIdentity(); }
     public Task LoadAsync() => RunAsync(LoadCoreAsync);
     public Task RefreshAsync() => selected is null ? LoadAsync() : RunAsync(token => OpenCoreAsync(selected.Id, token));
     private async Task LoadCoreAsync(CancellationToken token)
     {
         var boards = await services.Boards.ListAsync(token); token.ThrowIfCancellationRequested();
-        Boards.Clear(); foreach (var b in boards) Boards.Add(new BoardListItemViewModel(b, this));
-        Notify(nameof(HasBoards)); Notify(nameof(IsEmpty));
+        foreach(var old in Boards)old.Dispose(); Boards.Clear(); foreach (var b in boards) Boards.Add(new BoardListItemViewModel(b, this));
+        Notify(nameof(HasBoards)); Notify(nameof(IsEmpty)); RefreshTiles();
     }
     public Task OpenAsync(Guid id) => RunAsync(token => OpenCoreAsync(id, token));
     private async Task OpenCoreAsync(Guid id, CancellationToken token, bool preserveDraft = false)
@@ -125,7 +125,7 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
         var board = await services.Boards.GetAsync(id, token);
         var members = await services.Boards.MembersAsync(id, token); token.ThrowIfCancellationRequested();
         if (selected?.Id != id) Content.Clear();
-        selected = board; Members.Clear(); foreach (var m in members) Members.Add(new MemberViewModel(m, this));
+        selected = board; foreach(var old in Members)old.Avatar.Dispose(); Members.Clear(); foreach (var m in members) Members.Add(new MemberViewModel(m, this));
         if (!preserveDraft) { EditName = board.Name; EditDescription = board.Description ?? ""; }
         NotifyBoard(); services.Navigation.OpenBoard(id);
     }
@@ -133,19 +133,20 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     {
         var board = await services.Boards.CreateAsync(new CreateBoardRequest { Name = NewName, Description = NewDescription }, token);
         token.ThrowIfCancellationRequested(); NewName = ""; NewDescription = "";
-        await OpenCoreAsync(board.Id, token); Status = "Дошку створено.";
+        await OpenCoreAsync(board.Id, token); NewBoardVisible=false; Page="board"; await Content.OpenAsync(board.Id); await LoadCoreAsync(token); Status = "Дошку створено.";
     });
     public Task SaveBoardAsync() => RunAsync(async token =>
     {
         if (selected is null || !IsAdmin) return;
         await services.Boards.UpdateAsync(selected.Id, new UpdateBoardRequest { Name = EditName, Description = EditDescription, ExpectedBoardVersion = selected.Version }, token);
-        await OpenCoreAsync(selected.Id, token); Status = "Зміни збережено.";
+        await OpenCoreAsync(selected.Id, token); SettingsVisible=false; await Content.RefreshAsync(); await LoadCoreAsync(token); Status = "Зміни збережено.";
     });
     public Task AddMemberAsync() => RunAsync(async token =>
     {
         if (selected is null || !IsAdmin) return;
+        var draft=MemberDraft();
         await services.Boards.AddMemberAsync(selected.Id, new AddMemberRequest { Email = MemberEmail.Trim(), ExpectedBoardVersion = selected.Version }, token);
-        token.ThrowIfCancellationRequested(); MemberEmail = ""; await OpenCoreAsync(selected.Id, token); Status = "Учаснику надано доступ.";
+        token.ThrowIfCancellationRequested(); MemberEmail = ""; await OpenCoreAsync(selected.Id, token); RestoreMemberDraft(draft); foreach(var row in Members)_=row.Avatar.Load(services); Status = "Учаснику надано доступ.";
     });
     public Task SavePermissionsAsync(MemberViewModel member) => RunAsync(async token =>
     {
@@ -163,13 +164,14 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
         if (confirmDelete)
         {
             await services.Boards.DeleteAsync(selected.Id, selected.Version, token); token.ThrowIfCancellationRequested();
-            Content.Clear(); selected = null; Members.Clear(); CancelConfirmation(); NotifyBoard();
+            Content.Clear(); selected = null; Members.Clear(); CloseDialogs(); Page="boards"; CancelConfirmation(); NotifyBoard();
             await LoadCoreAsync(token); services.Navigation.OpenBoards(); Status = "Дошку видалено.";
         }
         else if (pendingMember is not null)
         {
+            var draft=MemberDraft();
             await services.Boards.RemoveMemberAsync(selected.Id, pendingMember.Member.User.Id, selected.Version, token);
-            token.ThrowIfCancellationRequested(); CancelConfirmation(); await OpenCoreAsync(selected.Id, token); Status = "Доступ відкликано.";
+            token.ThrowIfCancellationRequested(); CancelConfirmation(); await OpenCoreAsync(selected.Id, token); RestoreMemberDraft(draft); foreach(var row in Members)_=row.Avatar.Load(services); Status = "Доступ відкликано.";
         }
     });
     private async Task RunAsync(Func<CancellationToken, Task> action)
@@ -214,7 +216,7 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     private async Task LostAccessAsync(CancellationToken token)
     {
         Content.Clear();
-        selected = null; Members.Clear(); EditName = ""; EditDescription = ""; MemberEmail = ""; CancelConfirmation(); NotifyBoard();
+        selected = null; Members.Clear(); CloseDialogs(); Page="boards"; EditName = ""; EditDescription = ""; MemberEmail = ""; CancelConfirmation(); NotifyBoard();
         await LoadCoreAsync(token); services.Navigation.OpenBoards();
     }
     private void Back()
@@ -226,11 +228,12 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     private void NotifyBoard()
     {
         foreach (var property in new[] { nameof(SelectedBoard), nameof(ShowList), nameof(ShowBoard), nameof(IsAdmin), nameof(BoardTitle), nameof(BoardDescription), nameof(RoleLabel), nameof(CardPermissions) }) Notify(property);
-        RefreshCommands();
+        RefreshCommands(); NotifyPresentation();
     }
     private void NotifyConfirmation() { Notify(nameof(ShowConfirmation)); Notify(nameof(ConfirmationText)); ConfirmCommand.Refresh(); }
     private void RefreshCommands()
     {
+        SaveMembersCommand?.Refresh();
         foreach (var command in new[] { OpenContentCommand, RefreshCommand, CreateCommand, SaveBoardCommand, AddMemberCommand, BackCommand, DeleteCommand, ConfirmCommand, CancelCommand }) command.Refresh();
         foreach (var row in Members) row.Refresh(); foreach (var board in Boards) board.OpenCommand.Refresh();
     }
@@ -238,8 +241,8 @@ public sealed class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     {
         Content.Clear();
         operation?.Cancel(); operation = null; IsBusy = false;
-        Boards.Clear(); Members.Clear(); selected = null; NewName = ""; NewDescription = ""; EditName = ""; EditDescription = ""; MemberEmail = "";
+        foreach(var old in Boards)old.Dispose(); foreach(var old in Members)old.Avatar.Dispose(); Boards.Clear(); Members.Clear(); ResetPresentation(); selected = null; NewName = ""; NewDescription = ""; EditName = ""; EditDescription = ""; MemberEmail = "";
         Error = ""; Status = ""; CancelConfirmation(); NotifyBoard(); Notify(nameof(HasBoards)); Notify(nameof(IsEmpty));
     }
-    public void Dispose() { Clear(); Content.Dispose(); services.Session.Changed -= SessionChanged; services.Navigation.Changed -= NavigationChanged; }
+    public void Dispose() { Clear(); DisposePresentation(); presentationLifetime.Cancel();presentationLifetime.Dispose(); Content.Dispose(); services.Session.Changed -= SessionChanged; services.Navigation.Changed -= NavigationChanged; }
 }

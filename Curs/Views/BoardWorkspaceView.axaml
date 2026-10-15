@@ -1,100 +1,65 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:Curs.ViewModels" xmlns:views="using:Curs.Views" x:Class="Curs.Views.BoardWorkspaceView" x:DataType="vm:BoardWorkspaceViewModel">
-    <StackPanel Spacing="18">
-        <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="Дошки та учасники" FontSize="26" FontWeight="SemiBold" />
-            <Button Grid.Column="1" Content="Оновити" Command="{Binding RefreshCommand}" />
-        </Grid>
-        <TextBlock IsVisible="{Binding IsBusy}" Text="Завантаження…" Foreground="#58677D" />
-        <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" Foreground="#B42318" TextWrapping="Wrap" />
-        <TextBlock Text="{Binding Status}" Foreground="#237A4B" TextWrapping="Wrap" />
-        <StackPanel IsVisible="{Binding ShowList}" Spacing="18">
-            <Border Background="#EDF3FF" CornerRadius="10" Padding="18" IsVisible="{Binding IsEmpty}">
-                <TextBlock Text="У вас ще немає дощок. Створіть першу або попросіть адміністратора надати доступ." TextWrapping="Wrap" />
-            </Border>
-            <ItemsControl ItemsSource="{Binding Boards}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:BoardListItemViewModel">
-                        <Border Background="#F5F7FC" CornerRadius="10" Padding="18" Margin="0,0,0,10">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <StackPanel Spacing="6" Margin="0,0,18,0">
-                                    <TextBlock Text="{Binding Name}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="#58677D" />
-                                    <TextBlock Text="{Binding Role}" Foreground="#234E8D" />
-                                </StackPanel>
-                                <Button Grid.Column="1" Content="Відкрити" Command="{Binding OpenCommand}" VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <Border BorderBrush="#D7E1EF" BorderThickness="1" CornerRadius="10" Padding="20">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="Нова дошка" FontSize="20" FontWeight="SemiBold" />
-                    <TextBlock Text="Назва" />
-                    <TextBox Name="NewBoardNameInput" Text="{Binding NewName,Mode=TwoWay}" MaxLength="150" Watermark="Назва дошки" IsEnabled="{Binding CanEdit}" />
-                    <TextBlock Text="Опис" />
-                    <TextBox Name="NewBoardDescriptionInput" Text="{Binding NewDescription,Mode=TwoWay}" MaxLength="4000" AcceptsReturn="True" Height="70" Watermark="Необов'язковий опис" IsEnabled="{Binding CanEdit}" />
-                    <Button Name="CreateBoardButton" Content="Створити дошку" Command="{Binding CreateCommand}" Background="#2563EB" Foreground="White" />
-                </StackPanel>
-            </Border>
-        </StackPanel>
-        <StackPanel IsVisible="{Binding ShowBoard}" Spacing="18">
-            <Button Name="BackToBoardsButton" Content="← Мої дошки" Command="{Binding BackCommand}" />
-            <TextBlock Text="{Binding BoardTitle}" FontSize="26" FontWeight="SemiBold" TextWrapping="Wrap" />
-            <TextBlock Text="{Binding RoleLabel}" Foreground="#234E8D" />
-            <TextBlock Text="{Binding CardPermissions}" TextWrapping="Wrap" Foreground="#58677D" />
-            <TextBlock Text="{Binding BoardDescription}" TextWrapping="Wrap" />
-            <Button Content="Відкрити колонки та картки" Command="{Binding OpenContentCommand}" />
-            <views:BoardContentView DataContext="{Binding Content}" />
-            <Border IsVisible="{Binding IsAdmin}" Background="#F5F7FC" CornerRadius="10" Padding="20">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="Редагування дошки" FontSize="20" FontWeight="SemiBold" />
-                    <TextBox Name="EditBoardNameInput" Text="{Binding EditName,Mode=TwoWay}" MaxLength="150" Watermark="Назва" IsEnabled="{Binding CanEdit}" />
-                    <TextBox Name="EditBoardDescriptionInput" Text="{Binding EditDescription,Mode=TwoWay}" MaxLength="4000" AcceptsReturn="True" Height="70" Watermark="Опис" IsEnabled="{Binding CanEdit}" />
-                    <Button Name="SaveBoardButton" Content="Зберегти зміни" Command="{Binding SaveBoardCommand}" />
-                </StackPanel>
-            </Border>
-            <TextBlock Text="Учасники дошки" FontSize="22" FontWeight="SemiBold" />
-            <ItemsControl ItemsSource="{Binding Members}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:MemberViewModel">
-                        <Border BorderBrush="#D7E1EF" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,10">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold" />
-                                <TextBlock Text="{Binding Email}" Foreground="#58677D" />
-                                <TextBlock Text="{Binding Role}" Foreground="#234E8D" />
-                                <WrapPanel>
-                                    <CheckBox Content="Створення карток" IsChecked="{Binding CanCreateCards,Mode=TwoWay}" IsEnabled="{Binding CanEdit}" Margin="0,0,24,0" />
-                                    <CheckBox Content="Видалення карток" IsChecked="{Binding CanDeleteCards,Mode=TwoWay}" IsEnabled="{Binding CanEdit}" />
-                                </WrapPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding CanManage}">
-                                    <Button Content="Зберегти дозволи" Command="{Binding SaveCommand}" />
-                                    <Button Content="Відкликати доступ" Command="{Binding RemoveCommand}" Foreground="#B42318" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <Border IsVisible="{Binding IsAdmin}" Background="#EDF3FF" CornerRadius="10" Padding="20">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="Надати доступ" FontSize="20" FontWeight="SemiBold" />
-                    <TextBlock Text="Вкажіть email зареєстрованого користувача." TextWrapping="Wrap" />
-                    <TextBox Name="MemberEmailInput" Text="{Binding MemberEmail,Mode=TwoWay}" Watermark="name@example.com" MaxLength="254" IsEnabled="{Binding CanEdit}" />
-                    <Button Name="AddMemberButton" Content="Додати учасника" Command="{Binding AddMemberCommand}" />
-                </StackPanel>
-            </Border>
-            <Button Name="DeleteBoardButton" IsVisible="{Binding IsAdmin}" Content="Видалити дошку" Command="{Binding DeleteCommand}" Foreground="#B42318" />
-            <Border Name="ConfirmationPanel" IsVisible="{Binding ShowConfirmation}" Background="#FFF1EC" CornerRadius="10" Padding="20">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="{Binding ConfirmationText}" TextWrapping="Wrap" Foreground="#B42318" FontWeight="SemiBold" />
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Button Name="ConfirmBoardActionButton" Content="Підтвердити" Command="{Binding ConfirmCommand}" Background="#B42318" Foreground="White" />
-                        <Button Name="CancelBoardActionButton" Content="Скасувати" Command="{Binding CancelCommand}" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </StackPanel>
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:Curs.ViewModels" xmlns:views="using:Curs.Views" x:Class="Curs.Views.BoardWorkspaceView" x:DataType="vm:BoardWorkspaceViewModel">
+ <Grid ColumnDefinitions="220,*">
+  <Border Background="#F7F9FC" BorderBrush="#E2E7EE" BorderThickness="0,0,1,0" Padding="12,24,12,20">
+   <Grid RowDefinitions="Auto,*,Auto">
+    <StackPanel Orientation="Horizontal" Spacing="12" Margin="12,0,0,26"><Border Background="#2397A3" CornerRadius="7" Padding="8"><PathIcon Width="22" Height="22" Foreground="White" Data="M1,1 L9,1 9,21 1,21 Z M13,1 L21,1 21,21 13,21 Z"/></Border><TextBlock Text="KanbanBoard" FontWeight="Bold" FontSize="17"/></StackPanel>
+    <StackPanel Grid.Row="1" Spacing="4">
+     <Button Classes="nav" Command="{Binding BoardsCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Width="18" Height="18" Data="M1,1 L8,1 8,19 1,19 Z M12,1 L19,1 19,19 12,19 Z"/><TextBlock Text="Мої дошки"/></StackPanel></Button>
+     <Button Classes="nav" Command="{Binding FavoritesCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><TextBlock Text="☆" FontSize="21" Width="18"/><TextBlock Text="Обране"/></StackPanel></Button>
+     <Button Classes="nav" Command="{Binding TasksCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Width="18" Height="18" Data="M8,15 L2,9 4,7 8,11 17,2 19,4 Z"/><TextBlock Text="Особисті задачі"/></StackPanel></Button>
+     <Button Classes="nav" Command="{Binding TeamCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Width="18" Height="18" Data="M7,0 A4,4 0 1 1 7,8 A4,4 0 1 1 7,0 M0,18 L0,15 C0,9 14,9 14,15 L14,18 Z M15,1 A3,3 0 0 1 15,7 L15,1 M16,11 C21,11 21,15 21,18 L17,18 Z"/><TextBlock Text="Команда"/></StackPanel></Button>
+     <Button Classes="nav" Command="{Binding ArchiveCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Width="18" Height="18" Data="M0,0 L20,0 20,5 0,5 Z M2,7 L18,7 18,20 2,20 Z M7,9 L7,11 13,11 13,9 Z"/><TextBlock Text="Архів"/></StackPanel></Button>
+     <TextBlock Text="Останні" Classes="muted" FontSize="12" FontWeight="SemiBold" Margin="14,25,0,8"/>
+     <ItemsControl ItemsSource="{Binding RecentBoards}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:BoardListItemViewModel"><Button Classes="nav" Command="{Binding OpenCommand}" ToolTip.Tip="{Binding Name}"><Grid ColumnDefinitions="20,*" ColumnSpacing="10"><TextBlock Text="▥" FontSize="20" Foreground="#168C98"/><TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis"/></Grid></Button></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
     </StackPanel>
+    <StackPanel Grid.Row="2" Spacing="12"><Button Classes="nav" Command="{Binding ProfileCommand}" Padding="6"><Grid ColumnDefinitions="36,*,16" ColumnSpacing="8"><views:AvatarView DataContext="{Binding CurrentAvatar}"/><TextBlock Grid.Column="1" Text="{Binding UserName}" FontSize="12" TextTrimming="CharacterEllipsis"/><TextBlock Grid.Column="2" Text="›" FontSize="20"/></Grid></Button><Separator/><Button Name="LogoutButton" Classes="nav" Content="↪   Вийти" Command="{Binding LogoutCommand}"/></StackPanel>
+   </Grid>
+  </Border>
+  <Grid Grid.Column="1">
+   <Grid RowDefinitions="Auto,Auto,*" Margin="28,24,28,20" IsVisible="{Binding BoardsVisible}">
+    <Grid ColumnDefinitions="*,Auto"><StackPanel Spacing="7"><TextBlock Text="{Binding PageTitle}" Classes="heading" FontSize="34"/><TextBlock Text="{Binding PageSubtitle}" Classes="muted" FontSize="16"/></StackPanel><Button Grid.Column="1" Content="＋  Створити дошку" Classes="primary" Command="{Binding NewBoardCommand}" VerticalAlignment="Top"/></Grid>
+    <TextBox Grid.Row="1" Margin="0,20,0,20" Text="{Binding BoardSearch,Mode=TwoWay}" Watermark="⌕   Пошук дощок"/>
+    <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="18">
+     <TextBlock Text="Дощок не знайдено. Створіть дошку або змініть пошук." IsVisible="{Binding NoVisibleBoards}" Classes="muted" TextWrapping="Wrap"/>
+     <ItemsControl Name="BoardTiles" ItemsSource="{Binding VisibleBoards}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="3"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:BoardListItemViewModel">
+      <Border Classes="surface" Margin="0,0,16,18" ClipToBounds="True" Cursor="Hand" DoubleTapped="OpenTile">
+       <Grid RowDefinitions="118,Auto"><Grid Background="#E2EFF2"><Image Source="{Binding Cover}" Stretch="UniformToFill" IsVisible="{Binding HasCover}"/><Button Classes="ghost" Command="{Binding OpenCommand}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" ToolTip.Tip="Відкрити дошку"/></Grid>
+        <StackPanel Grid.Row="1" Margin="14,6,14,10" Spacing="6">
+         <Grid ColumnDefinitions="*,28"><Button Classes="ghost" Padding="0" Command="{Binding OpenCommand}" HorizontalContentAlignment="Left"><TextBlock Text="{Binding Name}" Foreground="#18233A" FontWeight="SemiBold" FontSize="18" TextTrimming="CharacterEllipsis"/></Button><Button Grid.Column="1" Classes="icon" Content="⋮" Click="OpenMenu"><Button.Flyout><MenuFlyout><MenuItem Header="Відкрити" Command="{Binding OpenCommand}"/><MenuItem Header="Налаштування" Command="{Binding SettingsCommand}" IsVisible="{Binding CanManage}"/><MenuItem Header="Додати / прибрати з обраного" Command="{Binding FavoriteCommand}"/><MenuItem Header="{Binding ArchiveLabel}" Command="{Binding ArchiveCommand}" IsVisible="{Binding CanManage}"/></MenuFlyout></Button.Flyout></Button></Grid>
+         <TextBlock Text="{Binding Description}" Classes="muted" Height="34" MaxLines="2" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+         <Border Background="#E0F2F1" CornerRadius="12" HorizontalAlignment="Left" Padding="12,4"><TextBlock Text="{Binding Role}" FontSize="11" Foreground="#167C88"/></Border>
+         <Grid ColumnDefinitions="*,Auto"><ItemsControl ItemsSource="{Binding Avatars}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:AvatarViewModel"><views:AvatarView Width="30" Height="30"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl><TextBlock Grid.Column="1" Text="{Binding Counts}" Classes="muted" FontSize="11" TextAlignment="Right" LineHeight="16"/></Grid>
+        </StackPanel>
+       </Grid>
+      </Border>
+     </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+     <StackPanel IsVisible="{Binding IsArchive}" Spacing="12"><TextBlock Text="Архів карток" FontSize="20" FontWeight="SemiBold"/><ItemsControl ItemsSource="{Binding OverviewCards}" ItemTemplate="{StaticResource OverviewTemplate}"/><TextBlock Text="Архів карток порожній." IsVisible="{Binding NoOverviewCards}" Classes="muted"/></StackPanel>
+    </StackPanel></ScrollViewer>
+   </Grid>
+   <Grid IsVisible="{Binding BoardVisible}" RowDefinitions="Auto,*" Margin="24,20,20,16">
+    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,18"><StackPanel Spacing="4"><StackPanel Orientation="Horizontal" Spacing="10"><TextBlock Text="{Binding BoardTitle}" Classes="heading"/><Button Classes="icon" Content="{Binding FavoriteIcon}" Command="{Binding FavoriteCommand}" ToolTip.Tip="Обране"/></StackPanel><TextBlock Text="{Binding BoardDescription}" Classes="muted" TextTrimming="CharacterEllipsis" MaxWidth="600" HorizontalAlignment="Left"/></StackPanel><StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Top"><ItemsControl ItemsSource="{Binding Members}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="-4"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:MemberViewModel"><views:AvatarView DataContext="{Binding Avatar}" Margin="0,0,4,0"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl><Button Content="{Binding MembersLabel}" Command="{Binding MembersCommand}"/><Button Classes="icon" Content="⋮" Click="OpenMenu"><Button.Flyout><MenuFlyout><MenuItem Header="Учасники" Command="{Binding MembersCommand}"/><MenuItem Header="Налаштування дошки" Command="{Binding SettingsCommand}" IsVisible="{Binding IsAdmin}"/><MenuItem Header="{Binding ArchiveLabel}" Command="{Binding ArchiveBoardCommand}" IsVisible="{Binding IsAdmin}"/><MenuItem Header="Видалити дошку" Command="{Binding DeleteCommand}" IsVisible="{Binding IsAdmin}"/></MenuFlyout></Button.Flyout></Button></StackPanel></Grid>
+    <views:BoardContentView Grid.Row="1" DataContext="{Binding Content}"/>
+   </Grid>
+   <Grid IsVisible="{Binding TasksVisible}" RowDefinitions="Auto,*" Margin="32"><StackPanel Spacing="8" Margin="0,0,0,24"><TextBlock Text="Особисті задачі" Classes="heading"/><TextBlock Text="Картки з усіх дощок, де ви відповідальний" Classes="muted"/></StackPanel><ScrollViewer Grid.Row="1"><StackPanel Spacing="12"><ItemsControl ItemsSource="{Binding OverviewCards}" ItemTemplate="{StaticResource OverviewTemplate}"/><TextBlock Text="У вас поки немає призначених карток." IsVisible="{Binding NoOverviewCards}" Classes="muted"/></StackPanel></ScrollViewer></Grid>
+   <Grid IsVisible="{Binding TeamVisible}" RowDefinitions="Auto,*" Margin="32"><StackPanel Spacing="8" Margin="0,0,0,24"><TextBlock Text="Команда" Classes="heading"/><TextBlock Text="Люди, з якими ви працюєте на спільних дошках" Classes="muted"/></StackPanel><ScrollViewer Grid.Row="1"><ItemsControl ItemsSource="{Binding Team}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="3"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:AvatarViewModel"><Border Classes="surface" Padding="20" Margin="0,0,16,16"><StackPanel Spacing="12"><views:AvatarView Width="56" Height="56" HorizontalAlignment="Left"/><TextBlock Text="{Binding Name}" FontWeight="SemiBold"/><TextBlock Text="{Binding User.Email}" Classes="muted" TextTrimming="CharacterEllipsis"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer></Grid>
+   <Border IsVisible="{Binding ProfileVisible}"><views:ProfileView DataContext="{Binding Profile}"/></Border>
+   <StackPanel VerticalAlignment="Bottom" Margin="30,0,30,8" IsHitTestVisible="False"><TextBlock Text="{Binding Error}" Classes="error"/><TextBlock Text="{Binding Status}" Classes="success" FontSize="12"/></StackPanel>
+  </Grid>
+  <Border Grid.ColumnSpan="2" Classes="overlay" IsVisible="{Binding NewBoardVisible}"><Border Classes="modal" Width="520" Padding="28"><StackPanel Spacing="16"><TextBlock Text="Створити дошку" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="Назва" Classes="label"/><TextBox Name="NewBoardNameInput" Text="{Binding NewName,Mode=TwoWay}" Watermark="Назва дошки" MaxLength="150" IsEnabled="{Binding CanEdit}"/><TextBlock Text="Опис" Classes="label"/><TextBox Name="NewBoardDescriptionInput" Text="{Binding NewDescription,Mode=TwoWay}" Watermark="Про що ця дошка?" MaxLength="4000" AcceptsReturn="True" Height="100" IsEnabled="{Binding CanEdit}"/><TextBlock Text="{Binding Error}" Classes="error"/><StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right"><Button Content="Скасувати" Command="{Binding CloseDialogCommand}"/><Button Name="CreateBoardButton" Content="Створити дошку" Classes="primary" Command="{Binding CreateCommand}"/></StackPanel></StackPanel></Border></Border>
+  <Border Grid.ColumnSpan="2" Classes="overlay" IsVisible="{Binding MembersVisible}"><Border Classes="modal" MaxWidth="1050" MaxHeight="760" HorizontalAlignment="Stretch" Margin="100,0">
+   <Grid RowDefinitions="Auto,*,Auto"><Grid ColumnDefinitions="*,Auto" Margin="24,20"><StackPanel Spacing="5"><TextBlock Text="Учасники дошки" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="{Binding BoardTitle}" Classes="muted"/></StackPanel><Button Grid.Column="1" Content="×" Classes="icon" Command="{Binding CloseDialogCommand}"/></Grid>
+    <ScrollViewer Grid.Row="1" Margin="24,0"><StackPanel Spacing="18">
+     <Border Classes="surface" Padding="18" IsVisible="{Binding IsAdmin}"><StackPanel Spacing="10"><TextBlock Text="Надати доступ" FontSize="17" FontWeight="SemiBold"/><Grid ColumnDefinitions="*,140" ColumnSpacing="12"><TextBox Name="MemberEmailInput" Text="{Binding MemberEmail,Mode=TwoWay}" Watermark="✉   Email користувача" MaxLength="254" IsEnabled="{Binding CanEdit}"/><Button Grid.Column="1" Content="Додати" Classes="primary" Command="{Binding AddMemberCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/></Grid><TextBlock Text="Користувач має бути зареєстрований у системі." Classes="muted" FontSize="12"/></StackPanel></Border>
+     <Border Classes="surface" ClipToBounds="True"><StackPanel><Border Background="#F3F6F9" Padding="16,12"><Grid ColumnDefinitions="2.2*,1.3*,1.2*,1.2*,1.4*"><TextBlock Text="Учасник" Classes="label"/><TextBlock Grid.Column="1" Text="Роль" Classes="label"/><TextBlock Grid.Column="2" Text="Створення карток" Classes="label"/><TextBlock Grid.Column="3" Text="Видалення карток" Classes="label"/></Grid></Border><ItemsControl ItemsSource="{Binding Members}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:MemberViewModel"><Border BorderBrush="#E9EDF3" BorderThickness="0,1,0,0" Padding="16,12"><Grid ColumnDefinitions="2.2*,1.3*,1.2*,1.2*,1.4*" ColumnSpacing="10"><Grid ColumnDefinitions="42,*" ColumnSpacing="10"><views:AvatarView DataContext="{Binding Avatar}" Width="40" Height="40"/><StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Email}" Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis"/></StackPanel></Grid><ComboBox Grid.Column="1" ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole,Mode=TwoWay}" IsEnabled="{Binding CanChangeRole}" VerticalAlignment="Center"><ComboBox.ItemTemplate><DataTemplate x:DataType="vm:RoleOption"><TextBlock Text="{Binding Name}" FontSize="12"/></DataTemplate></ComboBox.ItemTemplate></ComboBox><ToggleSwitch Grid.Column="2" IsChecked="{Binding CanCreateCards,Mode=TwoWay}" IsEnabled="{Binding CanChangeRights}" OnContent="" OffContent="" HorizontalAlignment="Center"/><ToggleSwitch Grid.Column="3" IsChecked="{Binding CanDeleteCards,Mode=TwoWay}" IsEnabled="{Binding CanChangeRights}" OnContent="" OffContent="" HorizontalAlignment="Center"/><Button Grid.Column="4" Content="Відкликати доступ" Classes="ghost danger" Command="{Binding RemoveCommand}" IsVisible="{Binding CanManage}" FontSize="11" Padding="4"/></Grid></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel></Border>
+     <TextBlock Text="Обмеження застосовуються до створення та видалення карток. Права власника захищені." Classes="muted" FontSize="12" TextWrapping="Wrap"/><TextBlock Text="{Binding Error}" Classes="error"/>
+    </StackPanel></ScrollViewer><StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12" Margin="24"><Button Content="Скасувати" Command="{Binding CloseDialogCommand}"/><Button Content="Зберегти" Classes="primary" Command="{Binding SaveMembersCommand}" IsVisible="{Binding IsAdmin}"/></StackPanel>
+   </Grid>
+  </Border></Border>
+  <Border Grid.ColumnSpan="2" Classes="overlay" IsVisible="{Binding SettingsVisible}"><Border Classes="modal" Width="600" Padding="28"><StackPanel Spacing="16"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="Налаштування дошки" FontSize="24" FontWeight="SemiBold"/><Button Grid.Column="1" Classes="icon" Content="×" Command="{Binding CloseDialogCommand}"/></Grid><TextBlock Text="Назва" Classes="label"/><TextBox Name="EditBoardNameInput" Text="{Binding EditName,Mode=TwoWay}" MaxLength="150" IsEnabled="{Binding CanEdit}"/><TextBlock Text="Опис" Classes="label"/><TextBox Name="EditBoardDescriptionInput" Text="{Binding EditDescription,Mode=TwoWay}" MaxLength="4000" AcceptsReturn="True" Height="100" IsEnabled="{Binding CanEdit}"/><TextBlock Text="Фото-обкладинка" Classes="label"/><StackPanel Orientation="Horizontal" Spacing="10"><Button Content="Змінити фото" Click="ChooseBoardCover" IsEnabled="{Binding CanEdit}"/><Button Content="Прибрати фото" Command="{Binding RemoveBoardCoverCommand}"/></StackPanel><TextBlock Text="JPG, PNG, WEBP · до 5 МіБ" Classes="muted" FontSize="12"/><Separator/><StackPanel Orientation="Horizontal" Spacing="10"><Button Content="{Binding ArchiveLabel}" Command="{Binding ArchiveBoardCommand}"/><Button Name="DeleteBoardButton" Content="Видалити дошку" Classes="danger" Command="{Binding DeleteCommand}"/></StackPanel><TextBlock Text="{Binding Error}" Classes="error"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12"><Button Content="Скасувати" Command="{Binding CloseDialogCommand}"/><Button Name="SaveBoardButton" Content="Зберегти" Classes="primary" Command="{Binding SaveBoardCommand}"/></StackPanel></StackPanel></Border></Border>
+  <Border Grid.ColumnSpan="2" Classes="overlay" IsVisible="{Binding ShowConfirmation}"><Border Classes="modal" Width="480" Padding="28"><StackPanel Spacing="20"><TextBlock Text="Підтвердження" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="{Binding ConfirmationText}" TextWrapping="Wrap"/><TextBlock Text="{Binding Error}" Classes="error"/><StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right"><Button Content="Скасувати" Command="{Binding CancelCommand}"/><Button Content="Підтвердити" Classes="danger" Command="{Binding ConfirmCommand}"/></StackPanel></StackPanel></Border></Border>
+  <Border Grid.ColumnSpan="2" Classes="overlay" IsVisible="{Binding NavigationConfirmation}"><Border Classes="modal" Width="480" Padding="28"><StackPanel Spacing="20"><TextBlock Text="Закрити редактор?" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Незбережені зміни буде втрачено. Залишайтеся, щоб зберегти їх, або продовжуйте перехід." TextWrapping="Wrap"/><StackPanel Orientation="Horizontal" Spacing="12"><Button Content="Залишитися" Command="{Binding StayCommand}"/><Button Content="Відкинути й перейти" Classes="danger" Command="{Binding DiscardNavigationCommand}"/></StackPanel></StackPanel></Border></Border>
+ </Grid>
+ <UserControl.Resources>
+  <DataTemplate x:Key="OverviewTemplate" x:DataType="vm:OverviewCardViewModel"><Border Classes="surface" Padding="18" Margin="0,0,0,12"><Grid ColumnDefinitions="*,Auto"><StackPanel Spacing="6"><TextBlock Text="{Binding BoardName}" Classes="muted" FontSize="12"/><TextBlock Text="{Binding Card.Title}" FontSize="17" FontWeight="SemiBold"/><TextBlock Text="{Binding Card.Description}" Classes="muted" MaxLines="2" TextWrapping="Wrap"/><TextBlock Text="{Binding Card.Summary}" Classes="muted" FontSize="12"/></StackPanel><StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"><Button Content="Відновити" Command="{Binding RestoreCommand}" IsVisible="{Binding CanRestore}"/><Button Content="Відкрити" Command="{Binding OpenCommand}"/></StackPanel></Grid></Border></DataTemplate>
+ </UserControl.Resources>
 </UserControl>
