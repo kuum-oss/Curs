@@ -14,3 +14,16 @@
 | `city.png` | Contemporary glass campus and office buildings with landscaping at golden hour. |
 
 Усі PNG мають розмір 1536×1024 та менші за обмеження 5 МіБ. Переглянуті після генерації. Оригінали залишені в каталозі генератора; ці копії належать репозиторію. Демонстраційні дані мають завантажувати їх через звичайний захищений API зображень.
+
+## Аватари вигаданих учасників
+
+Також `imagegen` створив чотири окремі квадратні портрети 1254×1254 (кожен до 5 МіБ). Люди вигадані; фото не представляють реальних власників акаунтів.
+
+Спільний промпт: Create one photorealistic square headshot avatar for a fictional Kanban coursework demo account. Head and shoulders, centered face with space around it for a circular crop, softly blurred neutral bright background, realistic unretouched skin texture, natural daylight, calm professional casual portrait, cohesive editorial photography. No text, logos, borders, UI or watermark.
+
+- `avatar-anastasiia.png`: Ukrainian woman around 28, shoulder length brown hair, warm natural smile, light cream blouse.
+- `avatar-olena.png`: Ukrainian woman around 27, dark bob haircut, natural smile, pale blue shirt.
+- `avatar-dmytro.png`: Ukrainian man around 29, short dark brown hair and neat beard, navy shirt.
+- `avatar-iryna.png`: Ukrainian woman around 26, light brown hair tied back, friendly smile, sage green sweater.
+
+Портрети переглянуті після генерації. Скрипт `scripts/seed-demo.py` створює лише демонстраційні дані через локальний API; випадковий пароль та ID зберігаються у виключеному з Git `TestResults/ph08-demo.json`.
