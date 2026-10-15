@@ -1,6 +1,6 @@
 # План реалізації KanbanBoard
 
-Версія документа: 1.7. Оновлено: 14.10.2026. Статус: PH-00–PH-06 виконано; наступна фаза — PH-07.
+Версія документа: 1.8. Оновлено: 15.10.2026. Статус: PH-00–PH-07 виконано; наступна фаза — PH-08.
 
 Основа — [вимоги](REQUIREMENTS.md) та [рішення PH-00](PH00_DECISIONS.md). Структура, маршрути, поля та алгоритми є робочим планом, а не завершеними функціями. Користувач визначив запуск на одному Mac, пробу MSSQL через емуляцію та нативний клієнт; решту базових правил деталізовано рішеннями поточної фази.
 
@@ -232,73 +232,25 @@ PH-06 реалізує `CardQuery`: search, priority, tagId, assigneeId, deadlin
 
 ## 7. Docker та запуск
 
-У PH-00 створено [compose.yaml](../compose.yaml) на основі схеми користувача: ті самі образ MSSQL 2022, порти 3038/5000, мережа та volume. Додано платформу `linux/amd64`, loopback-прив'язку, SQL healthcheck і залежність API від готової БД. Паролі передаються через локальний `.env`, приклад — [.env.example](../.env.example); значення `.env` виключено з Git.
+У PH-07 реалізовано [Dockerfile API](../KanbanApi/Dockerfile), [Compose](../compose.yaml) та [.dockerignore](../.dockerignore). Авторитетна конфігурація — ці файли; покрокова інструкція — [DEPLOYMENT](DEPLOYMENT.md), фактичні результати — [PH-07](PH07_DOCKER.md).
 
-Нижче збережено початковий ескіз для пояснення структури; він не є актуальним Compose-файлом. Авторитетна конфігурація — `compose.yaml`. Dockerfile API та застосування міграцій ще не реалізовані; готовність SQL фіксується у [перевірці PH-00](PH00_ENVIRONMENT.md).
+- Контекст збірки — корінь рішення через залежність KanbanContracts; allowlist передає лише сервер, контракти та global.json, без bin/obj або секретів.
+- SDK 10.0.103 та ASP.NET runtime 10.0.13 зафіксовані digest. Публікація — linux-$TARGETARCH без self-contained runtime, запуск — непривілейований користувач на 8080. Restore/publish/видалення кешу пакетів — у тому самому шарі для малого Docker-диска.
+- Перевірений digest MSSQL 2022 із PH-00 збережено, платформа SQL — linux/amd64. API на поточному Mac — linux/arm64. Це перевірка емуляції для курсової, а не офіційна підтримка SQL на ARM.
+- Compose чекає SQL healthcheck SELECT 1, потім API перевіряє JWT і застосовує EF-міграції до відкриття HTTP. Помилка дає керований код виходу 1; EnsureCreated не використовується.
+- Readiness перевіряє доступність БД і міграції, liveness — HTTP-процес. Healthcheck образу виконує dotnet KanbanApi.dll --healthcheck на localhost:8080. Втрата БД дає 503; відновлення потребує свіжої успішної проби, попередній Docker healthy не гарантує готовність відразу після старту SQL.
+- Для обох сервісів restart unless-stopped. Статус unhealthy сам по собі не є причиною автоматичного restart.
+- MSSQL_SA_PASSWORD і JWT_KEY надходять з виключеного з Git .env; .env.example містить лише placeholders. API_PORT, SQL_PORT і KANBAN_DATABASE необов’язкові. Стандартні порти 5000 і 3038 прив’язані до 127.0.0.1; LAN не входить до погодженого обсягу.
 
-```yaml
-services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_PID: "Developer"
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD}
-    ports:
-      - "127.0.0.1:3038:1433"
-    volumes:
-      - sqlserver-data:/var/opt/mssql
-    networks:
-      - kanban-network
+Запуск: `docker compose up --build -d --wait --wait-timeout 240`. Клієнт працює нативно з `KANBAN_API_URL=http://127.0.0.1:5000/`, у Rider або через scripts/dotnet.sh run --project Curs.
 
-  api:
-    build: ./KanbanApi
-    environment:
-      ASPNETCORE_HTTP_PORTS: "8080"
-      ConnectionStrings__Default: "Server=sqlserver,1433;Database=KanbanDB;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"
-      Jwt__Key: ${JWT_KEY:?Set JWT_KEY}
-      Jwt__Issuer: "KanbanBoard.Api"
-      Jwt__Audience: "KanbanBoard.Desktop"
-    ports:
-      - "127.0.0.1:5000:8080"
-    depends_on:
-      - sqlserver
-    networks:
-      - kanban-network
-
-networks:
-  kanban-network:
-
-volumes:
-  sqlserver-data:
-```
-
-`depends_on` у наведеному ескізі визначає лише порядок запуску. У створеному `compose.yaml` уже використано SQL healthcheck та `condition: service_healthy`. Healthcheck використовує `/opt/mssql-tools18/bin/sqlcmd` і перевіряється практично у PH-00. API додатково має повторювати підключення з обмеженою кількістю спроб. Для повторюваності захисту роботи образ фіксується на перевірений digest за результатом цієї проби.
-
-Після готовності БД один екземпляр API застосовує EF-міграції перед прийманням запитів. Помилка міграції не ігнорується: API не стає ready. `EnsureCreated` замість міграцій не використовується.
-
-Поточний запуск: після підготовки `.env` виконати `docker compose up -d sqlserver`, потім `scripts/dotnet.sh run --project KanbanApi`. API у Development застосовує міграції перед початком роботи. `docker compose config --quiet` перевіряє синтаксис та підстановки, але не доводить, що сервер працює.
-
-Майбутній повний порядок запуску:
-
-1. Створити `.env` за `.env.example` з локальним паролем MSSQL та секретом JWT. `.env` не додавати до Git.
-2. Запустити серверну частину командою `docker compose up --build -d`.
-3. Переконатися, що `http://localhost:5000/health/ready` повертає успіх.
-4. Запустити нативний клієнт у Rider або через `dotnet run --project Curs/Curs.csproj`; URL API задається клієнтською конфігурацією, типовий — `http://localhost:5000`.
-
-Повний запуск стане доступним після створення Dockerfile у PH-07. API вже існує і перевірений нативним запуском; контейнерну збірку потрібно налаштувати з контекстом кореня рішення, оскільки сервер посилається на `KanbanContracts`. Клієнт має форми входу/реєстрації, вихід, список і керування дошками та учасниками, реалізовані у PH-03; PH-04 додала колонки, редактор картки, теги та коментарі.
-
-Усе зображення зберігається в БД, тому окремий volume для фото не потрібен. Звичайний перезапуск та `docker compose down` без `-v` зберігають іменований volume. `docker compose down -v` видаляє його та дані; це не команда штатного завершення. Volume не замінює резервну копію.
-
-Користувач обрав один комп'ютер для базової версії. Порти прив'язані до loopback; 20 користувачів моделюються тестом на цій машині. LAN-доступ потребував би окремої зміни адреси, публікації API та конфігурації HTTPS, але до базової версії не входить.
-
-SQL Server-контейнер потребує x86-64. Користувач обрав пробу на поточному Apple Silicon через `platform: linux/amd64`; її фактичний результат записується у [PH00_ENVIRONMENT](PH00_ENVIRONMENT.md). Це не робить конфігурацію офіційно підтримуваною Microsoft. За нестабільності потрібне окреме рішення про локальний x86-64 Linux-хост без автоматичної заміни MSSQL. [Документація Microsoft](https://learn.microsoft.com/en-us/sql/linux/containers/deploy?view=sql-server-ver16).
+Іменований sqlserver-data зберігає всі дев’ять таблиць, включно з оригіналами й превью фото; окремий volume API не потрібен. Restart і штатний down без -v зберігають volume. Down -v видаляє дані; volume не замінює резервної копії. Скрипт verify-ph07-docker.py перевіряє свіжу БД, усі три формати Linux, restart/down/up і втрату SQL в окремому випадковому проєкті та прибирає тільки власний тимчасовий volume.
 
 ## 8. Етапи реалізації
 
 Детальні роботи, залежності, критерії завершення та посилання на документи для кожного етапу наведено у [фазах виконання](PHASES.md).
 
-PH-00–PH-06 виконано; PH-07 та PH-08 заплановані. Актуальні статуси й докази — у [PHASES](PHASES.md), [рішеннях PH-00](PH00_DECISIONS.md), [перевірці середовища](PH00_ENVIRONMENT.md) та результатах [PH-01](PH01_IMPLEMENTATION.md), [PH-02](PH02_AUTHENTICATION.md), [PH-03](PH03_BOARDS.md), [PH-04](PH04_CONTENT.md), [PH-05](PH05_COLLABORATION.md) та [PH-06](PH06_FILTERS_IMAGES.md).
+PH-00–PH-07 виконано; PH-08 заплановано. Актуальні статуси й докази — у [PHASES](PHASES.md), [рішеннях PH-00](PH00_DECISIONS.md), [перевірці середовища](PH00_ENVIRONMENT.md) та результатах [PH-01](PH01_IMPLEMENTATION.md), [PH-02](PH02_AUTHENTICATION.md), [PH-03](PH03_BOARDS.md), [PH-04](PH04_CONTENT.md), [PH-05](PH05_COLLABORATION.md) та [PH-06](PH06_FILTERS_IMAGES.md) та [PH-07](PH07_DOCKER.md).
 
 | Етап | Роботи | Критерій завершення |
 | --- | --- | --- |
@@ -309,7 +261,7 @@ PH-00–PH-06 виконано; PH-07 та PH-08 заплановані. Акт�
 | 4. Колонки й картки — виконано | CRUD, теги, відповідальні, дата, пріоритет, коментарі | AC-04, AC-05 без перестановки, AC-06 без фото, AC-08; 64 тести, 74 HTTP-перевірки та живий GUI |
 | 5. Порядок і конкуренція — виконано | Транзакції, версії, drag-and-drop, оновлення спільної дошки | Повний AC-05, AC-07, AC-12, AC-14; 80 тестів, 116 HTTP-перевірок і два живі вікна |
 | 6. Пошук і фото — виконано | AND-фільтри, пошук/скасування/пагінація, захищені обкладинки й кеш | AC-09–AC-10 та повний AC-06; 93 тести, 211 HTTP-перевірок, живий GUI |
-| 7. Інфраструктура | Dockerfile, Compose, healthchecks, секрети, persistent volume | Серверна частина запускається однією командою; AC-11 |
+| 7. Інфраструктура — виконано | Dockerfile, Compose, healthchecks, секрети, persistent volume | NFR-05/NFR-06 та AC-11; 26 перевірок розгортання, 82 HTTP-запити, нативний GUI |
 | 8. Приймання | Навантаження, наскрізні сценарії, UI-перевірка, матеріали звіту | AC-01–AC-14 підтверджені фактичними результатами |
 
 Для ранніх етапів API може запускатися з Rider, а MSSQL — у контейнері. Завершені функції позначаються виконаними лише після перевірки, а не після додавання класів чи кнопок.
