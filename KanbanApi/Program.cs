@@ -31,6 +31,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<BoardAccess>();
 builder.Services.AddScoped<BoardService>();
 builder.Services.AddScoped<ContentService>();
@@ -53,7 +54,7 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
     {
-        if (context.HttpContext.Request.Path.Value?.EndsWith("/image",StringComparison.Ordinal)==true &&
+        if (new[] { "/image", "/cover", "/avatar" }.Any(suffix => context.HttpContext.Request.Path.Value?.EndsWith(suffix, StringComparison.Ordinal) == true) &&
             (context.HttpContext.Request.ContentLength > KanbanContracts.ImageLimits.RequestBytes ||
              context.ModelState.Values.SelectMany(v=>v.Errors).Any(e=>e.Exception is BadHttpRequestException {StatusCode:413} || e.Exception?.InnerException is BadHttpRequestException {StatusCode:413})))
             return new ObjectResult(new ProblemDetails { Status=413,Title="Фото: не більше 5 МіБ.",Extensions={ ["code"]="image_too_large" } })

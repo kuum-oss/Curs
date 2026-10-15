@@ -21,6 +21,8 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         var user = model.Entity<User>();
         user.ToTable("Users");
         user.HasKey(x => x.Id);
+        user.Property(x => x.RowVersion).IsRowVersion();
+        user.Property(x => x.AvatarData).HasColumnType("varbinary(max)");
         user.Property(x => x.Email).HasMaxLength(FieldLimits.Email).IsRequired();
         user.Property(x => x.NormalizedEmail).HasMaxLength(FieldLimits.Email)
             .UseCollation("Latin1_General_100_CI_AS_SC").IsRequired();
@@ -31,6 +33,10 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         var board = model.Entity<Board>();
         board.ToTable("Boards");
         board.HasKey(x => x.Id);
+        board.HasOne<User>().WithMany().HasForeignKey(x => x.OwnerId);
+        board.Property(x => x.CoverOriginalData).HasColumnType("varbinary(max)");
+        board.Property(x => x.CoverThumbnailData).HasColumnType("varbinary(max)");
+        board.Property(x => x.CoverContentType).HasMaxLength(50).IsUnicode(false);
         board.Property(x => x.Name).HasMaxLength(FieldLimits.BoardName).IsRequired();
         board.Property(x => x.Description).HasMaxLength(FieldLimits.BoardDescription);
         board.Property(x => x.RowVersion).IsRowVersion();
@@ -41,8 +47,7 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         member.HasOne<Board>().WithMany().HasForeignKey(x => x.BoardId);
         member.HasOne<User>().WithMany().HasForeignKey(x => x.UserId);
         member.HasIndex(x => new { x.UserId, x.BoardId });
-        member.HasIndex(x => x.BoardId).IsUnique().HasFilter("[Role] = 0")
-            .HasDatabaseName("IX_BoardMembers_OneAdmin");
+
 
         var column = model.Entity<BoardColumn>();
         column.ToTable("Columns", t => t.HasCheckConstraint("CK_Columns_Position", "[Position] >= 0"));
@@ -102,6 +107,7 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         var comment = model.Entity<Comment>();
         comment.ToTable("Comments");
         comment.HasKey(x => x.Id);
+        comment.Property(x => x.RowVersion).IsRowVersion();
         comment.Property(x => x.Text).HasMaxLength(FieldLimits.Comment).IsRequired();
         comment.HasOne<Card>().WithMany().HasForeignKey(x => x.CardId);
         comment.HasOne<User>().WithMany().HasForeignKey(x => x.AuthorId);

@@ -9,11 +9,19 @@ public sealed class User
     public string NormalizedEmail { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
+    public int SessionVersion { get; set; }
+    public byte[] RowVersion { get; set; } = [];
+    public byte[]? AvatarData { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
 public sealed class Board
 {
+    public Guid? OwnerId { get; set; }
+    public bool IsArchived { get; set; }
+    public byte[]? CoverOriginalData { get; set; }
+    public byte[]? CoverThumbnailData { get; set; }
+    public string? CoverContentType { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -29,6 +37,8 @@ public sealed class BoardMember
     public BoardRole Role { get; set; } = BoardRole.Member;
     public bool CanCreateCards { get; set; } = true;
     public bool CanDeleteCards { get; set; } = true;
+    public bool IsFavorite { get; set; }
+    public DateTime? LastOpenedAtUtc { get; set; }
     public DateTime JoinedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
@@ -43,6 +53,7 @@ public sealed class BoardColumn
 
 public sealed class Card
 {
+    public bool IsArchived { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ColumnId { get; set; }
     public string Title { get; set; } = string.Empty;
@@ -87,6 +98,8 @@ public sealed class CardImage
 
 public sealed class Comment
 {
+    public byte[] RowVersion { get; set; } = [];
+    public DateTime? EditedAtUtc { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid CardId { get; set; }
     public Guid AuthorId { get; set; }

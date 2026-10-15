@@ -32,7 +32,7 @@ public sealed class SqlSchemaTests(SqlFixture fixture)
         await using var db = fixture.CreateContext();
         var before = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
         await db.Database.MigrateAsync();
-        Assert.Single(before);
+        Assert.Equal(db.Database.GetMigrations().ToArray(), before);
         Assert.Equal(before, (await db.Database.GetAppliedMigrationsAsync()).ToArray());
         var tables = await db.Database.SqlQueryRaw<string>("SELECT [name] AS [Value] FROM sys.tables WHERE [name] <> '__EFMigrationsHistory'").ToListAsync();
         Assert.Equal(new[] { "BoardMembers", "Boards", "CardImages", "CardTags", "Cards", "Columns", "Comments", "Tags", "Users" }.Order(StringComparer.Ordinal).ToArray(), tables.Order(StringComparer.Ordinal).ToArray());
@@ -62,13 +62,14 @@ public sealed class SqlSchemaTests(SqlFixture fixture)
     }
 
     [SqlFact]
-    public async Task ABoardCannotHaveTwoAdministrators()
+    public async Task ABoardSupportsAdditionalAdministratorsForRoleManagement()
     {
         await using var db = fixture.CreateContext();
         var graph = await Seed(db);
         var other = new User { Email = "other@example.com", NormalizedEmail = Guid.NewGuid()+"@EXAMPLE.COM", Name = "Інший", PasswordHash = "test-only" };
         db.AddRange(other, new BoardMember { BoardId = graph.Board.Id, UserId = other.Id, Role = BoardRole.Admin });
-        await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+        await db.SaveChangesAsync();
+        Assert.Equal(2, await db.BoardMembers.CountAsync(x => x.BoardId == graph.Board.Id && x.Role == BoardRole.Admin));
     }
 
     [SqlFact]

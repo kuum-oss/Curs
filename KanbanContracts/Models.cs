@@ -17,19 +17,21 @@ public static class FieldLimits
     public const int ImageBytes = 5 * 1024 * 1024;
 }
 
-public sealed record UserDto(Guid Id, string Email, string Name);
-public sealed record BoardSummaryDto(Guid Id, string Name, string? Description, BoardRole Role);
+public sealed record UserDto(Guid Id, string Email, string Name, string? Version = null, bool HasAvatar = false);
+public sealed record BoardSummaryDto(Guid Id, string Name, string? Description, BoardRole Role,
+    int CardCount = 0, int MemberCount = 0, IReadOnlyList<UserDto>? Participants = null,
+    bool HasCover = false, string? Version = null, bool IsFavorite = false, bool IsArchived = false, DateTime? LastOpenedAtUtc = null);
 public sealed record BoardDetailsDto(Guid Id, string Name, string? Description, BoardRole Role,
-    bool CanCreateCards, bool CanDeleteCards, string Version);
+    bool CanCreateCards, bool CanDeleteCards, string Version, bool HasCover = false, bool IsArchived = false, bool IsFavorite = false, Guid? OwnerId = null);
 public sealed record MemberDto(UserDto User, BoardRole Role, bool CanCreateCards, bool CanDeleteCards);
 public sealed record ColumnDto(Guid Id, Guid BoardId, string Name, int Position, string Version);
 public sealed record TagDto(Guid Id, string Name, string Color);
 public sealed record CardSummaryDto(Guid Id, Guid ColumnId, string Title, DateOnly? DueDate,
     CardPriority Priority, UserDto? Assignee, int Position, IReadOnlyList<TagDto> Tags,
-    bool HasImage, string Version);
+    bool HasImage, string Version, string? Description = null, int CommentCount = 0, bool IsArchived = false);
 public sealed record CardDetailsDto(CardSummaryDto Card, string? Description,
     string? ImageContentType, DateTime CreatedAtUtc, DateTime UpdatedAtUtc);
-public sealed record CommentDto(Guid Id, Guid CardId, UserDto Author, string Text, DateTime CreatedAtUtc);
+public sealed record CommentDto(Guid Id, Guid CardId, UserDto Author, string Text, DateTime CreatedAtUtc, string? Version = null, DateTime? EditedAtUtc = null);
 public sealed record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Offset, int Limit,
     string? BoardVersion = null);
 

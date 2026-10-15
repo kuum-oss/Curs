@@ -40,7 +40,7 @@ public sealed class CreateTagRequest : BoardMutationRequest
     [Required(ErrorMessage = "Введіть назву тегу."), StringLength(FieldLimits.TagName, ErrorMessage = "Назва тегу: не більше 50 символів.")] public string Name { get; set; } = "";
     [Required(ErrorMessage = "Введіть колір тегу."), RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Колір тегу має формат #RRGGBB.")] public string Color { get; set; } = "#64748B";
 }
-public sealed class CreateCommentRequest : ResourceVersionQuery
+public class CreateCommentRequest : ResourceVersionQuery
 {
     [Required(ErrorMessage = "Введіть текст коментаря."), StringLength(FieldLimits.Comment, ErrorMessage = "Коментар: не більше 4000 символів.")] public string Text { get; set; } = "";
 }

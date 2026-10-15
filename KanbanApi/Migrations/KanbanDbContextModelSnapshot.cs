@@ -28,6 +28,17 @@ namespace KanbanApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CoverContentType")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<byte[]>("CoverOriginalData")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<byte[]>("CoverThumbnailData")
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -35,10 +46,16 @@ namespace KanbanApi.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -50,6 +67,8 @@ namespace KanbanApi.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Boards", (string)null);
                 });
@@ -101,18 +120,19 @@ namespace KanbanApi.Migrations
                     b.Property<bool>("CanDeleteCards")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("JoinedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastOpenedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<byte>("Role")
                         .HasColumnType("tinyint");
 
                     b.HasKey("BoardId", "UserId");
-
-                    b.HasIndex("BoardId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_BoardMembers_OneAdmin")
-                        .HasFilter("[Role] = 0");
 
                     b.HasIndex("UserId", "BoardId");
 
@@ -145,6 +165,9 @@ namespace KanbanApi.Migrations
 
                     b.Property<DateOnly?>("DueDate")
                         .HasColumnType("date");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
 
                     b.Property<int>("Position")
                         .HasColumnType("int");
@@ -269,6 +292,15 @@ namespace KanbanApi.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("EditedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(4000)
@@ -323,6 +355,9 @@ namespace KanbanApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte[]>("AvatarData")
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -348,12 +383,29 @@ namespace KanbanApi.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SessionVersion")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("KanbanApi.Domain.Board", b =>
+                {
+                    b.HasOne("KanbanApi.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("KanbanApi.Domain.BoardColumn", b =>

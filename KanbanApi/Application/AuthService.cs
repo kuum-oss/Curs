@@ -30,7 +30,7 @@ public sealed class AuthService(KanbanDbContext db, PasswordService passwords, J
         {
             throw DuplicateEmail();
         }
-        return jwt.Issue(new UserDto(user.Id, user.Email, user.Name));
+        return jwt.Issue(UserPresentation.Dto(user), user.SessionVersion);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
@@ -39,11 +39,11 @@ public sealed class AuthService(KanbanDbContext db, PasswordService passwords, J
         var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.NormalizedEmail == email, cancellationToken);
         if (!passwords.Verify(request.Password, user?.PasswordHash))
             throw new ApiException(401, "invalid_credentials", "Невірний email або пароль.");
-        return jwt.Issue(new UserDto(user!.Id, user.Email, user.Name));
+        return jwt.Issue(UserPresentation.Dto(user!), user!.SessionVersion);
     }
 
     public async Task<UserDto> MeAsync(Guid id, CancellationToken cancellationToken) =>
-        await db.Users.AsNoTracking().Where(x => x.Id == id).Select(x => new UserDto(x.Id, x.Email, x.Name))
+        await db.Users.AsNoTracking().Where(x => x.Id == id).Select(x => new UserDto(x.Id, x.Email, x.Name, Convert.ToBase64String(x.RowVersion), x.AvatarData != null))
             .SingleOrDefaultAsync(cancellationToken)
         ?? throw new ApiException(401, "unauthorized", "Сесію завершено. Увійдіть знову.");
 

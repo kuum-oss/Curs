@@ -4,6 +4,8 @@ using System.Text;
 using KanbanContracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KanbanApi.Infrastructure;
 
@@ -30,13 +32,13 @@ public sealed record JwtSettings(string Key, string Issuer, string Audience)
 
 public sealed class JwtService(JwtSettings settings, TimeProvider clock)
 {
-    public AuthResponse Issue(UserDto user)
+    public AuthResponse Issue(UserDto user, int sessionVersion = 0)
     {
         // Whole seconds keep response expiry and JWT exp exactly aligned.
         var now = DateTimeOffset.FromUnixTimeSeconds(clock.GetUtcNow().ToUnixTimeSeconds()).UtcDateTime;
         var expiry = now.AddHours(24);
         var token = new JwtSecurityToken(settings.Issuer, settings.Audience,
-            [new Claim("sub", user.Id.ToString()), new Claim("jti", Guid.NewGuid().ToString("N")),
+            [new Claim("sv", sessionVersion.ToString(System.Globalization.CultureInfo.InvariantCulture)), new Claim("sub", user.Id.ToString()), new Claim("jti", Guid.NewGuid().ToString("N")),
              new Claim("iat", new DateTimeOffset(now).ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture), ClaimValueTypes.Integer64)],
             now, expiry, new SigningCredentials(settings.ValidationParameters().IssuerSigningKey, SecurityAlgorithms.HmacSha256));
         return new AuthResponse(new JwtSecurityTokenHandler().WriteToken(token), expiry, user);
@@ -49,11 +51,16 @@ public sealed class JwtService(JwtSettings settings, TimeProvider clock)
         options.TokenValidationParameters = settings.ValidationParameters();
         options.Events = new JwtBearerEvents
         {
-            OnTokenValidated = context =>
+            OnTokenValidated = async context =>
             {
                 if (!Guid.TryParse(context.Principal?.FindFirstValue("sub"), out var id) || id == Guid.Empty)
-                    context.Fail("Invalid subject.");
-                return Task.CompletedTask;
+                {
+                    context.Fail("Invalid subject."); return;
+                }
+                if (!int.TryParse(context.Principal?.FindFirstValue("sv"), out var version) ||
+                    !await context.HttpContext.RequestServices.GetRequiredService<KanbanDbContext>().Users.AsNoTracking()
+                        .AnyAsync(u => u.Id == id && u.SessionVersion == version, context.HttpContext.RequestAborted))
+                    context.Fail("Session revoked.");
             },
         };
     }
