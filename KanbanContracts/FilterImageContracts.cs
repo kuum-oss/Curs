@@ -5,6 +5,7 @@ namespace KanbanContracts;
 public enum DeadlineFilter { Overdue, Today, Upcoming }
 public sealed class CardQuery : PageQuery, IValidatableObject
 {
+    public bool Archived { get; set; }
     [StringLength(FieldLimits.CardTitle)] public string? Search { get; set; }
     [EnumDataType(typeof(CardPriority))] public CardPriority? Priority { get; set; }
     public Guid? TagId { get; set; }

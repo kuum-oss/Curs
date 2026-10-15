@@ -31,12 +31,13 @@ public sealed class OrderingService(KanbanDbContext db, BoardAccess access)
         return await access.MutateAsync(boardId, userId, request.ExpectedBoardVersion, false, async _ =>
         {
             var card = await db.Cards.SingleOrDefaultAsync(x => x.Id == cardId, token) ?? throw BoardAccess.NotFound();
+            if (card.IsArchived) throw new ApiException(400, "card_archived", "Спочатку відновіть картку з архіву.");
             if (Convert.ToBase64String(card.RowVersion) != request.ExpectedVersion)
                 throw new ApiException(409, "concurrency_conflict", "Картку вже змінено. Оновіть дошку й повторіть дію.");
             if (!await db.Columns.AnyAsync(x => x.Id == request.TargetColumnId && x.BoardId == boardId, token))
                 throw BoardAccess.NotFound();
             var sourceId = card.ColumnId;
-            var rows = await db.Cards.Where(x => x.ColumnId == sourceId || x.ColumnId == request.TargetColumnId)
+            var rows = await db.Cards.Where(x => !x.IsArchived && (x.ColumnId == sourceId || x.ColumnId == request.TargetColumnId))
                 .OrderBy(x => x.Position).ThenBy(x => x.Id).ToListAsync(token);
             var source = rows.Where(x => x.ColumnId == sourceId && x.Id != cardId).ToList();
             var target = sourceId == request.TargetColumnId ? source : rows.Where(x => x.ColumnId == request.TargetColumnId).ToList();

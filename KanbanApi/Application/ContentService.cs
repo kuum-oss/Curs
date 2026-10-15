@@ -73,7 +73,7 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
         {
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, token);
         var board = await db.Boards.AsNoTracking().SingleOrDefaultAsync(x => x.Id == boardId, token) ?? throw Missing();
-        var query = BoardCards(boardId).AsNoTracking();
+        var query = BoardCards(boardId).AsNoTracking().Where(c=>c.IsArchived==page.Archived);
         if (!string.IsNullOrWhiteSpace(page.Search))
         {
             var term = page.Search.Trim();
@@ -101,13 +101,14 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
     private async Task<IReadOnlyList<CardSummaryDto>> Summaries(List<Card> cards, CancellationToken token)
     {
         var ids = cards.Select(c => c.Id).ToArray(); var assignees = cards.Where(c => c.AssigneeId != null).Select(c => c.AssigneeId!.Value).Distinct().ToArray();
-        var users = await db.Users.AsNoTracking().Where(u => assignees.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => new UserDto(u.Id, u.Email, u.Name), token);
+        var users = await db.Users.AsNoTracking().Where(u => assignees.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => UserPresentation.Dto(u), token);
         var tags = await (from ct in db.CardTags join t in db.Tags on ct.TagId equals t.Id where ids.Contains(ct.CardId)
                           orderby t.Name, t.Id select new { ct.CardId, Tag = new TagDto(t.Id, t.Name, t.Color) }).ToListAsync(token);
         var images = await db.CardImages.Where(x => ids.Contains(x.CardId)).Select(x => x.CardId).ToListAsync(token);
+        var comments = await db.Comments.Where(c=>ids.Contains(c.CardId)).GroupBy(c=>c.CardId).Select(g=>new{Id=g.Key,Count=g.Count()}).ToDictionaryAsync(g=>g.Id,g=>g.Count,token);
         return cards.Select(c => new CardSummaryDto(c.Id, c.ColumnId, c.Title, c.DueDate, c.Priority,
             c.AssigneeId is Guid id ? users.GetValueOrDefault(id) : null, c.Position, tags.Where(t => t.CardId == c.Id).Select(t => t.Tag).ToList(),
-            images.Contains(c.Id), Convert.ToBase64String(c.RowVersion))).ToList();
+            images.Contains(c.Id), Convert.ToBase64String(c.RowVersion), c.Description, comments.GetValueOrDefault(c.Id), c.IsArchived)).ToList();
     }
     private async Task<CardDetailsDto> Details(Card card, CancellationToken token)
     {
@@ -186,7 +187,7 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
         var boardId = await CardBoard(cardId, userId, token);
         var query = db.Comments.Where(x => x.CardId == cardId); var total = await query.CountAsync(token);
         var rows = await (from c in query join u in db.Users on c.AuthorId equals u.Id orderby c.CreatedAtUtc, c.Id
-                          select new CommentDto(c.Id, c.CardId, new UserDto(u.Id, u.Email, u.Name), c.Text, c.CreatedAtUtc))
+                          select new CommentDto(c.Id, c.CardId, new UserDto(u.Id, u.Email, u.Name, Convert.ToBase64String(u.RowVersion), u.AvatarData != null), c.Text, c.CreatedAtUtc, Convert.ToBase64String(c.RowVersion), c.EditedAtUtc))
             .Skip(page.Offset).Take(page.Limit).ToListAsync(token);
         await access.RequireAsync(boardId, userId, false, token); return new(rows, total, page.Offset, page.Limit);
     }
@@ -199,7 +200,50 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
             Version(card.RowVersion, request.ExpectedVersion); card.UpdatedAtUtc = DateTime.UtcNow;
             var comment = new Comment { CardId = cardId, AuthorId = userId, Text = request.Text.Trim() }; db.Comments.Add(comment);
             var author = await db.Users.AsNoTracking().SingleAsync(x => x.Id == userId, token);
-            return new CommentDto(comment.Id, cardId, new UserDto(author.Id, author.Email, author.Name), comment.Text, comment.CreatedAtUtc);
+            await db.SaveChangesAsync(token);
+            return new CommentDto(comment.Id, cardId, UserPresentation.Dto(author), comment.Text, comment.CreatedAtUtc, Convert.ToBase64String(comment.RowVersion));
         }, token);
     }
+    public async Task<CardDetailsDto> Archive(Guid cardId,Guid userId,ArchiveCardRequest request,CancellationToken token)
+    {
+        var boardId=await CardBoard(cardId,userId,token);
+        return await access.MutateAsync(boardId,userId,request.ExpectedBoardVersion,false,async member=>
+        {
+            DeleteRight(member);var card=await db.Cards.SingleAsync(c=>c.Id==cardId,token);Version(card.RowVersion,request.ExpectedVersion);
+            card.IsArchived=request.Archived;card.UpdatedAtUtc=DateTime.UtcNow;
+            if(!request.Archived)card.Position=await db.Cards.Where(c=>c.ColumnId==card.ColumnId).MaxAsync(c=>(int?)c.Position,token)+1??0;
+            await db.SaveChangesAsync(token);return await Details(card,token);
+        },token);
+    }
+    public async Task<CommentDto?> EditComment(Guid cardId,Guid commentId,Guid userId,string? text,CommentVersionQuery request,CancellationToken token)
+    {
+        var boardId=await CardBoard(cardId,userId,token);
+        return await access.MutateAsync<CommentDto?>(boardId,userId,request.ExpectedBoardVersion,false,async member=>
+        {
+            var card=await db.Cards.SingleAsync(c=>c.Id==cardId,token);Version(card.RowVersion,request.ExpectedVersion);
+            var comment=await db.Comments.SingleOrDefaultAsync(c=>c.Id==commentId && c.CardId==cardId,token)??throw Missing();Version(comment.RowVersion,request.ExpectedCommentVersion);
+            if(comment.AuthorId!=userId && (text is not null || member.Role!=BoardRole.Admin))throw new ApiException(403,"forbidden","Можна редагувати лише власний коментар.");
+            card.UpdatedAtUtc=DateTime.UtcNow;
+            if(text is null){db.Comments.Remove(comment);return null;}
+            if(string.IsNullOrWhiteSpace(text))throw new ApiException(400,"validation_failed","Введіть коментар.");
+            comment.Text=text.Trim();comment.EditedAtUtc=DateTime.UtcNow;await db.SaveChangesAsync(token);
+            var author=await db.Users.SingleAsync(u=>u.Id==comment.AuthorId,token);
+            return new CommentDto(comment.Id,cardId,UserPresentation.Dto(author),comment.Text,comment.CreatedAtUtc,Convert.ToBase64String(comment.RowVersion),comment.EditedAtUtc);
+        },token);
+    }
+    public async Task<PagedResult<PersonalCardDto>> Overview(Guid userId,PageQuery page,bool archived,bool assignedOnly,CancellationToken token)
+    {
+        var query=from card in db.Cards.AsNoTracking() join col in db.Columns on card.ColumnId equals col.Id
+                  join board in db.Boards on col.BoardId equals board.Id join member in db.BoardMembers on board.Id equals member.BoardId
+                  where member.UserId==userId && card.IsArchived==archived && (archived || !board.IsArchived) && (!assignedOnly || card.AssigneeId==userId)
+                  orderby card.DueDate,board.Name,col.Position,card.Position select new{Card=card,BoardId=board.Id,BoardName=board.Name};
+        var total=await query.CountAsync(token);var rows=await query.Skip(page.Offset).Take(page.Limit).ToListAsync(token);
+        var summaries=await Summaries(rows.Select(r=>r.Card).ToList(),token);
+        var allowed=await db.BoardMembers.Where(m=>m.UserId==userId).Select(m=>m.BoardId).ToListAsync(token);
+        var result=rows.Where(r=>allowed.Contains(r.BoardId)).Select(r=>new PersonalCardDto(r.BoardId,r.BoardName,summaries.Single(c=>c.Id==r.Card.Id))).ToList();
+        return new(result,total,page.Offset,page.Limit);
+    }
+    public async Task<IReadOnlyList<UserDto>> Team(Guid userId,CancellationToken token)=>
+        await db.Users.AsNoTracking().Where(u=>db.BoardMembers.Any(peer=>peer.UserId==u.Id && db.BoardMembers.Any(caller=>caller.UserId==userId && caller.BoardId==peer.BoardId)))
+            .OrderBy(u=>u.Name).Select(u=>new UserDto(u.Id,u.Email,u.Name,Convert.ToBase64String(u.RowVersion),u.AvatarData!=null)).ToListAsync(token);
 }

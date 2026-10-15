@@ -26,17 +26,33 @@ public sealed class ProfileService(KanbanDbContext db, PasswordService passwords
         if (string.IsNullOrEmpty(value) || !passwords.Verify(value, user.PasswordHash))
             throw new ApiException(400, "current_password_invalid", "Поточний пароль неправильний.");
     }
+    private Task<UserDto> DisplayMutation(Guid id, string version, Action<User> change, CancellationToken token) =>
+        db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            db.ChangeTracker.Clear();
+            await using var transaction = await db.Database.BeginTransactionAsync(token);
+            // Take board locks before the user lock, matching board mutation ordering.
+            var boards = await db.BoardMembers.Where(x => x.UserId == id).OrderBy(x => x.BoardId).Select(x => x.BoardId).ToArrayAsync(token);
+            foreach (var board in boards)
+                await db.Boards.Where(x => x.Id == board).ExecuteUpdateAsync(set => set.SetProperty(x => x.UpdatedAtUtc, DateTime.UtcNow), token);
+            var user = await Current(id, version, token); change(user);
+            await db.SaveChangesAsync(token); await transaction.CommitAsync(token);
+            return UserPresentation.Dto(user);
+        });
     public async Task<UserDto> Update(Guid id, UpdateProfileRequest request, CancellationToken token)
     {
-        var user = await Current(id, request.ExpectedVersion, token);
         if (string.IsNullOrWhiteSpace(request.Name)) throw new ApiException(400, "validation_failed", "Вкажіть ім’я.");
-        var email = request.Email.Trim(); var normalized = email.ToUpperInvariant();
-        if (normalized != user.NormalizedEmail) VerifyPassword(user, request.CurrentPassword);
-        user.Name = request.Name.Trim(); user.Email = email; user.NormalizedEmail = normalized;
-        try { await db.SaveChangesAsync(token); }
+        try
+        {
+            return await DisplayMutation(id, request.ExpectedVersion, user =>
+            {
+                var email = request.Email.Trim(); var normalized = email.ToUpperInvariant();
+                if (normalized != user.NormalizedEmail) VerifyPassword(user, request.CurrentPassword);
+                user.Name = request.Name.Trim(); user.Email = email; user.NormalizedEmail = normalized;
+            }, token);
+        }
         catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
         { throw new ApiException(409, "email_exists", "Цей email уже використовується."); }
-        return UserPresentation.Dto(user);
     }
     public async Task<AuthResponse> ChangePassword(Guid id, ChangePasswordRequest request, CancellationToken token)
     {
@@ -47,16 +63,12 @@ public sealed class ProfileService(KanbanDbContext db, PasswordService passwords
     }
     public async Task<UserDto> PutAvatar(Guid id, string version, byte[] bytes, CancellationToken token)
     {
-        var user = await Current(id, version, token);
+        await Current(id, version, token);
         var image = await images.Process(bytes, token);
-        user.AvatarData = image.Thumbnail;
-        await db.SaveChangesAsync(token); return UserPresentation.Dto(user);
+        return await DisplayMutation(id, version, user => user.AvatarData = image.Thumbnail, token);
     }
-    public async Task<UserDto> DeleteAvatar(Guid id, string version, CancellationToken token)
-    {
-        var user = await Current(id, version, token); user.AvatarData = null;
-        await db.SaveChangesAsync(token); return UserPresentation.Dto(user);
-    }
+    public Task<UserDto> DeleteAvatar(Guid id, string version, CancellationToken token) =>
+        DisplayMutation(id, version, user => user.AvatarData = null, token);
     public async Task<byte[]> Avatar(Guid id, Guid viewer, CancellationToken token)
     {
         async Task Allowed()

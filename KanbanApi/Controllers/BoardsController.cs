@@ -43,4 +43,12 @@ public sealed class BoardsController(BoardService boards) : ControllerBase
     {
         await boards.RemoveMemberAsync(boardId, UserId, userId, query.ExpectedBoardVersion, token); return NoContent();
     }
+    [HttpPut("{boardId:guid}/members")]
+    public async Task<ActionResult<IReadOnlyList<MemberDto>>> Settings(Guid boardId,UpdateMembersRequest request,CancellationToken token) => Ok(await boards.SettingsAsync(boardId,UserId,request,token));
+    [HttpPut("{boardId:guid}/archive")]
+    public async Task<ActionResult<BoardDetailsDto>> Archive(Guid boardId,SetArchiveRequest request,CancellationToken token) => Ok(await boards.ArchiveAsync(boardId,UserId,request,token));
+    [HttpPut("{boardId:guid}/favorite")]
+    public async Task<IActionResult> Favorite(Guid boardId,FavoriteRequest request,CancellationToken token) {await boards.FavoriteAsync(boardId,UserId,request.Favorite,token);return NoContent();}
+    [HttpPost("{boardId:guid}/visit")]
+    public async Task<IActionResult> Visit(Guid boardId,CancellationToken token) {await boards.VisitAsync(boardId,UserId,token);return NoContent();}
 }

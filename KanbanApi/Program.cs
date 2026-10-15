@@ -32,6 +32,7 @@ builder.Services.AddSingleton<JwtService>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<BoardCoverService>();
 builder.Services.AddScoped<BoardAccess>();
 builder.Services.AddScoped<BoardService>();
 builder.Services.AddScoped<ContentService>();
