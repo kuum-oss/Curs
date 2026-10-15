@@ -28,6 +28,9 @@ services:
 
   api:
     image: kanbanboard-api:local
+    # Avoid large native crash dumps on the small local Docker disk.
+    ulimits:
+      core: 0
     build:
       context: .
       dockerfile: KanbanApi/Dockerfile
