@@ -80,13 +80,24 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
 
 var app = builder.Build();
-// Validate secrets after the final configuration (including test host overrides) has been composed.
-_ = app.Services.GetRequiredService<JwtSettings>();
-if (app.Configuration.GetValue("Database:ApplyMigrationsOnStartup", true))
+// Fail before listening, with a controlled exit rather than a native runtime abort.
+try
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-    await scope.ServiceProvider.GetRequiredService<KanbanDbContext>().Database.MigrateAsync(timeout.Token);
+    // Validate after the final configuration (including test host overrides) is composed.
+    _ = app.Services.GetRequiredService<JwtSettings>();
+    if (app.Configuration.GetValue("Database:ApplyMigrationsOnStartup", true))
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+        await scope.ServiceProvider.GetRequiredService<KanbanDbContext>().Database.MigrateAsync(timeout.Token);
+    }
+}
+catch (Exception error)
+{
+    app.Logger.LogCritical("API startup failed ({ErrorType}). Check JWT configuration, database access and migrations.", error.GetType().Name);
+    Environment.ExitCode = 1;
+    await app.DisposeAsync();
+    return;
 }
 app.UseExceptionHandler();
 app.UseStatusCodePages();
