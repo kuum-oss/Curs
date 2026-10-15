@@ -1,0 +1,1150 @@
+{
+  "phase": "PH-07",
+  "completed_date": "2026-10-15",
+  "branch": "ph-07",
+  "base_main_commit": "e2e08457545e0d9dcfac04ff63affb94ec235289",
+  "tests": {
+    "total": 93,
+    "passed": 93,
+    "failed": 0,
+    "skipped": 0,
+    "real_sql": 60
+  },
+  "release": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "docker_checks_count": 26,
+  "container_http_count": 82,
+  "docker": {
+    "phase": "PH-07",
+    "project": "kanbanph0760d545a7328e",
+    "checks": [
+      "Compose configuration validates with isolated secrets and ports",
+      "Fresh SQL and API containers are healthy",
+      "Live returns 200",
+      "Ready returns 200 after migrations",
+      "Fresh database contains exactly nine domain tables",
+      "EF migration applied exactly once",
+      "API runs as a non-root user",
+      "SDK and local files are absent from the runtime",
+      "Image healthcheck succeeds",
+      "JPG decodes in Linux and returns exact original plus PNG thumbnail",
+      "PNG decodes in Linux and returns exact original plus PNG thumbnail",
+      "WEBP decodes in Linux and returns exact original plus PNG thumbnail",
+      "All filters work through container API",
+      "Stored graph includes two ordered cards and a comment",
+      "All fields, ordering, versions, members, tags, comments and photo survive restart",
+      "Migration remains idempotent after restart",
+      "Normal compose down retains the named volume",
+      "Recreated containers retain complete graph and exact photo bytes",
+      "User credentials survive down/up",
+      "API stays live when SQL stops",
+      "API is not ready when SQL stops",
+      "Image probe fails when SQL stops",
+      "Ready recovers after SQL starts",
+      "Recovered graph is unchanged",
+      "Invalid JWT configuration exits before serving HTTP",
+      "Failed startup migration exits before serving HTTP"
+    ],
+    "http": [
+      {
+        "method": "GET",
+        "path": "/health/live",
+        "status": 200,
+        "duration_ms": 24
+      },
+      {
+        "method": "GET",
+        "path": "/health/ready",
+        "status": 200,
+        "duration_ms": 45
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/register",
+        "status": 201,
+        "duration_ms": 1036
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/register",
+        "status": 201,
+        "duration_ms": 477
+      },
+      {
+        "method": "POST",
+        "path": "/api/boards",
+        "status": 201,
+        "duration_ms": 237
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 12
+      },
+      {
+        "method": "POST",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/members",
+        "status": 201,
+        "duration_ms": 116
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 6
+      },
+      {
+        "method": "POST",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/columns",
+        "status": 201,
+        "duration_ms": 57
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 4
+      },
+      {
+        "method": "POST",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/columns",
+        "status": 201,
+        "duration_ms": 10
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 6
+      },
+      {
+        "method": "POST",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/tags",
+        "status": 201,
+        "duration_ms": 42
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 4
+      },
+      {
+        "method": "POST",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/cards",
+        "status": 201,
+        "duration_ms": 225
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 5
+      },
+      {
+        "method": "POST",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/cards",
+        "status": 201,
+        "duration_ms": 28
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 8
+      },
+      {
+        "method": "POST",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/comments",
+        "status": 201,
+        "duration_ms": 86
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+        "status": 200,
+        "duration_ms": 27
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 6
+      },
+      {
+        "method": "POST",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/move",
+        "status": 200,
+        "duration_ms": 87
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 5
+      },
+      {
+        "method": "PUT",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/columns/order",
+        "status": 200,
+        "duration_ms": 36
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+        "status": 200,
+        "duration_ms": 14
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 5
+      },
+      {
+        "method": "PUT",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 187
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 33
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image/thumbnail",
+        "status": 200,
+        "duration_ms": 21
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+        "status": 200,
+        "duration_ms": 11
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 4
+      },
+      {
+        "method": "PUT",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 53
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 6
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image/thumbnail",
+        "status": 200,
+        "duration_ms": 6
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+        "status": 200,
+        "duration_ms": 17
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225",
+        "status": 200,
+        "duration_ms": 5
+      },
+      {
+        "method": "PUT",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 48
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 6
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image/thumbnail",
+        "status": 200,
+        "duration_ms": 6
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/cards?search=%D0%B7%D0%B1%D0%B5%D1%80%D0%B5%D0%B6%D0%B5%D0%BD%D0%BD%D1%8F&priority=Critical&tagId=be0d9486-822b-41ba-98af-0d5c82b3a960&assigneeId=c957394e-f63a-42d0-a7f6-7751cdf4386d&deadline=Upcoming&today=2026-10-15",
+        "status": 200,
+        "duration_ms": 113
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 401,
+        "duration_ms": 13
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+        "status": 200,
+        "duration_ms": 9
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/columns",
+        "status": 200,
+        "duration_ms": 18
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/cards",
+        "status": 200,
+        "duration_ms": 42
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/tags",
+        "status": 200,
+        "duration_ms": 21
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/comments",
+        "status": 200,
+        "duration_ms": 41
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/members",
+        "status": 200,
+        "duration_ms": 30
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 6
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image/thumbnail",
+        "status": 200,
+        "duration_ms": 5
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+        "status": 200,
+        "duration_ms": 581
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/columns",
+        "status": 200,
+        "duration_ms": 28
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/cards",
+        "status": 200,
+        "duration_ms": 112
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/tags",
+        "status": 200,
+        "duration_ms": 26
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/comments",
+        "status": 200,
+        "duration_ms": 46
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/members",
+        "status": 200,
+        "duration_ms": 37
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 114
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image/thumbnail",
+        "status": 200,
+        "duration_ms": 30
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+        "status": 200,
+        "duration_ms": 480
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/columns",
+        "status": 200,
+        "duration_ms": 31
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/cards",
+        "status": 200,
+        "duration_ms": 112
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/tags",
+        "status": 200,
+        "duration_ms": 23
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/comments",
+        "status": 200,
+        "duration_ms": 40
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/members",
+        "status": 200,
+        "duration_ms": 42
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 71
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image/thumbnail",
+        "status": 200,
+        "duration_ms": 25
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/login",
+        "status": 200,
+        "duration_ms": 1087
+      },
+      {
+        "method": "GET",
+        "path": "/health/live",
+        "status": 200,
+        "duration_ms": 17
+      },
+      {
+        "method": "GET",
+        "path": "/health/ready",
+        "status": 503,
+        "duration_ms": 17910
+      },
+      {
+        "method": "GET",
+        "path": "/health/ready",
+        "status": 503,
+        "duration_ms": 32
+      },
+      {
+        "method": "GET",
+        "path": "/health/ready",
+        "status": 503,
+        "duration_ms": 16
+      },
+      {
+        "method": "GET",
+        "path": "/health/ready",
+        "status": 503,
+        "duration_ms": 11
+      },
+      {
+        "method": "GET",
+        "path": "/health/ready",
+        "status": 503,
+        "duration_ms": 14
+      },
+      {
+        "method": "GET",
+        "path": "/health/ready",
+        "status": 503,
+        "duration_ms": 11
+      },
+      {
+        "method": "GET",
+        "path": "/health/ready",
+        "status": 200,
+        "duration_ms": 35
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+        "status": 200,
+        "duration_ms": 114
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/columns",
+        "status": 200,
+        "duration_ms": 14
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/cards",
+        "status": 200,
+        "duration_ms": 63
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/tags",
+        "status": 200,
+        "duration_ms": 9
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/comments",
+        "status": 200,
+        "duration_ms": 15
+      },
+      {
+        "method": "GET",
+        "path": "/api/boards/7f26d216-fcf2-463c-976c-d3440c2ec225/members",
+        "status": 200,
+        "duration_ms": 15
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image",
+        "status": 200,
+        "duration_ms": 19
+      },
+      {
+        "method": "GET",
+        "path": "/api/cards/9adaf1ce-9d28-45ca-895f-1e4d55f69a03/image/thumbnail",
+        "status": 200,
+        "duration_ms": 15
+      }
+    ],
+    "snapshots": {
+      "before_restart": {
+        "detail": {
+          "card": {
+            "id": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+            "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+            "title": "Перевірити збереження обкладинки",
+            "dueDate": "2026-11-14",
+            "priority": 3,
+            "assignee": {
+              "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+              "email": "ph07-member@example.test",
+              "name": "Іван Docker"
+            },
+            "position": 0,
+            "tags": [
+              {
+                "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+                "name": "Docker",
+                "color": "#2563EB"
+              }
+            ],
+            "hasImage": true,
+            "version": "AAAAAAAAB+o="
+          },
+          "description": "Усі дані у volume MSSQL",
+          "imageContentType": "image/webp",
+          "createdAtUtc": "2026-10-15T17:11:25.8373819",
+          "updatedAtUtc": "2026-10-15T17:11:26.7144047"
+        },
+        "columns": [
+          {
+            "id": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+            "boardId": "7f26d216-fcf2-463c-976c-d3440c2ec225",
+            "name": "Готово",
+            "position": 0,
+            "version": "AAAAAAAAB+M="
+          },
+          {
+            "id": "92a7bbdc-4825-496e-9f62-909fc71248a1",
+            "boardId": "7f26d216-fcf2-463c-976c-d3440c2ec225",
+            "name": "Заплановано",
+            "position": 1,
+            "version": "AAAAAAAAB+I="
+          }
+        ],
+        "cards": {
+          "items": [
+            {
+              "id": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+              "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+              "title": "Перевірити збереження обкладинки",
+              "dueDate": "2026-11-14",
+              "priority": 3,
+              "assignee": {
+                "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+                "email": "ph07-member@example.test",
+                "name": "Іван Docker"
+              },
+              "position": 0,
+              "tags": [
+                {
+                  "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+                  "name": "Docker",
+                  "color": "#2563EB"
+                }
+              ],
+              "hasImage": true,
+              "version": "AAAAAAAAB+o="
+            },
+            {
+              "id": "3655d11a-7443-4bcf-804e-e6377de0e175",
+              "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+              "title": "Друга картка",
+              "dueDate": null,
+              "priority": 1,
+              "assignee": null,
+              "position": 1,
+              "tags": [],
+              "hasImage": false,
+              "version": "AAAAAAAAB98="
+            }
+          ],
+          "totalCount": 2,
+          "offset": 0,
+          "limit": 100,
+          "boardVersion": "AAAAAAAAB+k="
+        },
+        "tags": [
+          {
+            "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+            "name": "Docker",
+            "color": "#2563EB"
+          }
+        ],
+        "comments": {
+          "items": [
+            {
+              "id": "4f9976fc-18e4-4e04-9582-38577b0ba424",
+              "cardId": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+              "author": {
+                "id": "c6162e0d-f8b8-4ed2-b5a9-e8133a6ac2b3",
+                "email": "ph07-admin@example.test",
+                "name": "Олена Docker"
+              },
+              "text": "Коментар із контейнерного API",
+              "createdAtUtc": "2026-10-15T17:11:26.1281199"
+            }
+          ],
+          "totalCount": 1,
+          "offset": 0,
+          "limit": 100,
+          "boardVersion": null
+        },
+        "members": [
+          {
+            "user": {
+              "id": "c6162e0d-f8b8-4ed2-b5a9-e8133a6ac2b3",
+              "email": "ph07-admin@example.test",
+              "name": "Олена Docker"
+            },
+            "role": 0,
+            "canCreateCards": true,
+            "canDeleteCards": true
+          },
+          {
+            "user": {
+              "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+              "email": "ph07-member@example.test",
+              "name": "Іван Docker"
+            },
+            "role": 1,
+            "canCreateCards": true,
+            "canDeleteCards": true
+          }
+        ],
+        "original_sha256": "a1662e02fdcd3ec55ec56888fbb1549bab544150324fd49b003caf1eb28f18ae",
+        "thumbnail_sha256": "4965403c9df2634befc3fc2be88a9b97104d10d962222c29f4ada8e1c1e0c351"
+      },
+      "after_restart": {
+        "detail": {
+          "card": {
+            "id": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+            "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+            "title": "Перевірити збереження обкладинки",
+            "dueDate": "2026-11-14",
+            "priority": 3,
+            "assignee": {
+              "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+              "email": "ph07-member@example.test",
+              "name": "Іван Docker"
+            },
+            "position": 0,
+            "tags": [
+              {
+                "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+                "name": "Docker",
+                "color": "#2563EB"
+              }
+            ],
+            "hasImage": true,
+            "version": "AAAAAAAAB+o="
+          },
+          "description": "Усі дані у volume MSSQL",
+          "imageContentType": "image/webp",
+          "createdAtUtc": "2026-10-15T17:11:25.8373819",
+          "updatedAtUtc": "2026-10-15T17:11:26.7144047"
+        },
+        "columns": [
+          {
+            "id": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+            "boardId": "7f26d216-fcf2-463c-976c-d3440c2ec225",
+            "name": "Готово",
+            "position": 0,
+            "version": "AAAAAAAAB+M="
+          },
+          {
+            "id": "92a7bbdc-4825-496e-9f62-909fc71248a1",
+            "boardId": "7f26d216-fcf2-463c-976c-d3440c2ec225",
+            "name": "Заплановано",
+            "position": 1,
+            "version": "AAAAAAAAB+I="
+          }
+        ],
+        "cards": {
+          "items": [
+            {
+              "id": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+              "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+              "title": "Перевірити збереження обкладинки",
+              "dueDate": "2026-11-14",
+              "priority": 3,
+              "assignee": {
+                "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+                "email": "ph07-member@example.test",
+                "name": "Іван Docker"
+              },
+              "position": 0,
+              "tags": [
+                {
+                  "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+                  "name": "Docker",
+                  "color": "#2563EB"
+                }
+              ],
+              "hasImage": true,
+              "version": "AAAAAAAAB+o="
+            },
+            {
+              "id": "3655d11a-7443-4bcf-804e-e6377de0e175",
+              "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+              "title": "Друга картка",
+              "dueDate": null,
+              "priority": 1,
+              "assignee": null,
+              "position": 1,
+              "tags": [],
+              "hasImage": false,
+              "version": "AAAAAAAAB98="
+            }
+          ],
+          "totalCount": 2,
+          "offset": 0,
+          "limit": 100,
+          "boardVersion": "AAAAAAAAB+k="
+        },
+        "tags": [
+          {
+            "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+            "name": "Docker",
+            "color": "#2563EB"
+          }
+        ],
+        "comments": {
+          "items": [
+            {
+              "id": "4f9976fc-18e4-4e04-9582-38577b0ba424",
+              "cardId": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+              "author": {
+                "id": "c6162e0d-f8b8-4ed2-b5a9-e8133a6ac2b3",
+                "email": "ph07-admin@example.test",
+                "name": "Олена Docker"
+              },
+              "text": "Коментар із контейнерного API",
+              "createdAtUtc": "2026-10-15T17:11:26.1281199"
+            }
+          ],
+          "totalCount": 1,
+          "offset": 0,
+          "limit": 100,
+          "boardVersion": null
+        },
+        "members": [
+          {
+            "user": {
+              "id": "c6162e0d-f8b8-4ed2-b5a9-e8133a6ac2b3",
+              "email": "ph07-admin@example.test",
+              "name": "Олена Docker"
+            },
+            "role": 0,
+            "canCreateCards": true,
+            "canDeleteCards": true
+          },
+          {
+            "user": {
+              "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+              "email": "ph07-member@example.test",
+              "name": "Іван Docker"
+            },
+            "role": 1,
+            "canCreateCards": true,
+            "canDeleteCards": true
+          }
+        ],
+        "original_sha256": "a1662e02fdcd3ec55ec56888fbb1549bab544150324fd49b003caf1eb28f18ae",
+        "thumbnail_sha256": "4965403c9df2634befc3fc2be88a9b97104d10d962222c29f4ada8e1c1e0c351"
+      },
+      "after_down_up": {
+        "detail": {
+          "card": {
+            "id": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+            "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+            "title": "Перевірити збереження обкладинки",
+            "dueDate": "2026-11-14",
+            "priority": 3,
+            "assignee": {
+              "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+              "email": "ph07-member@example.test",
+              "name": "Іван Docker"
+            },
+            "position": 0,
+            "tags": [
+              {
+                "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+                "name": "Docker",
+                "color": "#2563EB"
+              }
+            ],
+            "hasImage": true,
+            "version": "AAAAAAAAB+o="
+          },
+          "description": "Усі дані у volume MSSQL",
+          "imageContentType": "image/webp",
+          "createdAtUtc": "2026-10-15T17:11:25.8373819",
+          "updatedAtUtc": "2026-10-15T17:11:26.7144047"
+        },
+        "columns": [
+          {
+            "id": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+            "boardId": "7f26d216-fcf2-463c-976c-d3440c2ec225",
+            "name": "Готово",
+            "position": 0,
+            "version": "AAAAAAAAB+M="
+          },
+          {
+            "id": "92a7bbdc-4825-496e-9f62-909fc71248a1",
+            "boardId": "7f26d216-fcf2-463c-976c-d3440c2ec225",
+            "name": "Заплановано",
+            "position": 1,
+            "version": "AAAAAAAAB+I="
+          }
+        ],
+        "cards": {
+          "items": [
+            {
+              "id": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+              "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+              "title": "Перевірити збереження обкладинки",
+              "dueDate": "2026-11-14",
+              "priority": 3,
+              "assignee": {
+                "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+                "email": "ph07-member@example.test",
+                "name": "Іван Docker"
+              },
+              "position": 0,
+              "tags": [
+                {
+                  "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+                  "name": "Docker",
+                  "color": "#2563EB"
+                }
+              ],
+              "hasImage": true,
+              "version": "AAAAAAAAB+o="
+            },
+            {
+              "id": "3655d11a-7443-4bcf-804e-e6377de0e175",
+              "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+              "title": "Друга картка",
+              "dueDate": null,
+              "priority": 1,
+              "assignee": null,
+              "position": 1,
+              "tags": [],
+              "hasImage": false,
+              "version": "AAAAAAAAB98="
+            }
+          ],
+          "totalCount": 2,
+          "offset": 0,
+          "limit": 100,
+          "boardVersion": "AAAAAAAAB+k="
+        },
+        "tags": [
+          {
+            "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+            "name": "Docker",
+            "color": "#2563EB"
+          }
+        ],
+        "comments": {
+          "items": [
+            {
+              "id": "4f9976fc-18e4-4e04-9582-38577b0ba424",
+              "cardId": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+              "author": {
+                "id": "c6162e0d-f8b8-4ed2-b5a9-e8133a6ac2b3",
+                "email": "ph07-admin@example.test",
+                "name": "Олена Docker"
+              },
+              "text": "Коментар із контейнерного API",
+              "createdAtUtc": "2026-10-15T17:11:26.1281199"
+            }
+          ],
+          "totalCount": 1,
+          "offset": 0,
+          "limit": 100,
+          "boardVersion": null
+        },
+        "members": [
+          {
+            "user": {
+              "id": "c6162e0d-f8b8-4ed2-b5a9-e8133a6ac2b3",
+              "email": "ph07-admin@example.test",
+              "name": "Олена Docker"
+            },
+            "role": 0,
+            "canCreateCards": true,
+            "canDeleteCards": true
+          },
+          {
+            "user": {
+              "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+              "email": "ph07-member@example.test",
+              "name": "Іван Docker"
+            },
+            "role": 1,
+            "canCreateCards": true,
+            "canDeleteCards": true
+          }
+        ],
+        "original_sha256": "a1662e02fdcd3ec55ec56888fbb1549bab544150324fd49b003caf1eb28f18ae",
+        "thumbnail_sha256": "4965403c9df2634befc3fc2be88a9b97104d10d962222c29f4ada8e1c1e0c351"
+      },
+      "after_sql_outage": {
+        "detail": {
+          "card": {
+            "id": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+            "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+            "title": "Перевірити збереження обкладинки",
+            "dueDate": "2026-11-14",
+            "priority": 3,
+            "assignee": {
+              "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+              "email": "ph07-member@example.test",
+              "name": "Іван Docker"
+            },
+            "position": 0,
+            "tags": [
+              {
+                "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+                "name": "Docker",
+                "color": "#2563EB"
+              }
+            ],
+            "hasImage": true,
+            "version": "AAAAAAAAB+o="
+          },
+          "description": "Усі дані у volume MSSQL",
+          "imageContentType": "image/webp",
+          "createdAtUtc": "2026-10-15T17:11:25.8373819",
+          "updatedAtUtc": "2026-10-15T17:11:26.7144047"
+        },
+        "columns": [
+          {
+            "id": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+            "boardId": "7f26d216-fcf2-463c-976c-d3440c2ec225",
+            "name": "Готово",
+            "position": 0,
+            "version": "AAAAAAAAB+M="
+          },
+          {
+            "id": "92a7bbdc-4825-496e-9f62-909fc71248a1",
+            "boardId": "7f26d216-fcf2-463c-976c-d3440c2ec225",
+            "name": "Заплановано",
+            "position": 1,
+            "version": "AAAAAAAAB+I="
+          }
+        ],
+        "cards": {
+          "items": [
+            {
+              "id": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+              "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+              "title": "Перевірити збереження обкладинки",
+              "dueDate": "2026-11-14",
+              "priority": 3,
+              "assignee": {
+                "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+                "email": "ph07-member@example.test",
+                "name": "Іван Docker"
+              },
+              "position": 0,
+              "tags": [
+                {
+                  "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+                  "name": "Docker",
+                  "color": "#2563EB"
+                }
+              ],
+              "hasImage": true,
+              "version": "AAAAAAAAB+o="
+            },
+            {
+              "id": "3655d11a-7443-4bcf-804e-e6377de0e175",
+              "columnId": "e6f961ff-ebd0-41fd-8b6e-e63953e778ae",
+              "title": "Друга картка",
+              "dueDate": null,
+              "priority": 1,
+              "assignee": null,
+              "position": 1,
+              "tags": [],
+              "hasImage": false,
+              "version": "AAAAAAAAB98="
+            }
+          ],
+          "totalCount": 2,
+          "offset": 0,
+          "limit": 100,
+          "boardVersion": "AAAAAAAAB+k="
+        },
+        "tags": [
+          {
+            "id": "be0d9486-822b-41ba-98af-0d5c82b3a960",
+            "name": "Docker",
+            "color": "#2563EB"
+          }
+        ],
+        "comments": {
+          "items": [
+            {
+              "id": "4f9976fc-18e4-4e04-9582-38577b0ba424",
+              "cardId": "9adaf1ce-9d28-45ca-895f-1e4d55f69a03",
+              "author": {
+                "id": "c6162e0d-f8b8-4ed2-b5a9-e8133a6ac2b3",
+                "email": "ph07-admin@example.test",
+                "name": "Олена Docker"
+              },
+              "text": "Коментар із контейнерного API",
+              "createdAtUtc": "2026-10-15T17:11:26.1281199"
+            }
+          ],
+          "totalCount": 1,
+          "offset": 0,
+          "limit": 100,
+          "boardVersion": null
+        },
+        "members": [
+          {
+            "user": {
+              "id": "c6162e0d-f8b8-4ed2-b5a9-e8133a6ac2b3",
+              "email": "ph07-admin@example.test",
+              "name": "Олена Docker"
+            },
+            "role": 0,
+            "canCreateCards": true,
+            "canDeleteCards": true
+          },
+          {
+            "user": {
+              "id": "c957394e-f63a-42d0-a7f6-7751cdf4386d",
+              "email": "ph07-member@example.test",
+              "name": "Іван Docker"
+            },
+            "role": 1,
+            "canCreateCards": true,
+            "canDeleteCards": true
+          }
+        ],
+        "original_sha256": "a1662e02fdcd3ec55ec56888fbb1549bab544150324fd49b003caf1eb28f18ae",
+        "thumbnail_sha256": "4965403c9df2634befc3fc2be88a9b97104d10d962222c29f4ada8e1c1e0c351"
+      }
+    },
+    "image_id": "sha256:4980c1e4e6150c8abc3d2c7bd62715ff94ababf2967c942cf94fef57a76f4810",
+    "api_architecture": "arm64",
+    "verification_passed": true,
+    "gui_session_closed": true,
+    "temporary_volume_removed": true,
+    "completed_at": "2026-10-15T20:16:03+0300"
+  },
+  "primary_stack": {
+    "ready": true,
+    "live": true,
+    "containers_healthy": true,
+    "temporary_stacks_remaining": 0,
+    "temporary_volumes_remaining": 0,
+    "working_volume": "kanbanboard_sqlserver-data",
+    "image_id": "sha256:f41f7795f4da2b0cedf2e6febb5b0872d2876cff5a270fc558d22eba7795df14",
+    "publish_and_copy_reused_from_tested_build_cache": true,
+    "runtime_manifest": "sha256:eb0bf66729d8082347552328f4573faae7abad575cf8ef2f9d3ff992627c6482",
+    "test_runtime_manifest": "sha256:d77aa4e7932bd6c3422a7c2e1b8f289cdf8279b3c7fece6c40003ae181e9f6c2",
+    "compose_project_labels_differ": true,
+    "ports": "127.0.0.1:5000 and 127.0.0.1:3038",
+    "services": [
+      {
+        "service": "api",
+        "health": "healthy"
+      },
+      {
+        "service": "sqlserver",
+        "health": "healthy"
+      }
+    ]
+  },
+  "gui": {
+    "native_macos": true,
+    "same_final_image_as_automated_checks": true,
+    "login_and_board_open": true,
+    "preview": true,
+    "full_webp": true,
+    "comment_author_and_date": true,
+    "logout_clears_content": true,
+    "client_closed": true,
+    "screenshots": "screenshots/ph07/README.md"
+  },
+  "limits": {
+    "docker_virtual_disk_gib": 7.8,
+    "api_architecture": "arm64",
+    "sql_architecture": "amd64 under emulation",
+    "twenty_users_and_general_two_seconds": "PH-08"
+  },
+  "publication_order": [
+    "push ph-07 and verify remote HEAD",
+    "fast-forward main then push and verify remote HEAD"
+  ]
+}
