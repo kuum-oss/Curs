@@ -6,6 +6,20 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
+// The image probes the running server without creating another host or accessing secrets.
+if (args is ["--healthcheck"])
+{
+    using var probe = new HttpClient { Timeout = TimeSpan.FromSeconds(12) };
+    try
+    {
+        using var response = await probe.GetAsync("http://127.0.0.1:8080/health/ready");
+        Environment.ExitCode = response.IsSuccessStatusCode ? 0 : 1;
+    }
+    catch (HttpRequestException) { Environment.ExitCode = 1; }
+    catch (TaskCanceledException) { Environment.ExitCode = 1; }
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("Default")))
 {

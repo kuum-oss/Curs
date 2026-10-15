@@ -11,7 +11,7 @@ services:
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env}
       MSSQL_MEMORY_LIMIT_MB: "2048"
     ports:
-      - "127.0.0.1:3038:1433"
+      - "127.0.0.1:${SQL_PORT:-3038}:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
     healthcheck:
@@ -22,22 +22,30 @@ services:
       timeout: 10s
       start_period: 60s
       retries: 12
+    restart: unless-stopped
     networks:
       - kanban-network
 
   api:
-    build: ./KanbanApi
+    image: kanbanboard-api:local
+    build:
+      context: .
+      dockerfile: KanbanApi/Dockerfile
     environment:
       ASPNETCORE_HTTP_PORTS: "8080"
-      ConnectionStrings__Default: "Server=sqlserver,1433;Database=KanbanDB;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      Database__ApplyMigrationsOnStartup: "true"
+      ConnectionStrings__Default: >-
+        Server=sqlserver,1433;Database=${KANBAN_DATABASE:-KanbanDB};User Id=sa;Password="${MSSQL_SA_PASSWORD}";TrustServerCertificate=True;
       Jwt__Key: ${JWT_KEY:?Set JWT_KEY in .env}
       Jwt__Issuer: "KanbanBoard.Api"
       Jwt__Audience: "KanbanBoard.Desktop"
     ports:
-      - "127.0.0.1:5000:8080"
+      - "127.0.0.1:${API_PORT:-5000}:8080"
     depends_on:
       sqlserver:
         condition: service_healthy
+    restart: unless-stopped
     networks:
       - kanban-network
 

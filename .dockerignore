@@ -1,0 +1,12 @@
+# Allow only the two server projects and the SDK selection into the build context.
+**
+!global.json
+!KanbanApi/
+!KanbanApi/**
+!KanbanContracts/
+!KanbanContracts/**
+**/bin
+**/obj
+**/.env*
+**/*.user
+**/.DS_Store
