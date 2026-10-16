@@ -23,7 +23,14 @@ public sealed class ClientServices : IDisposable
         Session = new SessionService(dispatch);
         Navigation = new NavigationService(Session);
         // Authenticated redirects are deliberately not followed to another host.
-        http = new HttpClient(new SessionHandler(Session) { InnerHandler = transport ?? new HttpClientHandler { AllowAutoRedirect = false } })
+        http = new HttpClient(new SessionHandler(Session) { InnerHandler = transport ?? new SocketsHttpHandler
+        {
+            AllowAutoRedirect = false,
+            // Renew pooled connections after a local API restart. On macOS another
+            // local service can temporarily answer on port 5000 while Docker stops.
+            PooledConnectionLifetime = TimeSpan.FromSeconds(5),
+            ConnectTimeout = TimeSpan.FromSeconds(3)
+        } })
         { BaseAddress = baseAddress, Timeout = TimeSpan.FromSeconds(10) };
         Api = new ApiClient(http);
         Auth = new AuthService(Api, Session, Navigation);

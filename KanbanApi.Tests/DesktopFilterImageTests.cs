@@ -15,13 +15,14 @@ public sealed class DesktopFilterImageTests
     private sealed class Harness:IDisposable
     {
         public Guid Board=Guid.NewGuid(),Column=Guid.NewGuid(),Tag=Guid.NewGuid(),User=Guid.NewGuid();public ClientServices Services;public BoardContentViewModel View;
-        public List<string> Queries=[];public bool Many;public bool HoldOld;public bool OldCancelled;public DateOnly Today=new(2026,10,14);
+        public List<string> Queries=[];public bool Many;public bool HoldOld;public bool OldCancelled;public bool Unavailable;public DateOnly Today=new(2026,10,14);
         public TaskCompletionSource OldReached=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Harness()
         {
             var v=Convert.ToBase64String(new byte[8]);Services=new(new Uri("http://localhost/"),transport:new Transport(async (r,t)=>
             {
                 var path=r.RequestUri!.AbsolutePath;object body;
+                if(Unavailable)return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable){Content=JsonContent.Create(new ApiProblem{Code="http_error",Title="API недоступний"})};
                 if(path.EndsWith("/cards"))
                 {
                     Queries.Add(r.RequestUri.Query);
@@ -44,6 +45,15 @@ public sealed class DesktopFilterImageTests
             }));Services.Session.SignIn("token",new(User,"u@example.test","Учасник"));View=new(Services,()=>Today);
         }
         public void Dispose(){View.Dispose();Services.Dispose();}
+    }
+    [Fact]
+    public async Task PollRecoveryClearsTransportErrorButPreservesValidationFeedbackAndSavedOrder()
+    {
+        using var h=new Harness();await h.View.OpenAsync(h.Board);var saved=h.View.Columns[0].Cards[0];
+        h.Unavailable=true;await h.View.PollAsync();Assert.True(h.View.HasError);Assert.Same(saved,h.View.Columns[0].Cards[0]);
+        h.Unavailable=false;await h.View.PollAsync();Assert.False(h.View.HasError);Assert.Same(saved,h.View.Columns[0].Cards[0]);
+        h.Unavailable=true;await h.View.PollAsync();h.View.ImageError("Невалідне фото: попередню обкладинку збережено.");h.Unavailable=false;await h.View.PollAsync();
+        Assert.Contains("Невалідне фото",h.View.Error);Assert.Same(saved,h.View.Columns[0].Cards[0]);
     }
     [Fact]
     public async Task FiltersCombineDebounceResetAndRestrictOnlyCardOrdering()

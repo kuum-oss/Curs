@@ -74,7 +74,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     private int filterRevision;
     private readonly Func<DateOnly> localToday;
     private DateOnly loadedFilterDay;
-    private bool filtering, suppressFilters;
+    private bool filtering, suppressFilters, transientError;
     private string search = "";
     private PriorityFilterOption? filterPriority;
     private DeadlineFilterOption? filterDeadline;
@@ -159,7 +159,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         await services.Images.Delete(selectedCard.Card.Id,new(){ExpectedBoardVersion=board.Version,ExpectedVersion=selectedCard.Card.Version},token);
         token.ThrowIfCancellationRequested();services.Images.Clear();FullImage=null;selectedCard=await services.Content.Card(selectedCard.Card.Id,token);await Load(board.Id,token);NotifyState();Status="Обкладинку прибрано.";
     });
-    public void ImageError(string message){Error=message;Status="";}
+    public void ImageError(string message){transientError=false;Error=message;Status="";}
     private readonly ClientServices services;
     private CancellationTokenSource? operation;
     private BoardDetailsDto? board;
@@ -443,11 +443,17 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         using var cancellation = new CancellationTokenSource(); operation = cancellation;
         if (background) { polling = true; Notify(nameof(IsPolling)); NotifyDrag(); RefreshCommands(); }
         else IsBusy = true;
-        if (!background) { Error = ""; Status = ""; }
-        try { await action(cancellation.Token); }
+        if (!background) { Error = ""; Status = ""; transientError = false; }
+        try
+        {
+            await action(cancellation.Token);
+            if (background && transientError && !cancellation.IsCancellationRequested)
+            { Error = ""; transientError = false; }
+        }
         catch (ApiClientException ex)
         {
             if (cancellation.IsCancellationRequested) return;
+            transientError = ex.Status >= 500 || ex.Problem.Code == "http_error";
             Error = ex.Problem.Errors is { Count: > 0 } fields ? string.Join("\n", fields.Values.SelectMany(v => v).Distinct()) : ex.Message;
             if (ex.Status == 409 && ex.Problem.Code == "concurrency_conflict" && board is not null)
             {
@@ -468,9 +474,9 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
             }
             else if (ex.Status == 404 && ex.Problem.Code == "not_found") { ClearData(); Error = ex.Message; }
         }
-        catch (OperationCanceledException) { if (!cancellation.IsCancellationRequested) Error = "Сервер не відповів вчасно."; }
-        catch (HttpRequestException) { if (!cancellation.IsCancellationRequested) Error = "Не вдалося підключитися до сервера."; }
-        catch (Exception) { if (!cancellation.IsCancellationRequested) Error = "Не вдалося виконати дію. Оновіть дошку."; }
+        catch (OperationCanceledException) { if (!cancellation.IsCancellationRequested) { Error = "Сервер не відповів вчасно."; transientError = true; } }
+        catch (HttpRequestException) { if (!cancellation.IsCancellationRequested) { Error = "Не вдалося підключитися до сервера."; transientError = true; } }
+        catch (Exception) { if (!cancellation.IsCancellationRequested) { transientError=false; Error = "Не вдалося виконати дію. Оновіть дошку."; } }
         finally
         {
             if (ReferenceEquals(operation, cancellation))
@@ -506,6 +512,6 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         NewColumnName = ""; ColumnName = ""; Title = ""; Description = ""; DueDate = ""; CommentText = ""; TagName = ""; TagColor = "#64748B"; Priority = CardPriority.Medium; Assignee = null;
         DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible));NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); EditorVisible = false; IsVisible = false; pendingDelete = null; NotifyState();
     }
-    public void Clear() { operation?.Cancel(); operation = null; polling = false; Notify(nameof(IsPolling)); IsBusy = false; ClearData(); Error = ""; Status = ""; }
+    public void Clear() { operation?.Cancel(); operation = null; polling = false; transientError = false; Notify(nameof(IsPolling)); IsBusy = false; ClearData(); Error = ""; Status = ""; }
     public void Dispose() { Clear();imagesLifetime.Dispose();filterDelay?.Dispose();services.Session.Changed -= SessionChanged; }
 }
