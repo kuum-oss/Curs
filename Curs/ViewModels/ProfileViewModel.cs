@@ -26,6 +26,7 @@ public sealed class ProfileViewModel : ViewModelBase, IDisposable
     public string Status{get=>status;private set{status=value;Notify();}}
     public bool IsBusy{get=>busy;private set{busy=value;Notify();Notify(nameof(CanEdit));ResetCommand.Refresh();SaveCommand.Refresh();PasswordCommand.Refresh();DeleteAvatarCommand.Refresh();}}
     public bool CanEdit=>!IsBusy;
+    public Guid? UserId=>loaded?.Id;
     public bool HasChanges=>loaded is not null&&(Name!=loaded.Name||Email!=loaded.Email||CurrentPassword.Length>0||NewPassword.Length>0||Confirmation.Length>0);
     public ActionCommand ResetCommand{get;}
     public ActionCommand SaveCommand{get;}

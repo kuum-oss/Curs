@@ -11,7 +11,7 @@ public sealed partial class BoardWorkspaceViewModel
     private bool presentationPolling;
     public async Task PollPresentation()
     {
-        if(presentationPolling||IsBusy||Content.IsBusy||Profile.IsBusy||HasDraft||services.Session.AccessToken is null)return;
+        if(presentationPolling||IsBusy||Content.IsBusy||Profile.IsBusy||services.Session.AccessToken is null)return;
         presentationPolling=true;var token=presentationLifetime.Token;var id=selected?.Id;var originalPage=Page;
         try
         {
@@ -20,6 +20,11 @@ public sealed partial class BoardWorkspaceViewModel
                 var metadata=await services.Boards.GetAsync(boardId,token);
                 if(metadata.Version!=selected?.Version)
                 {
+                    if(HasDraft)
+                    {
+                        if(selected?.Id==id){selected=selected with{Role=metadata.Role,CanCreateCards=metadata.CanCreateCards,CanDeleteCards=metadata.CanDeleteCards};NotifyBoard();}
+                        return;
+                    }
                     var members=await services.Boards.MembersAsync(boardId,token);token.ThrowIfCancellationRequested();
                     if(IsBusy||HasDraft||selected?.Id!=id||Page!=originalPage)return;
                     selected=metadata;foreach(var old in Members)old.Avatar.Dispose();Members.Clear();foreach(var member in members){var row=new MemberViewModel(member,this);Members.Add(row);_=row.Avatar.Load(services);}NotifyBoard();
@@ -43,7 +48,12 @@ public sealed partial class BoardWorkspaceViewModel
         catch(OperationCanceledException){}
         catch(ApiClientException ex) when(ex.Status==404&&ex.Problem.Code=="not_found")
         {
-            if(!token.IsCancellationRequested&&selected?.Id==id&&!HasDraft){Content.Clear();selected=null;foreach(var old in Members)old.Avatar.Dispose();Members.Clear();Page="boards";NotifyBoard();Error="Дошку видалено чи доступ відкликано.";await LoadAsync();}
+            if(!token.IsCancellationRequested&&selected?.Id==id)
+            {
+                operation?.Cancel();Content.Clear();selected=null;foreach(var old in Members)old.Avatar.Dispose();Members.Clear();
+                foreach(var old in Boards)old.Dispose();Boards.Clear();CloseDialogs();CancelConfirmation();Page="boards";NotifyBoard();
+                await LoadAsync();Error="Дошку видалено чи доступ відкликано.";
+            }
         }
         catch(Exception){}
         finally{presentationPolling=false;}

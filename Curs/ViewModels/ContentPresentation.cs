@@ -62,6 +62,9 @@ public sealed partial class BoardContentViewModel
     private bool newColumnVisible,fullImageVisible;
     private CommentItemViewModel? editingComment,deletingComment;
     private string editCommentText="";
+    public bool DiscardChangesVisible{get;private set;}
+    public bool AnyDialogVisible=>DiscardChangesVisible||NewColumnVisible||ColumnEditorVisible||EditorVisible||ShowConfirmation||FullImageVisible||CommentEditorVisible||CommentDeleteVisible;
+    public bool HasStatus=>!string.IsNullOrEmpty(Status);
     public Guid? CurrentUserId=>services.Session.User?.Id;
     public bool IsBoardAdmin=>board?.Role==BoardRole.Admin;
     public bool ColumnEditorVisible=>HasColumn&&!EditorVisible;
@@ -69,11 +72,13 @@ public sealed partial class BoardContentViewModel
     public string ArchiveCardLabel=>IsArchivedCard?"Відновити картку":"Архівувати картку";
     public string ColumnLabel=>selectedColumn?.Name??"Картка";
     public DateTime? CalendarDate{get=>DateOnly.TryParseExact(DueDate,"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var date)?date.ToDateTime(TimeOnly.MinValue):null;set=>DueDate=value?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)??"";}
-    public bool NewColumnVisible{get=>newColumnVisible;private set{newColumnVisible=value;Notify();NotifyDrag();}}
-    public bool FullImageVisible{get=>fullImageVisible;private set{fullImageVisible=value;Notify();}}
+    public bool NewColumnVisible{get=>newColumnVisible;private set{newColumnVisible=value;Notify();Notify(nameof(AnyDialogVisible));NotifyDrag();}}
+    public bool FullImageVisible{get=>fullImageVisible;private set{fullImageVisible=value;Notify();Notify(nameof(AnyDialogVisible));}}
     public bool CommentEditorVisible=>editingComment is not null;
     public bool CommentDeleteVisible=>deletingComment is not null;
     public string EditCommentText{get=>editCommentText;set{editCommentText=value;Notify();}}
+    public ActionCommand DiscardEditorCommand{get;private set;}=null!;
+    public ActionCommand KeepEditorCommand{get;private set;}=null!;
     public ActionCommand ShowNewColumnCommand{get;private set;}=null!;
     public ActionCommand CancelNewColumnCommand{get;private set;}=null!;
     public ActionCommand ShowFullImageCommand{get;private set;}=null!;
@@ -85,15 +90,31 @@ public sealed partial class BoardContentViewModel
     public ActionCommand CancelDeleteCommentCommand{get;private set;}=null!;
     private void InitializePresentation()
     {
+        DiscardEditorCommand=new(()=>{DiscardChangesVisible=false;CloseEditor();Notify(nameof(DiscardChangesVisible));Notify(nameof(AnyDialogVisible));});
+        KeepEditorCommand=new(()=>{DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible));Notify(nameof(AnyDialogVisible));});
         ShowNewColumnCommand=new(()=>{NewColumnName="";NewColumnVisible=true;});CancelNewColumnCommand=new(()=>NewColumnVisible=false);
         ShowFullImageCommand=new(()=>FullImageVisible=true,()=>HasCover);CloseFullImageCommand=new(()=>FullImageVisible=false);
         ArchiveCardCommand=new(()=>_=ArchiveCard(),()=>!IsBusy&&CanDeleteCard);
         SaveCommentCommand=new(()=>_=SaveComment(),()=>!IsBusy&&CommentEditorVisible);CancelCommentCommand=new(CancelCommentEdit);
-        DeleteCommentCommand=new(()=>_=DeleteComment(),()=>!IsBusy&&CommentDeleteVisible);CancelDeleteCommentCommand=new(()=>{deletingComment=null;Notify(nameof(CommentDeleteVisible));});
+        DeleteCommentCommand=new(()=>_=DeleteComment(),()=>!IsBusy&&CommentDeleteVisible);CancelDeleteCommentCommand=new(()=>{deletingComment=null;Notify(nameof(AnyDialogVisible));Notify(nameof(CommentDeleteVisible));});
     }
-    public void StartCommentEdit(CommentItemViewModel row){if(!row.CanEdit)return;editingComment=row;EditCommentText=row.Text;Notify(nameof(CommentEditorVisible));SaveCommentCommand.Refresh();}
-    public void CancelCommentEdit(){editingComment=null;EditCommentText="";deletingComment=null;Notify(nameof(CommentEditorVisible));Notify(nameof(CommentDeleteVisible));}
-    public void RequestCommentDelete(CommentItemViewModel row){if(!row.CanDelete)return;deletingComment=row;Notify(nameof(CommentDeleteVisible));DeleteCommentCommand.Refresh();}
+    private bool HasUnsavedEditor()
+    {
+        if(EditorVisible)
+        {
+            if(selectedCard is null)return Title.Length>0||Description.Length>0||DueDate.Length>0||Tags.Any(t=>t.Selected)||Assignee?.Id is not null;
+            var card=selectedCard.Card;
+            return Title!=card.Title||Description!=(selectedCard.Description??"")||DueDate!=(card.DueDate?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)??"")||Priority!=card.Priority||Assignee?.Id!=card.Assignee?.Id||!Tags.Where(t=>t.Selected).Select(t=>t.Tag.Id).ToHashSet().SetEquals(card.Tags.Select(t=>t.Id))||CommentText.Length>0;
+        }
+        return selectedColumn is not null&&ColumnName!=selectedColumn.Name;
+    }
+    private void RequestCloseEditor()
+    {
+        if(HasUnsavedEditor()){DiscardChangesVisible=true;Notify(nameof(DiscardChangesVisible));Notify(nameof(AnyDialogVisible));}else CloseEditor();
+    }
+    public void StartCommentEdit(CommentItemViewModel row){if(!row.CanEdit)return;editingComment=row;EditCommentText=row.Text;Notify(nameof(AnyDialogVisible));Notify(nameof(CommentEditorVisible));SaveCommentCommand.Refresh();}
+    public void CancelCommentEdit(){editingComment=null;EditCommentText="";deletingComment=null;Notify(nameof(AnyDialogVisible));Notify(nameof(CommentEditorVisible));Notify(nameof(AnyDialogVisible));Notify(nameof(CommentDeleteVisible));}
+    public void RequestCommentDelete(CommentItemViewModel row){if(!row.CanDelete)return;deletingComment=row;Notify(nameof(AnyDialogVisible));Notify(nameof(CommentDeleteVisible));DeleteCommentCommand.Refresh();}
     private Task SaveComment()=>Run(async t=>
     {
         if(board is null||selectedCard is null||editingComment is null)return;
@@ -120,6 +141,6 @@ public sealed partial class BoardContentViewModel
     private void NotifyPresentation()
     {
         foreach(var n in new[]{nameof(ColumnEditorVisible),nameof(IsArchivedCard),nameof(ArchiveCardLabel),nameof(ColumnLabel)})Notify(n);
-        NotifySelectedTags();ArchiveCardCommand.Refresh();SaveCommentCommand.Refresh();DeleteCommentCommand.Refresh();ShowFullImageCommand.Refresh();
+        Notify(nameof(AnyDialogVisible));NotifySelectedTags();ArchiveCardCommand.Refresh();SaveCommentCommand.Refresh();DeleteCommentCommand.Refresh();ShowFullImageCommand.Refresh();
     }
 }

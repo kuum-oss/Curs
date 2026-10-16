@@ -37,6 +37,19 @@ public sealed class DesktopSketchSafetyTests
 public sealed class DesktopSketchIntegrationTests(SqlFixture fixture)
 {
     [SqlFact]
+    public async Task RevocationClearsPrivateDialogsEvenWhenAnUnsavedDraftIsOpen()
+    {
+        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);
+        using var owner=new ClientServices(new Uri("http://localhost/"),transport:app.Server.CreateHandler());using var admin=new BoardWorkspaceViewModel(owner);
+        using var member=new ClientServices(new Uri("http://localhost/"),transport:app.Server.CreateHandler());using var workspace=new BoardWorkspaceViewModel(member);
+        await owner.Auth.RegisterAsync(Guid.NewGuid()+"@example.test","Власник","profile-password123!");await admin.Loading;admin.NewName="Приватна";await admin.CreateAsync();var id=admin.SelectedBoard!.Id;
+        admin.Content.NewColumnName="План";await admin.Content.CreateColumnAsync();await admin.RefreshAsync();
+        await member.Auth.RegisterAsync(Guid.NewGuid()+"@example.test","Учасник","profile-password123!");await workspace.Loading;admin.MemberEmail=member.Session.User!.Email;await admin.AddMemberAsync();
+        await workspace.OpenVisualAsync(id);workspace.Content.NewCard(workspace.Content.Columns[0]);workspace.Content.Title="Приватна чернетка";Assert.True(workspace.HasDraft);
+        admin.RequestRemove(admin.Members.Single(x=>x.Member.User.Id==member.Session.User.Id));await admin.ConfirmAsync();await workspace.PollPresentation();
+        Assert.Null(workspace.SelectedBoard);Assert.Empty(workspace.Members);Assert.Empty(workspace.Boards);Assert.False(workspace.Content.AnyDialogVisible);Assert.Equal("",workspace.Content.Title);Assert.Contains("доступ відкликано",workspace.Error);
+    }
+    [SqlFact]
     public async Task DesktopCanSaveProfileAndBatchRolesWithoutLosingTheOpenBoard()
     {
         using var app=ApiFoundationTests.Factory(fixture.ConnectionString);

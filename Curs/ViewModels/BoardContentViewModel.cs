@@ -57,7 +57,11 @@ public sealed class TagChoiceViewModel : ViewModelBase
     public Avalonia.Media.IBrush Foreground => Avalonia.Media.Brush.Parse(Tag.Color);
     public TagChoiceViewModel(TagDto tag){Tag=tag;RemoveCommand=new(()=>Selected=false);}
 }
-public sealed record AssigneeOption(Guid? Id, string Name);
+public sealed record AssigneeOption(Guid? Id, string Name, UserDto? User = null)
+{
+    public AvatarViewModel? Avatar { get; } = User is {} user?new(user):null;
+    public bool HasAvatar=>Avatar is not null;
+}
 public sealed record PriorityFilterOption(CardPriority? Value, string Name);
 public sealed record DeadlineFilterOption(DeadlineFilter? Value, string Name);
 public sealed record TagFilterOption(Guid? Id, string Name);
@@ -188,14 +192,14 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     public bool CanDeleteCard => selectedCard is not null && board is not null && (board.Role == BoardRole.Admin || board.CanDeleteCards);
     public bool CanDeleteColumn => selectedColumn is not null && board is not null && (board.Role == BoardRole.Admin || board.CanDeleteCards || !Columns.SelectMany(c => c.Cards).Any(c => c.Card.ColumnId == selectedColumn.Id));
     public bool HasColumn => selectedColumn is not null;
-    public bool EditorVisible { get => editor; private set { editor = value; Notify(); } }
+    public bool EditorVisible { get => editor; private set { editor = value; Notify();Notify(nameof(AnyDialogVisible)); } }
     public bool ExistingCard => selectedCard is not null;
     public string EditorHeading => selectedCard is null ? "Нова картка" : "Редагування картки";
     public bool ShowConfirmation => pendingDelete is not null;
     public string ConfirmationText => pendingDelete == "column" ? "Видалити колонку разом з її картками, коментарями та фото?" : "Видалити картку з її коментарями та фото?";
     public string Error { get => error; private set { error = value; Notify(); Notify(nameof(HasError)); } }
     public bool HasError => Error.Length != 0;
-    public string Status { get => status; private set { status = value; Notify(); } }
+    public string Status { get => status; private set { status = value; Notify();Notify(nameof(HasStatus)); } }
     public string NewColumnName { get => newColumnName; set { newColumnName = value; Notify(); } }
     public string ColumnName { get => columnName; set { columnName = value; Notify(); } }
     public string Title { get => title; set { title = value; Notify(); } }
@@ -231,7 +235,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         DeleteColumnCommand = new ActionCommand(() => RequestDelete("column"), () => !IsBusy && CanDeleteColumn);
         SaveCardCommand = Command(SaveCardAsync, () => EditorVisible && (ExistingCard || CanCreate));
         DeleteCardCommand = new ActionCommand(() => RequestDelete("card"), () => !IsBusy && CanDeleteCard);
-        CloseEditorCommand = new ActionCommand(CloseEditor, () => !IsBusy);
+        CloseEditorCommand = new ActionCommand(RequestCloseEditor, () => !IsBusy);
         CreateTagCommand = Command(CreateTagAsync);
         AddCommentCommand = Command(AddCommentAsync, () => ExistingCard);
         ConfirmCommand = Command(ConfirmAsync, () => ShowConfirmation);
@@ -284,7 +288,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         }
         if (selectedColumn is not null && columns.All(c => c.Id != selectedColumn.Id)) selectedColumn = null;
         Tags.Clear(); foreach (var t in tags) { var choice=new TagChoiceViewModel(t) { Selected = tagIds.Contains(t.Id) };choice.SelectionChanged+=NotifySelectedTags;Tags.Add(choice); }
-        Assignees.Clear(); Assignees.Add(new(null, "Без відповідального")); foreach (var member in members) Assignees.Add(new(member.User.Id, member.User.Name));
+        foreach(var option in Assignees)option.Avatar?.Dispose();Assignees.Clear(); Assignees.Add(new(null, "Без відповідального")); foreach (var member in members) Assignees.Add(new(member.User.Id, member.User.Name,member.User));
         Assignee = Assignees.FirstOrDefault(a => a.Id == assigneeId) ?? Assignees[0];
         suppressFilters=true;
         var oldTag=FilterTag;var oldAssignee=FilterAssignee;
@@ -378,7 +382,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         else return;
         token.ThrowIfCancellationRequested(); CloseEditor(); selectedColumn = null; await Load(board.Id, token); NotifyState(); Status = "Видалення завершено.";
     });
-    public void CloseEditor() { NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
+    public void CloseEditor() { DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible)); NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
 
     public bool BeginDrag(Guid id, bool card)
     {
@@ -487,6 +491,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private void RefreshCommands()
     {
+        ArchiveCardCommand?.Refresh();SaveCommentCommand?.Refresh();DeleteCommentCommand?.Refresh();
         foreach (var command in new[] { RefreshCommand, CreateColumnCommand, RenameColumnCommand, DeleteColumnCommand, SaveCardCommand, DeleteCardCommand, CloseEditorCommand, CreateTagCommand, AddCommentCommand, ConfirmCommand, CancelCommand }) command.Refresh();
         foreach (var col in Columns) col.Refresh();
     }
@@ -496,9 +501,9 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         suppressFilters=true;Search="";FilterPriority=PriorityFilters[0];FilterDeadline=DeadlineFilters[0];FilterTag=null;FilterAssignee=null;TagFilters.Clear();AssigneeFilters.Clear();suppressFilters=false;
         board = null; complete = false; dragging = false; filtered = false; RemoteChangesPending = false;
         SyncMessage = "Оновлення кожні 5 секунд.";
-        selectedColumn = null; selectedCard = null; Columns.Clear(); Tags.Clear(); Assignees.Clear(); DisposeComments(); Comments.Clear();
+        selectedColumn = null; selectedCard = null; Columns.Clear(); Tags.Clear(); foreach(var option in Assignees)option.Avatar?.Dispose();Assignees.Clear(); DisposeComments(); Comments.Clear();
         NewColumnName = ""; ColumnName = ""; Title = ""; Description = ""; DueDate = ""; CommentText = ""; TagName = ""; TagColor = "#64748B"; Priority = CardPriority.Medium; Assignee = null;
-        NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); EditorVisible = false; IsVisible = false; pendingDelete = null; NotifyState();
+        DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible));NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); EditorVisible = false; IsVisible = false; pendingDelete = null; NotifyState();
     }
     public void Clear() { operation?.Cancel(); operation = null; polling = false; Notify(nameof(IsPolling)); IsBusy = false; ClearData(); Error = ""; Status = ""; }
     public void Dispose() { Clear();imagesLifetime.Dispose();filterDelay?.Dispose();services.Session.Changed -= SessionChanged; }

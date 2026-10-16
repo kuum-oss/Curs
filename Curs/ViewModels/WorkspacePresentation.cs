@@ -18,6 +18,8 @@ public sealed partial class BoardListItemViewModel
     private readonly CancellationTokenSource lifetime=new();
     public Bitmap? Cover{get=>cover;private set{cover=value;Notify();Notify(nameof(HasCover));}}
     public bool HasCover=>Cover is not null;
+    public bool HasMoreMembers=>Board.MemberCount>3;
+    public string MoreMembers=>$"+{Board.MemberCount-3}";
     public string Counts=>$"{Board.CardCount} карток\n{Board.MemberCount} учасників";
     public string FavoriteIcon=>Board.IsFavorite?"★":"☆";
     public string ArchiveLabel=>Board.IsArchived?"Відновити дошку":"Архівувати дошку";
@@ -28,7 +30,7 @@ public sealed partial class BoardListItemViewModel
     public ActionCommand ArchiveCommand{get;private set;}=null!;
     private void InitializeTile(BoardWorkspaceViewModel workspace)
     {
-        foreach(var user in Board.Participants??[])Avatars.Add(new(user));
+        foreach(var user in (Board.Participants??[]).Take(3))Avatars.Add(new(user));
         SettingsCommand=new(()=>_=workspace.SettingsFor(Board.Id));FavoriteCommand=new(()=>_=workspace.FavoriteTile(Board));ArchiveCommand=new(()=>_=workspace.ArchiveTile(Board),()=>CanManage);
     }
     public async Task LoadMedia(ClientServices services)
@@ -82,6 +84,9 @@ public sealed partial class BoardWorkspaceViewModel
     public bool TasksVisible=>Page=="tasks";
     public bool TeamVisible=>Page=="team";
     public bool ProfileVisible=>Page=="profile";
+    public bool IsBoardsPage=>Page=="boards";
+    public bool IsFavoritesPage=>Page=="favorites";
+    public System.Collections.Generic.IEnumerable<MemberViewModel> HeaderMembers=>Members.Take(4);
     public bool IsArchive=>Page=="archive";
     public string PageTitle=>Page switch{"archive"=>"Архів","favorites"=>"Обране","tasks"=>"Особисті задачі","team"=>"Команда",_=>"Мої дошки"};
     public string PageSubtitle=>Page switch{"archive"=>"Відновлюйте дошки та картки","favorites"=>"Дошки, які ви позначили зірочкою",_=>"Ваші спільні та особисті дошки"};
@@ -96,7 +101,7 @@ public sealed partial class BoardWorkspaceViewModel
     public bool SettingsVisible{get=>settingsVisible;private set{settingsVisible=value;Notify();}}
     public bool NewBoardVisible{get=>newBoardVisible;private set{newBoardVisible=value;Notify();}}
     public bool NavigationConfirmation{get=>navigationConfirmation;private set{navigationConfirmation=value;Notify();}}
-    public bool HasDraft=>Content.EditorVisible||Content.HasColumn||SettingsVisible||MembersVisible||NewBoardVisible||ProfileVisible&&Profile.HasChanges;
+    public bool HasDraft=>Content.AnyDialogVisible||SettingsVisible||MembersVisible||NewBoardVisible||ProfileVisible&&Profile.HasChanges;
     public string FavoriteIcon=>selected?.IsFavorite==true?"★":"☆";
     public string ArchiveLabel=>selected?.IsArchived==true?"Відновити дошку":"Архівувати дошку";
     public string MembersLabel=>$"Учасники ({Members.Count})";
@@ -194,7 +199,7 @@ public sealed partial class BoardWorkspaceViewModel
         RecentBoards.Clear();foreach(var tile in Boards.Where(b=>!b.Board.IsArchived).OrderByDescending(b=>b.Board.LastOpenedAtUtc).Take(5))RecentBoards.Add(tile);
         Notify(nameof(NoVisibleBoards));
     }
-    private void NotifyPresentation(){foreach(var name in new[]{nameof(BoardsVisible),nameof(BoardVisible),nameof(TasksVisible),nameof(TeamVisible),nameof(ProfileVisible),nameof(IsArchive),nameof(PageTitle),nameof(PageSubtitle),nameof(FavoriteIcon),nameof(ArchiveLabel),nameof(MembersLabel)})Notify(name);RefreshTiles();}
+    private void NotifyPresentation(){foreach(var name in new[]{nameof(IsBoardsPage),nameof(IsFavoritesPage),nameof(HeaderMembers),nameof(BoardsVisible),nameof(BoardVisible),nameof(TasksVisible),nameof(TeamVisible),nameof(ProfileVisible),nameof(IsArchive),nameof(PageTitle),nameof(PageSubtitle),nameof(FavoriteIcon),nameof(ArchiveLabel),nameof(MembersLabel)})Notify(name);RefreshTiles();}
     private void ResetPresentation(){CancelPresentation();CloseDialogs();Page="boards";foreach(var old in OverviewCards)old.Dispose();OverviewCards.Clear();foreach(var old in Team)old.Dispose();Team.Clear();Profile.Clear();CurrentAvatar=null;NavigationConfirmation=false;pendingNavigation=null;}
     private void DisposePresentation(){Profile.Dispose();CurrentAvatar=null;foreach(var old in OverviewCards)old.Dispose();foreach(var old in Team)old.Dispose();}
 }
