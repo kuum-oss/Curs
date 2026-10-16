@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-16",
+  "followup": "PH-08: macOS PNG and card image file drop",
+  "tested_application_revision": "880c794",
+  "server_revision": "1753780",
+  "configuration": "Release",
+  "command": "KANBAN_TEST_CONFIGURATION=Release python3 scripts/verify-ph01.py image-drop",
+  "database": "Real Microsoft SQL Server 2022; temporary test databases",
+  "counters": {
+    "total": "111",
+    "executed": "111",
+    "passed": "111",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "focusedTests": [
+    {
+      "name": "KanbanApi.Tests.DesktopImageImportTests.BoardFileDropChangesOnlyTargetCoverAndRejectsOversizeWithoutOpeningEditor",
+      "outcome": "Passed",
+      "duration": "00:00:00.3351035"
+    },
+    {
+      "name": "KanbanApi.Tests.ImageProcessorTests.PaddedMacOsColorProfileDoesNotRejectFullyDecodedPixels",
+      "outcome": "Passed",
+      "duration": "00:00:00.0559147"
+    },
+    {
+      "name": "KanbanApi.Tests.FilterImageTests.ScreenshotColorProfileUploadsAndBadPixelDataPreservesThatCover",
+      "outcome": "Passed",
+      "duration": "00:00:00.2706010"
+    },
+    {
+      "name": "KanbanApi.Tests.ImageProcessorTests.PixelDataCrcFailureIsStillRejectedAlongsideHarmlessProfileWarning",
+      "outcome": "Passed",
+      "duration": "00:00:00.1554717"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopImageImportTests.LogoutAndNewSessionDuringFileReadCannotUploadOldSelection",
+      "outcome": "Passed",
+      "duration": "00:00:00.3163719"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopImageImportTests.EditorDropKeepsUnsavedFieldsAndNeverRedirectsToAnotherCard",
+      "outcome": "Passed",
+      "duration": "00:00:10.3185921"
+    }
+  ],
+  "releaseBuild": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "productionDocker": {
+    "productionUploadStatus": 200,
+    "originalBytesMatch": true,
+    "thumbnailIsPng": true,
+    "sourceBytes": 1540339,
+    "thumbnailBytes": 125983,
+    "previousCoverRestored": true
+  },
+  "nativeVerification": {
+    "originalMacOsScreenshot": "Selected in macOS picker; preview and full image visibly displayed",
+    "boardFileDrop": "Native DataFormat.File drag in temporary harness; Copy returned; API bytes matched mountains.png for target card",
+    "editorFileDrop": "SQL-backed client test preserves unsaved fields; user independently confirmed feature works",
+    "finderAutomation": "Finder window unavailable to automation; native file source was supplied by a temporary harness",
+    "userConfirmation": "я проверил работает"
+  },
+  "privacy": "User screenshots and monitor ICC profiles were not committed; fixture uses built-in sRGB with synthetic padding"
+}
