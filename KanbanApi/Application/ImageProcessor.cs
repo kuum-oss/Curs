@@ -29,12 +29,21 @@ public sealed class ImageProcessor
             // Force the whitelisted decoder; never infer a delegate from a filename.
             var settings = new MagickReadSettings { Format = format };
             using var info = new MagickImage();
-            var warning = false; info.Warning += (_, _) => warning = true;
+            var warning = false;
+            void CheckWarning(string message)
+            {
+                // macOS screenshots can contain a valid ICC profile followed by
+                // padding in iCCP. libpng fully decodes their pixels but reports
+                // this metadata warning. Keep rejecting every other warning.
+                if (format == MagickFormat.Png && message.StartsWith("iCCP: extra compressed data", StringComparison.Ordinal)) return;
+                warning = true;
+            }
+            info.Warning += (_, e) => CheckWarning(e.Message);
             info.Ping(bytes, settings);
             if (info.Width == 0 || info.Height == 0 || info.Width > ImageLimits.MaxSide || info.Height > ImageLimits.MaxSide || (long)info.Width * info.Height > ImageLimits.MaxPixels)
                 throw new ApiException(400, "image_dimensions", "Фото: до 20 мегапікселів і 10 000 пікселів по стороні.");
             token.ThrowIfCancellationRequested();
-            using var image = new MagickImage(); image.Warning += (_, _) => warning = true;
+            using var image = new MagickImage(); image.Warning += (_, e) => CheckWarning(e.Message);
             image.Read(bytes, settings);
             if (warning) throw Invalid();
             image.AutoOrient();

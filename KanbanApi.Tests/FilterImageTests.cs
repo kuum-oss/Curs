@@ -48,6 +48,18 @@ public sealed class FilterImageTests(SqlFixture fixture)
         using var anonymous=app.CreateClient();Assert.Equal(HttpStatusCode.Unauthorized,(await anonymous.GetAsync($"/api/boards/{s.Board.Id}/cards?search=secret")).StatusCode);
     }
     [SqlFact]
+    public async Task ScreenshotColorProfileUploadsAndBadPixelDataPreservesThatCover()
+    {
+        var s=await Seed();using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=Client(app,s.User);
+        var screenshot=ImageProcessorTests.ScreenshotLikePng();
+        Assert.Equal(HttpStatusCode.OK,(await Put(c,s.Board.Id,s.Card.Id,screenshot,name:"screenshot.png")).StatusCode);
+        var card=await Card(c,s.Card.Id);var board=await Version(c,s.Board.Id);
+        Assert.Equal(screenshot,await c.GetByteArrayAsync($"/api/cards/{s.Card.Id}/image"));
+        Assert.Equal(HttpStatusCode.BadRequest,(await Put(c,s.Board.Id,s.Card.Id,ImageProcessorTests.WithBadPixelCrc(screenshot))).StatusCode);
+        Assert.Equal(board,await Version(c,s.Board.Id));Assert.Equal(card.Card.Version,(await Card(c,s.Card.Id)).Card.Version);
+        Assert.Equal(screenshot,await c.GetByteArrayAsync($"/api/cards/{s.Card.Id}/image"));
+    }
+    [SqlFact]
     public async Task AllFormatsReplacePersistThumbnailAndDeleteWithoutChangingCardFields()
     {
         var s=await Seed();using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=Client(app,s.User);Assert.Equal(HttpStatusCode.NotFound,(await c.GetAsync($"/api/cards/{s.Card.Id}/image")).StatusCode);
