@@ -1,0 +1,21 @@
+{
+  "phase": "PH-08",
+  "verified_at_utc": "2026-10-16T10:30:41.102936+00:00",
+  "revision": "db3010d0067b7828ddb9a80d96bf9c90917e0cac",
+  "checks": {
+    "api_and_sql_restarted": true,
+    "readiness_recovered": true,
+    "same_jwt_accepted_after_restart": true,
+    "all_fields_versions_order_comments_preserved": true,
+    "profile_roles_permissions_favorite_archive_preserved": true,
+    "all_originals_thumbnails_avatars_preserved": true,
+    "application_volume_preserved": true
+  },
+  "snapshot_sha256_before": "28088bb304f7d098d7efe31fd3dd365043c2fe38df5d386d83120aa09703f6f8",
+  "snapshot_sha256_after": "28088bb304f7d098d7efe31fd3dd365043c2fe38df5d386d83120aa09703f6f8",
+  "cards": 10,
+  "columns": 4,
+  "members": 4,
+  "media_resources": 10,
+  "passed": true
+}
