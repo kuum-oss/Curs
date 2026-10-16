@@ -59,12 +59,13 @@ public sealed class TagChoiceViewModel : ViewModelBase
 }
 public sealed record AssigneeOption(Guid? Id, string Name, UserDto? User = null)
 {
+    public override string ToString()=>Name;
     public AvatarViewModel? Avatar { get; } = User is {} user?new(user):null;
     public bool HasAvatar=>Avatar is not null;
 }
-public sealed record PriorityFilterOption(CardPriority? Value, string Name);
-public sealed record DeadlineFilterOption(DeadlineFilter? Value, string Name);
-public sealed record TagFilterOption(Guid? Id, string Name);
+public sealed record PriorityFilterOption(CardPriority? Value, string Name){public override string ToString()=>Name;}
+public sealed record DeadlineFilterOption(DeadlineFilter? Value, string Name){public override string ToString()=>Name;}
+public sealed record TagFilterOption(Guid? Id, string Name){public override string ToString()=>Name;}
 
 public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
 {

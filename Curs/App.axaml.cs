@@ -19,7 +19,7 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var services = new ClientServices(new Uri(Environment.GetEnvironmentVariable("KANBAN_API_URL") ?? "http://localhost:5000/"),
+            var services = new ClientServices(new Uri(Environment.GetEnvironmentVariable("KANBAN_API_URL") ?? "http://127.0.0.1:5000/"),
                 action => Dispatcher.UIThread.Post(action));
             var viewModel = new MainWindowViewModel(services);
             desktop.MainWindow = new MainWindow { DataContext = viewModel };

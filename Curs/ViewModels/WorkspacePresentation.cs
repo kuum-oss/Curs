@@ -13,6 +13,7 @@ namespace Curs.ViewModels;
 
 public sealed partial class BoardListItemViewModel
 {
+    private BoardWorkspaceViewModel ownerWorkspace=null!;
     private Bitmap? cover;
     private bool loadingMedia;
     private readonly CancellationTokenSource lifetime=new();
@@ -20,7 +21,11 @@ public sealed partial class BoardListItemViewModel
     public bool HasCover=>Cover is not null;
     public bool HasMoreMembers=>Board.MemberCount>3;
     public string MoreMembers=>$"+{Board.MemberCount-3}";
-    public string Counts=>$"{Board.CardCount} карток\n{Board.MemberCount} учасників";
+    private static string Plural(int count,string one,string few,string many)=>count%100 is >=11 and <=14?many:count%10==1?one:count%10 is >=2 and <=4?few:many;
+    public string Counts=>$"{Board.CardCount} {Plural(Board.CardCount,"картка","картки","карток")}\n{Board.MemberCount} {Plural(Board.MemberCount,"учасник","учасники","учасників")}";
+    public bool IsCurrent=>ownerWorkspace.BoardVisible&&ownerWorkspace.SelectedBoard?.Id==Board.Id;
+    public string RoleBackground=>Board.Role==BoardRole.Admin?"#E0F2F1":"#EBEAF3";
+    public string RoleForeground=>Board.Role==BoardRole.Admin?"#167C88":"#6A718C";
     public string FavoriteIcon=>Board.IsFavorite?"★":"☆";
     public string ArchiveLabel=>Board.IsArchived?"Відновити дошку":"Архівувати дошку";
     public bool CanManage=>Board.Role==BoardRole.Admin;
@@ -30,6 +35,7 @@ public sealed partial class BoardListItemViewModel
     public ActionCommand ArchiveCommand{get;private set;}=null!;
     private void InitializeTile(BoardWorkspaceViewModel workspace)
     {
+        ownerWorkspace=workspace;
         foreach(var user in (Board.Participants??[]).Take(3))Avatars.Add(new(user));
         SettingsCommand=new(()=>_=workspace.SettingsFor(Board.Id));FavoriteCommand=new(()=>_=workspace.FavoriteTile(Board));ArchiveCommand=new(()=>_=workspace.ArchiveTile(Board),()=>CanManage);
     }
@@ -41,7 +47,7 @@ public sealed partial class BoardListItemViewModel
     }
     public void Dispose(){lifetime.Cancel();var old=Cover;Cover=null;old?.Dispose();foreach(var avatar in Avatars)avatar.Dispose();}
 }
-public sealed record RoleOption(BoardRole Value,string Name);
+public sealed record RoleOption(BoardRole Value,string Name){public override string ToString()=>Name;}
 public sealed partial class MemberViewModel
 {
     private RoleOption? selectedRole;
