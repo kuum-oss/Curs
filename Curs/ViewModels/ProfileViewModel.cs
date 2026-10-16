@@ -22,10 +22,12 @@ public sealed class ProfileViewModel : ViewModelBase, IDisposable
     public string CurrentPassword{get=>currentPassword;set{currentPassword=value;Notify();}}
     public string NewPassword{get=>newPassword;set{newPassword=value;Notify();}}
     public string Confirmation{get=>confirmation;set{confirmation=value;Notify();}}
-    public string Error{get=>error;private set{error=value;Notify();}}
-    public string Status{get=>status;private set{status=value;Notify();}}
+    public string Error{get=>error;private set{error=value;Notify();Notify(nameof(HasError));}}
+    public string Status{get=>status;private set{status=value;Notify();Notify(nameof(HasStatus));}}
     public bool IsBusy{get=>busy;private set{busy=value;Notify();Notify(nameof(CanEdit));ResetCommand.Refresh();SaveCommand.Refresh();PasswordCommand.Refresh();DeleteAvatarCommand.Refresh();}}
     public bool CanEdit=>!IsBusy;
+    public bool HasError=>!string.IsNullOrWhiteSpace(Error);
+    public bool HasStatus=>!string.IsNullOrWhiteSpace(Status);
     public Guid? UserId=>loaded?.Id;
     public bool HasChanges=>loaded is not null&&(Name!=loaded.Name||Email!=loaded.Email||CurrentPassword.Length>0||NewPassword.Length>0||Confirmation.Length>0);
     public ActionCommand ResetCommand{get;}
