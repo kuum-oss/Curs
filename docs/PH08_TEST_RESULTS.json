@@ -1,0 +1,553 @@
+{
+  "phase": "PH-08",
+  "tested_application_revision": "e8ceab3",
+  "test_runner_revision": "a342f52cddc9dc73f8dfeb3b387eefe5b029b74c",
+  "configuration": "Release",
+  "command": "KANBAN_TEST_CONFIGURATION=Release python3 scripts/verify-ph01.py ph08-final",
+  "database": "Microsoft SQL Server 2022, real temporary databases; no SQL tests skipped",
+  "counters": {
+    "total": "105",
+    "executed": "105",
+    "passed": "105",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "tests": [
+    {
+      "name": "KanbanApi.Tests.ApiFoundationTests.LivenessDoesNotDependOnDatabaseAndMissingRoutesAreProblemDetails",
+      "outcome": "Passed",
+      "duration": "00:00:00.4467281"
+    },
+    {
+      "name": "KanbanApi.Tests.SqlSchemaTests.MigrationCreatesExactlyNineTablesAndIsIdempotent",
+      "outcome": "Passed",
+      "duration": "00:00:00.6735915"
+    },
+    {
+      "name": "KanbanApi.Tests.ProfileTests.PasswordChangeRevokesOldSessionsAndReturnsUsableNewSession",
+      "outcome": "Passed",
+      "duration": "00:00:02.3260025"
+    },
+    {
+      "name": "KanbanApi.Tests.AuthTests.RegistrationStoresSaltedBcryptAndIssuesExactly24HourToken",
+      "outcome": "Passed",
+      "duration": "00:00:01.8080446"
+    },
+    {
+      "name": "KanbanApi.Tests.OrderingTests.MovesBetweenAndWithinColumnsPersistBeginningMiddleAndEnd",
+      "outcome": "Passed",
+      "duration": "00:00:00.9920908"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopBoardTests.LogoutDuringLoadingCannotRestorePrivateBoardCache",
+      "outcome": "Passed",
+      "duration": "00:00:00.0072367"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopContentTests.ConflictKeepsDraftAndRevocationClearsContent",
+      "outcome": "Passed",
+      "duration": "00:00:00.5466221"
+    },
+    {
+      "name": "KanbanApi.Tests.ClientFoundationTests.AResponseFromAnOlderSessionCannotClearNewLogin",
+      "outcome": "Passed",
+      "duration": "00:00:00.0007120"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.MemberIdFromAnotherBoardCannotBeChangedOrRemoved",
+      "outcome": "Passed",
+      "duration": "00:00:00.2125134"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopAuthTests.FailedAnonymousLoginKeepsEmailAndShowsError",
+      "outcome": "Passed",
+      "duration": "00:00:00.0012495"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.InvalidInputAndStaleVersionsCannotChangeBoard",
+      "outcome": "Passed",
+      "duration": "00:00:00.1074133"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.MembershipRejectsDuplicatesAndMissingUsersAndProtectsAdmin",
+      "outcome": "Passed",
+      "duration": "00:00:00.1916396"
+    },
+    {
+      "name": "KanbanApi.Tests.SketchWorkspaceTests.CommentsArchiveOverviewAndProfileRefreshRespectVersionsAndMembership",
+      "outcome": "Passed",
+      "duration": "00:00:03.3705937"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopFilterImageTests.PollRecoveryClearsTransportErrorButPreservesValidationFeedbackAndSavedOrder",
+      "outcome": "Passed",
+      "duration": "00:00:00.0263101"
+    },
+    {
+      "name": "KanbanApi.Tests.SqlSchemaTests.DuplicateEmailIsRejectedWithoutCaseSensitivity",
+      "outcome": "Passed",
+      "duration": "00:00:00.0282809"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.CardFieldsTagsAssigneeAndCommentsPersistAndPagesCarryVersion",
+      "outcome": "Passed",
+      "duration": "00:00:00.2633457"
+    },
+    {
+      "name": "KanbanApi.Tests.AuthTests.ParallelRegistrationLeavesOnlyOneAccount",
+      "outcome": "Passed",
+      "duration": "00:00:00.7032212"
+    },
+    {
+      "name": "KanbanApi.Tests.OrderingTests.LateColumnOrderFailureRollsBackWholePermutation",
+      "outcome": "Passed",
+      "duration": "00:00:00.1309782"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopSketchSafetyTests.ProfileConflictKeepsDraftAndUsesFreshVersionOnlyOnExplicitRetry",
+      "outcome": "Passed",
+      "duration": "00:00:00.0151077"
+    },
+    {
+      "name": "KanbanApi.Tests.JwtConfigurationTests.MissingShortOrPlaceholderSecretFailsConfiguration",
+      "outcome": "Passed",
+      "duration": "00:00:00.0104847"
+    },
+    {
+      "name": "KanbanApi.Tests.FilterImageTests.CombinedFiltersAreCaseInsensitiveLiteralAndPreservePositionsAcrossPages",
+      "outcome": "Passed",
+      "duration": "00:00:00.2798979"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.FieldLimitsAndInvalidCommentDoNotAdvanceVersions",
+      "outcome": "Passed",
+      "duration": "00:00:00.1590307"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopBoardTests.FailedConflictRefreshIsReportedWithoutEscapingTheCommand",
+      "outcome": "Passed",
+      "duration": "00:00:00.0013345"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopOrderingUnitTests.OptimisticMoveAppearsBeforeReplyAndFailureRestoresExactOrder(offline: True)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0026668"
+    },
+    {
+      "name": "KanbanApi.Tests.ApiReadinessTests.MissingDatabaseIsNotReadyAndConnectionIsNotExposed",
+      "outcome": "Passed",
+      "duration": "00:00:00.2785518"
+    },
+    {
+      "name": "KanbanApi.Tests.FilterImageTests.ExactFiveMiBValidPngIsAcceptedAndOneExtraByteIsRejected",
+      "outcome": "Passed",
+      "duration": "00:00:00.8475357"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopBoardTests.ConflictRefreshesVersionPreservesDraftAndDoesNotRetryMutation",
+      "outcome": "Passed",
+      "duration": "00:00:00.0586456"
+    },
+    {
+      "name": "KanbanApi.Tests.ProfileTests.AvatarRequiresOwnershipSharedMembershipAndCurrentVersion",
+      "outcome": "Passed",
+      "duration": "00:00:03.9845983"
+    },
+    {
+      "name": "KanbanApi.Tests.FilterImageTests.BadOversizedOrStaleUploadPreservesPreviousCoverAndVersions",
+      "outcome": "Passed",
+      "duration": "00:00:01.2175988"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopFilterImageTests.DeadlineRefreshesAfterLocalMidnightEvenIfBoardVersionIsUnchanged",
+      "outcome": "Passed",
+      "duration": "00:00:00.3046522"
+    },
+    {
+      "name": "KanbanApi.Tests.SketchWorkspaceTests.BoardCoverValidatesAccessVersionAndSurvivesArchiveRestore",
+      "outcome": "Passed",
+      "duration": "00:00:02.4834194"
+    },
+    {
+      "name": "KanbanApi.Tests.OrderingTests.LateMoveFailureRollsBackEveryPositionAndBothVersions",
+      "outcome": "Passed",
+      "duration": "00:00:00.3739603"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.FailedBoardDeletionRollsBackEntireGraphAndVersion",
+      "outcome": "Passed",
+      "duration": "00:00:00.1742637"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopAuthTests.ValidationAndNetworkFailuresAreVisibleAndPasswordIsErased",
+      "outcome": "Passed",
+      "duration": "00:00:00.0511237"
+    },
+    {
+      "name": "KanbanApi.Tests.AuthTests.LoginNormalizesEmailAndUnknownAccountMatchesWrongPasswordResponse",
+      "outcome": "Passed",
+      "duration": "00:00:01.5874675"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopAuthTests.LoginAndLogoutUpdateScreenAndEraseAllSessionFields",
+      "outcome": "Passed",
+      "duration": "00:00:00.0148923"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopBoardIntegrationTests.DesktopWorkflowCreatesEditsSharesRestrictsRevokesAndDeletesRealBoard",
+      "outcome": "Passed",
+      "duration": "00:00:00.3654638"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.ValidationAndDuplicateTagsDoNotChangeBoard",
+      "outcome": "Passed",
+      "duration": "00:00:00.2131816"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.PermissionsAndRevocationAffectNextRequestsWithSameToken",
+      "outcome": "Passed",
+      "duration": "00:00:00.8798017"
+    },
+    {
+      "name": "KanbanApi.Tests.ModelTests.RelationalModelHasNineTablesAndNoCascadePaths",
+      "outcome": "Passed",
+      "duration": "00:00:00.5458902"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.DeletingFullBoardRemovesItsGraphAndPreservesOtherBoardAndUsers",
+      "outcome": "Passed",
+      "duration": "00:00:00.3531140"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.ColumnRenameAndDeletesKeepPositionsAndRemoveOnlyItsSubtree",
+      "outcome": "Passed",
+      "duration": "00:00:00.2687285"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopOrderingUnitTests.UnchangedPollReadsOnlyMetadataAndKeepsRowIdentity",
+      "outcome": "Passed",
+      "duration": "00:00:00.0024372"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.FailedRevocationRollsBackAssignmentsMembershipAndVersion",
+      "outcome": "Passed",
+      "duration": "00:00:00.2970196"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopSketchIntegrationTests.DesktopCanSaveProfileAndBatchRolesWithoutLosingTheOpenBoard",
+      "outcome": "Passed",
+      "duration": "00:00:01.2261561"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.ConcurrentCardCreationWithSameBoardVersionHasOneWinner",
+      "outcome": "Passed",
+      "duration": "00:00:00.1835031"
+    },
+    {
+      "name": "KanbanApi.Tests.FilterImageTests.ImageRoutesHideForeignCardsAndOldTokensAfterRevocation",
+      "outcome": "Passed",
+      "duration": "00:00:00.3656364"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopOrderingUnitTests.SlowPollNeverOverlapsOrDisablesDraftFields",
+      "outcome": "Passed",
+      "duration": "00:00:00.0061147"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopOrderingUnitTests.OptimisticColumnFailureRestoresPermutationAndFilteredCardsCannotDrag",
+      "outcome": "Passed",
+      "duration": "00:00:00.0133369"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopFilterImageTests.NewSearchCancelsOldRequestAndOldReplyCannotPublish",
+      "outcome": "Passed",
+      "duration": "00:00:00.6054027"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.RestrictedMemberCannotCreateOrDeleteCardsOrNonemptyColumnButCanEditCommentAndDeleteEmpty",
+      "outcome": "Passed",
+      "duration": "00:00:00.3123484"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopFilterImageTests.FilteredSnapshotLoadsEveryPageAndResetEnablesCardMovesOnlyAfterCompletion",
+      "outcome": "Passed",
+      "duration": "00:00:00.6129167"
+    },
+    {
+      "name": "KanbanApi.Tests.OrderingTests.RestrictedMemberCanMoveAndReorderButRevokedMemberCannot",
+      "outcome": "Passed",
+      "duration": "00:00:00.4831120"
+    },
+    {
+      "name": "KanbanApi.Tests.AuthTests.TokenCannotReadADeletedAccount",
+      "outcome": "Passed",
+      "duration": "00:00:00.6681738"
+    },
+    {
+      "name": "KanbanApi.Tests.ProfileTests.ProfileValidatesCurrentPasswordUniqueEmailAndConcurrentVersions",
+      "outcome": "Passed",
+      "duration": "00:00:02.1815533"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopOrderingUnitTests.IncompleteSnapshotNeverEnablesDragging",
+      "outcome": "Passed",
+      "duration": "00:00:00.0021071"
+    },
+    {
+      "name": "KanbanApi.Tests.OrderingTests.ColumnOrderRequiresCompleteUniquePermutationAndPersistsVersions",
+      "outcome": "Passed",
+      "duration": "00:00:00.2019712"
+    },
+    {
+      "name": "KanbanApi.Tests.SqlSchemaTests.CompleteGraphRoundTripsUnicodeDatesBinaryAndVersion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0612373"
+    },
+    {
+      "name": "KanbanApi.Tests.SqlSchemaTests.ABoardSupportsAdditionalAdministratorsForRoleManagement",
+      "outcome": "Passed",
+      "duration": "00:00:00.1081761"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopFilterImageTests.LateImageReplyAfterLogoutCannotFillCacheAndDownloadsAreBounded",
+      "outcome": "Passed",
+      "duration": "00:00:00.0081052"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopFilterImageTests.FiltersCombineDebounceResetAndRestrictOnlyCardOrdering",
+      "outcome": "Passed",
+      "duration": "00:00:00.6108846"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.RevocationClearsOnlyThisBoardsAssignmentsAndPreservesHistory",
+      "outcome": "Passed",
+      "duration": "00:00:00.1729661"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopAuthTests.RegistrationRouteAndExpiredSessionReturnToLogin",
+      "outcome": "Passed",
+      "duration": "00:00:00.0052799"
+    },
+    {
+      "name": "KanbanApi.Tests.AuthTests.MissingInvalidExpiredOrMisaddressedTokensAreRejected",
+      "outcome": "Passed",
+      "duration": "00:00:00.0621061"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopOrderingUnitTests.DragSuspendsPollingAndLogoutDoesNotRestoreOptimisticCache",
+      "outcome": "Passed",
+      "duration": "00:00:00.0076889"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.OutsiderCannotReadOrMutateBoardOrLearnItsVersion",
+      "outcome": "Passed",
+      "duration": "00:00:00.3751793"
+    },
+    {
+      "name": "KanbanApi.Tests.FilterImageTests.AllFormatsReplacePersistThumbnailAndDeleteWithoutChangingCardFields",
+      "outcome": "Passed",
+      "duration": "00:00:00.4291948"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopAuthTests.LogoutDuringPendingLoginCannotRestoreTheSession",
+      "outcome": "Passed",
+      "duration": "00:00:00.0162682"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.ResourceVersionConflictsRollbackBoardAndDeletingMiddleCardClosesPositionGap",
+      "outcome": "Passed",
+      "duration": "00:00:00.2766440"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopContentTests.DesktopLoadsEveryCardAndCommentPage",
+      "outcome": "Passed",
+      "duration": "00:00:00.6325006"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.MembersReadButAllAdministrativeMutationsAreForbidden",
+      "outcome": "Passed",
+      "duration": "00:00:00.3058902"
+    },
+    {
+      "name": "KanbanApi.Tests.OrderingTests.SimultaneousMovesHaveOneWinnerAndNoDuplicatePositions",
+      "outcome": "Passed",
+      "duration": "00:00:00.3125751"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.BoardLifecycleCreatesAdministratorAndPersistsEdits",
+      "outcome": "Passed",
+      "duration": "00:00:00.1613078"
+    },
+    {
+      "name": "KanbanApi.Tests.SqlSchemaTests.CheckConstraintsRejectBadPriorityPositionAndImageSize",
+      "outcome": "Passed",
+      "duration": "00:00:00.1473945"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.RevokedMemberCannotUseExistingCardAndCommentRoutesWithOldJwt",
+      "outcome": "Passed",
+      "duration": "00:00:00.3189302"
+    },
+    {
+      "name": "KanbanApi.Tests.SketchWorkspaceTests.RolesAreAtomicOwnerProtectedAndPersonalFavoritesAreIsolated",
+      "outcome": "Passed",
+      "duration": "00:00:03.4642825"
+    },
+    {
+      "name": "KanbanApi.Tests.FilterImageTests.LateImageFailureRollsBackCoverCardAndBoardVersion",
+      "outcome": "Passed",
+      "duration": "00:00:00.3231935"
+    },
+    {
+      "name": "KanbanApi.Tests.ClientFoundationTests.ValidationProblemFieldsSurviveTheClientBoundary",
+      "outcome": "Passed",
+      "duration": "00:00:00.0034964"
+    },
+    {
+      "name": "KanbanApi.Tests.FilterImageTests.DeadlineBoundariesExcludeUndatedCardsAndInvalidQueriesFail",
+      "outcome": "Passed",
+      "duration": "00:00:00.2608028"
+    },
+    {
+      "name": "KanbanApi.Tests.SqlSchemaTests.ForeignKeysAndSingleCoverAreEnforced",
+      "outcome": "Passed",
+      "duration": "00:00:00.3311044"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopOrderingUnitTests.OptimisticMoveAppearsBeforeReplyAndFailureRestoresExactOrder(offline: False)",
+      "outcome": "Passed",
+      "duration": "00:00:00.0937182"
+    },
+    {
+      "name": "KanbanApi.Tests.OrderingTests.ForeignTargetsWrongAnchorsAndPrivateIdsCannotChangeOrder",
+      "outcome": "Passed",
+      "duration": "00:00:00.6982680"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.ConcurrentEditorsWithSameVersionHaveOneWinner",
+      "outcome": "Passed",
+      "duration": "00:00:00.3696895"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopContentTests.DesktopContentCreatesEditsReopensCommentsAndConfirmsDeletion",
+      "outcome": "Passed",
+      "duration": "00:00:00.9063933"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopFilterImageTests.ThumbnailCacheIsVersionedAndIsolatedBetweenSessions",
+      "outcome": "Passed",
+      "duration": "00:00:00.0033253"
+    },
+    {
+      "name": "KanbanApi.Tests.ClientFoundationTests.AuthorizationIsAddedPerRequestAndDisappearsOnLogout",
+      "outcome": "Passed",
+      "duration": "00:00:00.0160743"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopBoardTests.DestructiveActionRequiresConfirmationAndCancelSendsNothing",
+      "outcome": "Passed",
+      "duration": "00:00:00.0137570"
+    },
+    {
+      "name": "KanbanApi.Tests.ApiReadinessTests.ReadyOnlyWhenRealDatabaseIsMigrated",
+      "outcome": "Passed",
+      "duration": "00:00:00.0757547"
+    },
+    {
+      "name": "KanbanApi.Tests.ClientFoundationTests.CancellationIsPropagatedAndAbsoluteUrlsAreRejected",
+      "outcome": "Passed",
+      "duration": "00:00:00.0060438"
+    },
+    {
+      "name": "KanbanApi.Tests.AuthTests.InvalidFieldsAndUtf8PasswordBoundaryAreEnforced",
+      "outcome": "Passed",
+      "duration": "00:00:00.6906274"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopSketchIntegrationTests.RevocationClearsPrivateDialogsEvenWhenAnUnsavedDraftIsOpen",
+      "outcome": "Passed",
+      "duration": "00:00:01.1959808"
+    },
+    {
+      "name": "KanbanApi.Tests.ClientFoundationTests.NavigationRequiresSessionAndValidBoardId",
+      "outcome": "Passed",
+      "duration": "00:00:00.0021143"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.ForeignColumnTagsAssigneeAndPrivateCardIdentifiersCannotBypassBoardBoundary",
+      "outcome": "Passed",
+      "duration": "00:00:00.2555686"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.EveryContentRouteRequiresAuthentication",
+      "outcome": "Passed",
+      "duration": "00:00:00.0518353"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopOrderingTests.TwoClientsPollMoveReorderProtectDraftAndResolveConflict",
+      "outcome": "Passed",
+      "duration": "00:00:00.7138997"
+    },
+    {
+      "name": "KanbanApi.Tests.BoardTests.EveryBoardRouteRequiresAuthentication",
+      "outcome": "Passed",
+      "duration": "00:00:00.0504410"
+    },
+    {
+      "name": "KanbanApi.Tests.ContentTests.LateColumnDeletionFailureRollsBackCardsCommentsAndVersions",
+      "outcome": "Passed",
+      "duration": "00:00:00.3553394"
+    },
+    {
+      "name": "KanbanApi.Tests.SqlSchemaTests.StaleRowVersionCannotOverwriteAnotherEditor",
+      "outcome": "Passed",
+      "duration": "00:00:00.0477850"
+    },
+    {
+      "name": "KanbanApi.Tests.SqlSchemaTests.ParentDeletionDoesNotSilentlyCascadeAndRollbackPreservesData",
+      "outcome": "Passed",
+      "duration": "00:00:01.0852871"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopContentSessionTests.LogoutDuringContentReadCannotRestoreBoardCache",
+      "outcome": "Passed",
+      "duration": "00:00:00.0178217"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopOrderingTests.PollDetectsRevocationEvenWithAnOpenDraft",
+      "outcome": "Passed",
+      "duration": "00:00:00.2044684"
+    },
+    {
+      "name": "KanbanApi.Tests.ApiFoundationTests.PublicErrorAndInternalErrorHaveStableCodes",
+      "outcome": "Passed",
+      "duration": "00:00:00.1037967"
+    },
+    {
+      "name": "KanbanApi.Tests.ClientFoundationTests.UnauthorizedClearsSessionAndReturnsToLogin",
+      "outcome": "Passed",
+      "duration": "00:00:00.0035206"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopSketchSafetyTests.LogoutWhilePasswordResponseIsPendingCannotSignTheUserBackIn",
+      "outcome": "Passed",
+      "duration": "00:00:00.0674532"
+    },
+    {
+      "name": "KanbanApi.Tests.SketchMigrationTests.UpgradePreservesExistingBoardAndAssignsItsOriginalAdministratorAsOwner",
+      "outcome": "Passed",
+      "duration": "00:00:00.9365687"
+    }
+  ]
+}

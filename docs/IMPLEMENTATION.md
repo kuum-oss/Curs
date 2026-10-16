@@ -1,6 +1,6 @@
 # План реалізації KanbanBoard
 
-Версія документа: 1.8. Оновлено: 15.10.2026. Статус: PH-00–PH-07 виконано; наступна фаза — PH-08.
+Версія документа: 1.9. Оновлено: 16.10.2026. Статус: PH-00–PH-08 виконано; результати підтверджені тестами, навантаженням і живим Avalonia.
 
 Основа — [вимоги](REQUIREMENTS.md) та [рішення PH-00](PH00_DECISIONS.md). Структура, маршрути, поля та алгоритми є робочим планом, а не завершеними функціями. Користувач визначив запуск на одному Mac, пробу MSSQL через емуляцію та нативний клієнт; решту базових правил деталізовано рішеннями поточної фази.
 
@@ -55,15 +55,15 @@ compose.yaml
 
 | Таблиця | Основні поля |
 | --- | --- |
-| Users | `Id`, `Email nvarchar(254)`, `NormalizedEmail nvarchar(254)`, `Name nvarchar(100)`, `PasswordHash varchar(100)`, `CreatedAtUtc` |
-| Boards | `Id`, `Name nvarchar(150)`, `Description nvarchar(4000) NULL`, `CreatedAtUtc`, `UpdatedAtUtc`, `RowVersion rowversion` |
-| BoardMembers | `BoardId`, `UserId`, `Role`, `CanCreateCards bit`, `CanDeleteCards bit`, `JoinedAtUtc` |
+| Users | `Id`, `Email nvarchar(254)`, `NormalizedEmail nvarchar(254)`, `Name nvarchar(100)`, `PasswordHash varchar(100)`, `SessionVersion int`, `RowVersion rowversion`, `AvatarData varbinary(max) NULL`, `CreatedAtUtc` |
+| Boards | `OwnerId NULL`, `IsArchived bit`, `CoverOriginalData varbinary(max) NULL`, `CoverThumbnailData varbinary(max) NULL`, `CoverContentType NULL`, `Id`, `Name nvarchar(150)`, `Description nvarchar(4000) NULL`, `CreatedAtUtc`, `UpdatedAtUtc`, `RowVersion rowversion` |
+| BoardMembers | `BoardId`, `UserId`, `Role`, `CanCreateCards bit`, `CanDeleteCards bit`, `JoinedAtUtc`, `IsFavorite bit`, `LastOpenedAtUtc NULL` |
 | Columns | `Id`, `BoardId`, `Name nvarchar(100)`, `Position int`, `RowVersion rowversion` |
-| Cards | `Id`, `ColumnId`, `Title nvarchar(200)`, `Description nvarchar(max) NULL`, `DueDate date NULL`, `Priority tinyint`, `AssigneeId NULL`, `Position int`, `CreatedById`, `CreatedAtUtc`, `UpdatedAtUtc`, `RowVersion rowversion` |
+| Cards | `IsArchived bit`, `Id`, `ColumnId`, `Title nvarchar(200)`, `Description nvarchar(max) NULL`, `DueDate date NULL`, `Priority tinyint`, `AssigneeId NULL`, `Position int`, `CreatedById`, `CreatedAtUtc`, `UpdatedAtUtc`, `RowVersion rowversion` |
 | Tags | `Id`, `BoardId`, `Name nvarchar(50)`, `NormalizedName nvarchar(50)`, `Color varchar(7)` |
 | CardTags | `CardId`, `TagId` |
 | CardImages | `Id`, `CardId`, `ContentType varchar(50)`, `OriginalName nvarchar(255)`, `SizeBytes int`, `OriginalData varbinary(max)`, `ThumbnailData varbinary(max)`, `ThumbnailContentType varchar(50)`, `CreatedAtUtc` |
-| Comments | `Id`, `CardId`, `AuthorId`, `Text nvarchar(4000)`, `CreatedAtUtc` |
+| Comments | `Id`, `CardId`, `AuthorId`, `Text nvarchar(4000)`, `CreatedAtUtc`, `EditedAtUtc NULL`, `RowVersion rowversion` |
 
 Опис картки має ліміт 10 000 UTF-16 одиниць; у PH-01 його захищено CHECK-обмеженням `DATALENGTH <= 20000`, прикладна валідація додається з CRUD. Кольори тегів — `#RRGGBB`. Порожні назви й коментарі мають відхилятися предметними маршрутами. `Role`: `Admin = 0`, `Member = 1`; `Priority`: `Low = 0`, `Medium = 1`, `High = 2`, `Critical = 3`.
 
@@ -83,7 +83,7 @@ compose.yaml
 
 - Унікальний індекс `Users.NormalizedEmail`.
 - Складені первинні ключі `BoardMembers(BoardId, UserId)` і `CardTags(CardId, TagId)`.
-- Унікальний фільтрований індекс `BoardMembers(BoardId)` для `Role = Admin`: не більше одного адміністратора. Наявність адміністратора гарантує сервіс створення дошки; видалення його членства заборонене.
+- У PH-08 індекс одного адміністратора знято другою міграцією. `Boards.OwnerId` визначає захищеного початкового власника; сервіс ролей не дозволяє зняти його адміністрування або лишити дошку без адміністратора.
 - Індекси `BoardMembers(UserId, BoardId)`, `Columns(BoardId, Position)`, `Cards(ColumnId, Position)`, `Cards(AssigneeId)`, `Cards(DueDate)`, `Cards(Priority)`.
 - Унікальність `Tags(BoardId, NormalizedName)` та `CardImages(CardId)`.
 - Індекс `Comments(CardId, CreatedAtUtc, Id)` для стабільного порядку.
@@ -100,7 +100,7 @@ compose.yaml
 1. Реєстрація перевіряє дані, нормалізує email та створює BCrypt-хеш із сіллю бібліотеки.
 2. Реалізований ліміт пароля: від 8 UTF-16 одиниць, не більше 72 байтів UTF-8, щоб не допустити непомітного обрізання BCrypt. Work factor — 12; окремі нативні HTTP-вимірювання наведено в результатах PH-02, навантаження перевіряється у PH-08.
 3. Вхід звіряє хеш та повертає JWT, його строк дії і дані користувача. Неправильний email або пароль дають однакову відповідь.
-4. JWT містить `sub = UserId`, `jti`, `iat`, `exp`, issuer та audience; строк дії — рівно 24 години. API перевіряє підпис, issuer, audience і строк дії; допустиме часове відхилення задається явно.
+4. JWT містить `sub = UserId`, `jti`, `iat`, `exp`, `sv = SessionVersion`, issuer та audience; строк дії — рівно 24 години. API перевіряє підпис, issuer, audience, строк дії та актуальний `SessionVersion` користувача; допустиме часове відхилення задається явно.
 5. Секрет підпису передається через конфігурацію середовища; для HMAC-SHA256 — випадковий ключ щонайменше 32 байти.
 6. JWT зберігається лише в пам'яті клієнта. Після закриття застосунку потрібен новий вхід. Логи не містять паролів і токенів.
 
@@ -192,6 +192,8 @@ PH-05: `PUT columns/order` приймає `ColumnIds` і `ExpectedBoardVersion`;
 
 PH-06 реалізує `CardQuery`: search, priority, tagId, assigneeId, deadline і today. Фільтри поєднані AND, регістр назви не враховується, `%`/`_` є буквальними символами. Пагінація фільтрується до підрахунку кількості й зберігає початкові позиції. Клієнт завантажує всі сторінки з однаковими умовами, скасовує старий пошук і оновлює календарну вибірку після локальної півночі.
 
+Розширені маршрути профілю, аватарів, обкладинок дощок, ролей, архіву та коментарів наведено в [контракті PH-08](PH08_DESKTOP.md#api-розширення). Друга міграція `SketchParityProfiles` оновлює наявні дані без очищення БД. Приклади запитів і схема — [матеріали захисту](PH08_DEFENSE.md).
+
 ## 5. Зображення
 
 1. API приймає один файл до 5 МіБ. Загальний ліміт multipart-запиту трохи більший через службові поля, але ліміт саме файлу залишається 5 МіБ.
@@ -250,7 +252,7 @@ PH-06 реалізує `CardQuery`: search, priority, tagId, assigneeId, deadlin
 
 Детальні роботи, залежності, критерії завершення та посилання на документи для кожного етапу наведено у [фазах виконання](PHASES.md).
 
-PH-00–PH-07 виконано; PH-08 заплановано. Актуальні статуси й докази — у [PHASES](PHASES.md), [рішеннях PH-00](PH00_DECISIONS.md), [перевірці середовища](PH00_ENVIRONMENT.md) та результатах [PH-01](PH01_IMPLEMENTATION.md), [PH-02](PH02_AUTHENTICATION.md), [PH-03](PH03_BOARDS.md), [PH-04](PH04_CONTENT.md), [PH-05](PH05_COLLABORATION.md) та [PH-06](PH06_FILTERS_IMAGES.md) та [PH-07](PH07_DOCKER.md).
+PH-00–PH-08 виконано. Актуальні статуси й докази — у [PHASES](PHASES.md), [рішеннях PH-00](PH00_DECISIONS.md), [перевірці середовища](PH00_ENVIRONMENT.md) та результатах [PH-01](PH01_IMPLEMENTATION.md), [PH-02](PH02_AUTHENTICATION.md), [PH-03](PH03_BOARDS.md), [PH-04](PH04_CONTENT.md), [PH-05](PH05_COLLABORATION.md) та [PH-06](PH06_FILTERS_IMAGES.md) та [PH-07](PH07_DOCKER.md).
 
 | Етап | Роботи | Критерій завершення |
 | --- | --- | --- |
@@ -262,7 +264,7 @@ PH-00–PH-07 виконано; PH-08 заплановано. Актуальні
 | 5. Порядок і конкуренція — виконано | Транзакції, версії, drag-and-drop, оновлення спільної дошки | Повний AC-05, AC-07, AC-12, AC-14; 80 тестів, 116 HTTP-перевірок і два живі вікна |
 | 6. Пошук і фото — виконано | AND-фільтри, пошук/скасування/пагінація, захищені обкладинки й кеш | AC-09–AC-10 та повний AC-06; 93 тести, 211 HTTP-перевірок, живий GUI |
 | 7. Інфраструктура — виконано | Dockerfile, Compose, healthchecks, секрети, persistent volume | NFR-05/NFR-06 та AC-11; 26 перевірок розгортання, 82 HTTP-запити, нативний GUI |
-| 8. Приймання | Навантаження, наскрізні сценарії, UI-перевірка, матеріали звіту | AC-01–AC-14 підтверджені фактичними результатами |
+| 8. Приймання — виконано | Повний інтерфейс за ескізами, профіль, навантаження, наскрізні сценарії й матеріали захисту | AC-01–AC-14 та розширення PH-08; 105 тестів, 20 користувачів, збереження API/SQL і живий GUI. [Докази](PH08_DESKTOP.md) |
 
 Для ранніх етапів API може запускатися з Rider, а MSSQL — у контейнері. Завершені функції позначаються виконаними лише після перевірки, а не після додавання класів чи кнопок.
 
