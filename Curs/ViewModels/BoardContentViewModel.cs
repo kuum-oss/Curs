@@ -146,13 +146,33 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         var bytes=await services.Images.Read(card.Card.Id,card.Card.Version,false,token);token.ThrowIfCancellationRequested();
         FullImage=new Bitmap(new MemoryStream(bytes));
     }
-    public Task UploadCoverAsync(byte[] bytes,string filename)=>Run(async token=>
+    public bool CanDropCover(Guid cardId)=>IsVisible&&complete&&!IsBusy&&!polling&&!IsDragging&&
+        (EditorVisible?selectedCard?.Card.Id==cardId:!AnyDialogVisible&&Columns.Any(c=>c.Cards.Any(r=>r.Card.Id==cardId)));
+    public Task UploadCoverAsync(byte[] bytes,string filename)=>selectedCard is {} current
+        ? ImportCoverAsync(current.Card.Id,_=>Task.FromResult((bytes,filename))) : Task.CompletedTask;
+    public Task ImportCoverAsync(Guid cardId,Func<CancellationToken,Task<(byte[] Bytes,string Name)>> read)
     {
-        if(board is null||selectedCard is null)return;
-        if(bytes.Length>ImageLimits.MaxBytes){Error="Фото: не більше 5 МіБ.";return;}
-        await services.Images.Upload(selectedCard.Card.Id,bytes,filename,new(){ExpectedBoardVersion=board.Version,ExpectedVersion=selectedCard.Card.Version},token);
-        token.ThrowIfCancellationRequested();services.Images.Clear();selectedCard=await services.Content.Card(selectedCard.Card.Id,token);await Load(board.Id,token);await LoadFullImage(token);NotifyState();Status="Обкладинку збережено.";
-    });
+        if(!CanDropCover(cardId)||board is null)return Task.CompletedTask;
+        var id=board.Id;var boardVersion=board.Version;var editing=EditorVisible;
+        var target=editing?selectedCard?.Card:Columns.SelectMany(c=>c.Cards).FirstOrDefault(c=>c.Card.Id==cardId)?.Card;
+        if(target is null)return Task.CompletedTask;
+        return Run(async token=>
+        {
+            (byte[] Bytes,string Name) file;
+            try{file=await read(token);}
+            catch(ArgumentException ex){ImageError(ex.Message);return;}
+            catch(System.IO.IOException){ImageError("Не вдалося відкрити фото.");return;}
+            token.ThrowIfCancellationRequested();
+            if(BoardId!=id||(editing&&EditingCardId!=cardId))return;
+            if(file.Bytes.Length>ImageLimits.MaxBytes){ImageError("Фото: не більше 5 МіБ.");return;}
+            await services.Images.Upload(cardId,file.Bytes,file.Name,new(){ExpectedBoardVersion=boardVersion,ExpectedVersion=target.Version},token);
+            token.ThrowIfCancellationRequested();services.Images.Clear();
+            if(editing)selectedCard=await services.Content.Card(cardId,token);
+            await Load(id,token);
+            if(editing)await LoadFullImage(token);
+            NotifyState();Status="Обкладинку збережено.";
+        });
+    }
     public Task RemoveCoverAsync()=>Run(async token=>
     {
         if(board is null||selectedCard is null)return;

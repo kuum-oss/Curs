@@ -48,6 +48,20 @@ public partial class BoardContentView : UserControl
         DetachedFromVisualTree += (_, _) => { poll.Stop(); covers.Stop(); CancelDrag(); };
     }
     private void OpenMenu(object? sender,RoutedEventArgs e){if(sender is Button button)button.Flyout?.ShowAt(button);}
+    private void CoverDragOver(object? sender,DragEventArgs e)
+    {
+        if(sender is Control{DataContext:CardItemViewModel card} target&&Model is {} model)
+            MediaPicker.DragOver(target,e,model.CanDropCover(card.Card.Id));
+    }
+    private void CoverDragLeave(object? sender,DragEventArgs e){if(sender is Control target)target.Classes.Remove("file-over");}
+    private async void CoverDrop(object? sender,DragEventArgs e)
+    {
+        if(sender is Control target)target.Classes.Remove("file-over");e.Handled=true;
+        if(sender is not Control{DataContext:CardItemViewModel card}||Model is not {} model||!model.CanDropCover(card.Card.Id))return;
+        try{var file=MediaPicker.SingleFile(e);await model.ImportCoverAsync(card.Card.Id,t=>MediaPicker.Read(file,t));}
+        catch(ArgumentException ex){model.ImageError(ex.Message);}
+        catch(Exception){model.ImageError("Не вдалося відкрити фото.");}
+    }
     private void ColumnsSizeChanged(object? sender,SizeChangedEventArgs e){if(Model is {} model)model.ColumnWidth=Math.Max(225,(e.NewSize.Width-124)/4);}
     private void OpenCard(object? sender,TappedEventArgs e){if(sender is Control{DataContext:CardItemViewModel row})row.OpenCommand.Execute(null);}
     private void AvatarAttached(object? sender,Avalonia.VisualTreeAttachmentEventArgs e){if(sender is Control{DataContext:AvatarViewModel avatar})Model?.LoadAvatar(avatar);}
