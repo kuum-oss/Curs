@@ -8,6 +8,14 @@ namespace Curs.Services;
 
 public sealed class ProfileService(ApiClient api, SessionService session)
 {
+    public async Task<AccountDeletionPreviewDto> DeletionPreview(CancellationToken token) =>
+        await api.SendAsync<AccountDeletionPreviewDto>(HttpMethod.Get,"api/profile/deletion-preview",cancellationToken:token) ?? throw new InvalidOperationException();
+    public async Task DeleteAccount(DeleteAccountRequest request,CancellationToken token)
+    {
+        var observed=session.AccessToken;
+        await api.SendAsync<object>(HttpMethod.Delete,"api/profile",request,token);
+        session.ClearIfCurrent(observed);
+    }
     public async Task<UserDto> Refresh(CancellationToken token)
     {
         var user=await api.SendAsync<UserDto>(HttpMethod.Get,"api/auth/me",cancellationToken:token)??throw new InvalidOperationException();

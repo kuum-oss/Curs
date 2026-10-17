@@ -137,7 +137,7 @@ public sealed partial class BoardWorkspaceViewModel
         MembersCommand=new(()=>_=ShowMembers());SettingsCommand=new(()=>_=ShowSettings());
         CloseDialogCommand=new(()=>{if(!IsBusy)CloseDialogs();});SaveMembersCommand=new(()=>_=SaveMembers(),()=>!IsBusy&&IsAdmin);
         FavoriteCommand=new(()=>_=FavoriteSelected());ArchiveBoardCommand=new(()=>_=ArchiveSelected());RemoveBoardCoverCommand=new(()=>_=RemoveBoardCover());
-        StayCommand=new(()=>{pendingNavigation=null;NavigationConfirmation=false;});DiscardNavigationCommand=new(()=>{var next=pendingNavigation;pendingNavigation=null;NavigationConfirmation=false;CloseDialogs();Content.CloseEditor();next?.Invoke();});
+        StayCommand=new(()=>{pendingNavigation=null;NavigationConfirmation=false;});DiscardNavigationCommand=new(()=>{var next=pendingNavigation;pendingNavigation=null;NavigationConfirmation=false;Profile.CancelDeleteAccount();CloseDialogs();Content.CloseEditor();next?.Invoke();});
         RefreshIdentity();
     }
     private void Navigate(Action next)

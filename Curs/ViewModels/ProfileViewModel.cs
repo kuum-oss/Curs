@@ -8,7 +8,7 @@ using KanbanContracts;
 
 namespace Curs.ViewModels;
 
-public sealed class ProfileViewModel : ViewModelBase, IDisposable
+public sealed partial class ProfileViewModel : ViewModelBase, IDisposable
 {
     private readonly ClientServices services;
     private CancellationTokenSource? operation;
@@ -24,12 +24,12 @@ public sealed class ProfileViewModel : ViewModelBase, IDisposable
     public string Confirmation{get=>confirmation;set{confirmation=value;Notify();}}
     public string Error{get=>error;private set{error=value;Notify();Notify(nameof(HasError));}}
     public string Status{get=>status;private set{status=value;Notify();Notify(nameof(HasStatus));}}
-    public bool IsBusy{get=>busy;private set{busy=value;Notify();Notify(nameof(CanEdit));ResetCommand.Refresh();SaveCommand.Refresh();PasswordCommand.Refresh();DeleteAvatarCommand.Refresh();}}
-    public bool CanEdit=>!IsBusy;
+    public bool IsBusy{get=>busy;private set{busy=value;Notify();Notify(nameof(CanEdit));ResetCommand.Refresh();SaveCommand.Refresh();PasswordCommand.Refresh();DeleteAvatarCommand.Refresh();RefreshDeletionCommands();}}
+    public bool CanEdit=>!IsBusy&&!DeleteAccountVisible;
     public bool HasError=>!string.IsNullOrWhiteSpace(Error);
     public bool HasStatus=>!string.IsNullOrWhiteSpace(Status);
     public Guid? UserId=>loaded?.Id;
-    public bool HasChanges=>loaded is not null&&(Name!=loaded.Name||Email!=loaded.Email||CurrentPassword.Length>0||NewPassword.Length>0||Confirmation.Length>0);
+    public bool HasChanges=>DeleteAccountVisible||loaded is not null&&(Name!=loaded.Name||Email!=loaded.Email||CurrentPassword.Length>0||NewPassword.Length>0||Confirmation.Length>0);
     public ActionCommand ResetCommand{get;}
     public ActionCommand SaveCommand{get;}
     public ActionCommand PasswordCommand{get;}
@@ -41,12 +41,13 @@ public sealed class ProfileViewModel : ViewModelBase, IDisposable
         SaveCommand=new(()=>_=Save(),()=>CanEdit&&loaded is not null);
         PasswordCommand=new(()=>_=Password(),()=>CanEdit&&loaded is not null);
         DeleteAvatarCommand=new(()=>_=RemoveAvatar(),()=>CanEdit&&loaded?.HasAvatar==true);
+        InitializeDeletionCommands();
         services.Session.Changed+=SessionChanged;
     }
     public Task Open()=>Run(async t=>Apply(await services.Profile.Refresh(t)));
     private void Apply(UserDto user)
     {
-        loaded=user;Name=user.Name;Email=user.Email;Avatar=new(user);_=Avatar.Load(services);ClearPasswords();
+        ResetDeletion();loaded=user;Name=user.Name;Email=user.Email;Avatar=new(user);_=Avatar.Load(services);ClearPasswords();
     }
     private void ClearPasswords(){CurrentPassword="";NewPassword="";Confirmation="";}
     public Task Save()=>Run(async t=>
@@ -75,6 +76,7 @@ public sealed class ProfileViewModel : ViewModelBase, IDisposable
         catch(ApiClientException ex)
         {
             Error=ex.Problem.Errors is {Count:>0} fields?string.Join("\n",fields.Values.SelectMany(x=>x).Distinct()):ex.Message;
+            if(ex.Problem.Code=="deletion_preview_changed")ResetDeletion();
             if(ex.Status==409&&ex.Problem.Code=="concurrency_conflict")
             {
                 try{loaded=await services.Profile.Refresh(cancellation.Token);Error+="\nЧернетку збережено. Перевірте дані та повторіть збереження.";}catch(Exception){}
@@ -84,6 +86,6 @@ public sealed class ProfileViewModel : ViewModelBase, IDisposable
         finally{if(ReferenceEquals(operation,cancellation)){operation=null;IsBusy=false;}}
     }
     private void SessionChanged(){if(services.Session.AccessToken is null)Clear();}
-    public void Clear(){operation?.Cancel();operation=null;loaded=null;Avatar=null;Name="";Email="";ClearPasswords();Error="";Status="";IsBusy=false;}
+    public void Clear(){ResetDeletion();operation?.Cancel();operation=null;loaded=null;Avatar=null;Name="";Email="";ClearPasswords();Error="";Status="";IsBusy=false;}
     public void Dispose(){Clear();services.Session.Changed-=SessionChanged;}
 }
