@@ -16,6 +16,7 @@ public sealed class ClientServices : IDisposable
     public ProfileService Profile { get; }
     public ImageService Images { get; }
     public RememberedSession Remembered { get; }
+    public ChatService Chats { get; }
 
     public ClientServices(Uri baseAddress, Action<Action>? dispatch = null, HttpMessageHandler? transport = null, ISessionStore? sessionStore = null)
     {
@@ -37,6 +38,7 @@ public sealed class ClientServices : IDisposable
         Api = new ApiClient(http);
         Auth = new AuthService(Api, Session, Navigation);
         Boards = new BoardService(Api);
+        Chats = new ChatService(Api);
         Content = new ContentService(Api);
         Profile = new ProfileService(Api,Session);
         Images = new ImageService(Api, Session);

@@ -84,11 +84,14 @@ public sealed partial class BoardWorkspaceViewModel
     public UserDto? CurrentUser=>services.Session.User;
     public AvatarViewModel? CurrentAvatar{get=>currentAvatar;private set{currentAvatar?.Dispose();currentAvatar=value;Notify();}}
     public string UserName=>CurrentUser?.Name??"";
-    public string Page{get=>page;private set{page=value;NotifyPresentation();}}
+    public string Page{get=>page;private set{page=value;if(Chat is not null&&value!="chats")Chat.Active=false;NotifyPresentation();}}
     public bool BoardsVisible=>Page is "boards" or "archive" or "favorites";
     public bool BoardVisible=>Page=="board"&&ShowBoard;
     public bool TasksVisible=>Page=="tasks";
     public bool TeamVisible=>Page=="team";
+    public bool ChatsVisible=>Page=="chats";
+    public ChatViewModel Chat{get;private set;}=null!;
+    public ActionCommand ChatsCommand{get;private set;}=null!;
     public bool ProfileVisible=>Page=="profile";
     public bool IsBoardsPage=>Page=="boards";
     public bool IsFavoritesPage=>Page=="favorites";
@@ -100,7 +103,7 @@ public sealed partial class BoardWorkspaceViewModel
     public ObservableCollection<BoardListItemViewModel> VisibleBoards{get;}=[];
     public ObservableCollection<BoardListItemViewModel> RecentBoards{get;}=[];
     public ObservableCollection<OverviewCardViewModel> OverviewCards{get;}=[];
-    public ObservableCollection<AvatarViewModel> Team{get;}=[];
+    public ObservableCollection<TeamPersonViewModel> Team{get;}=[];
     public bool NoVisibleBoards=>VisibleBoards.Count==0;
     public bool NoOverviewCards=>OverviewCards.Count==0;
     public bool MembersVisible{get=>membersVisible;private set{membersVisible=value;Notify();}}
@@ -131,7 +134,7 @@ public sealed partial class BoardWorkspaceViewModel
     public void ShowSessionNotice(string notice)=>Status=notice;
     private void InitializePresentation()
     {
-        Profile=new(services);
+        Profile=new(services);Chat=new(services);ChatsCommand=new(()=>Navigate(()=>_=ShowChats()));
         BoardsCommand=new(()=>Navigate(()=>_=ShowPage("boards")));TasksCommand=new(()=>Navigate(()=>_=ShowPage("tasks")));TeamCommand=new(()=>Navigate(()=>_=ShowPage("team")));
         ArchiveCommand=new(()=>Navigate(()=>_=ShowPage("archive")));FavoritesCommand=new(()=>Navigate(()=>_=ShowPage("favorites")));ProfileCommand=new(()=>Navigate(()=>_=ShowProfile()));
         LogoutCommand=new(()=>Navigate(()=>services.Auth.Logout()));NewBoardCommand=new(()=>NewBoardVisible=true);
@@ -152,8 +155,9 @@ public sealed partial class BoardWorkspaceViewModel
         Content.Clear();selected=null;CloseDialogs();Page=next;NotifyBoard();
         await LoadAsync();
         if(next is "tasks" or "archive")await LoadOverview(next=="archive");
-        if(next=="team")await RunAsync(async t=>{foreach(var old in Team)old.Dispose();Team.Clear();foreach(var user in await services.Content.Team(t)){var avatar=new AvatarViewModel(user);Team.Add(avatar);_=avatar.Load(services);}});
+        if(next=="team")await RunAsync(async t=>{foreach(var old in Team)old.Dispose();Team.Clear();foreach(var user in await services.Content.Team(t)){var person=new TeamPersonViewModel(user,services.Session.User!.Id,peer=>Navigate(()=>_=ShowChats(peer)));Team.Add(person);_=person.Avatar.Load(services);}});
     }
+    private async Task ShowChats(UserDto? peer=null){Content.Clear();selected=null;CloseDialogs();Page="chats";NotifyBoard();await Chat.Show(peer);}
     public Task OpenVisualAsync(Guid id)
     {
         if(HasDraft){Navigate(()=>_=OpenVisualCore(id));return Task.CompletedTask;}return OpenVisualCore(id);
@@ -206,7 +210,7 @@ public sealed partial class BoardWorkspaceViewModel
         RecentBoards.Clear();foreach(var tile in Boards.Where(b=>!b.Board.IsArchived).OrderByDescending(b=>b.Board.LastOpenedAtUtc).Take(5))RecentBoards.Add(tile);
         Notify(nameof(NoVisibleBoards));
     }
-    private void NotifyPresentation(){foreach(var name in new[]{nameof(IsBoardsPage),nameof(IsFavoritesPage),nameof(HeaderMembers),nameof(BoardsVisible),nameof(BoardVisible),nameof(TasksVisible),nameof(TeamVisible),nameof(ProfileVisible),nameof(IsArchive),nameof(PageTitle),nameof(PageSubtitle),nameof(FavoriteIcon),nameof(ArchiveLabel),nameof(MembersLabel)})Notify(name);RefreshTiles();}
-    private void ResetPresentation(){CancelPresentation();CloseDialogs();Page="boards";foreach(var old in OverviewCards)old.Dispose();OverviewCards.Clear();foreach(var old in Team)old.Dispose();Team.Clear();Profile.Clear();CurrentAvatar=null;NavigationConfirmation=false;pendingNavigation=null;}
-    private void DisposePresentation(){Profile.Dispose();CurrentAvatar=null;foreach(var old in OverviewCards)old.Dispose();foreach(var old in Team)old.Dispose();}
+    private void NotifyPresentation(){foreach(var name in new[]{nameof(IsBoardsPage),nameof(IsFavoritesPage),nameof(HeaderMembers),nameof(BoardsVisible),nameof(BoardVisible),nameof(TasksVisible),nameof(TeamVisible),nameof(ChatsVisible),nameof(ProfileVisible),nameof(IsArchive),nameof(PageTitle),nameof(PageSubtitle),nameof(FavoriteIcon),nameof(ArchiveLabel),nameof(MembersLabel)})Notify(name);RefreshTiles();}
+    private void ResetPresentation(){Chat.Clear();CancelPresentation();CloseDialogs();Page="boards";foreach(var old in OverviewCards)old.Dispose();OverviewCards.Clear();foreach(var old in Team)old.Dispose();Team.Clear();Profile.Clear();CurrentAvatar=null;NavigationConfirmation=false;pendingNavigation=null;}
+    private void DisposePresentation(){Chat.Dispose();Profile.Dispose();CurrentAvatar=null;foreach(var old in OverviewCards)old.Dispose();foreach(var old in Team)old.Dispose();}
 }
