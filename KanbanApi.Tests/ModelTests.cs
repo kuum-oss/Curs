@@ -8,12 +8,12 @@ namespace KanbanApi.Tests;
 public sealed class ModelTests
 {
     [Fact]
-    public void RelationalModelHasNineTablesAndNoCascadePaths()
+    public void RelationalModelHasElevenTablesAndNoCascadePaths()
     {
         using var db = new KanbanDbContext(new DbContextOptionsBuilder<KanbanDbContext>()
             .UseSqlServer("Server=localhost;Database=model-only;Integrated Security=True").Options);
         var types = db.Model.GetEntityTypes().ToArray();
-        Assert.Equal(9, types.Length);
+        Assert.Equal(11, types.Length);
         Assert.All(types.SelectMany(x => x.GetForeignKeys()), fk => Assert.Equal(DeleteBehavior.NoAction, fk.DeleteBehavior));
         foreach (var type in new[] { typeof(Board), typeof(BoardColumn), typeof(Card) })
         {

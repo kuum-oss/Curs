@@ -135,7 +135,7 @@ try:
     record('Live returns 200', http('GET', '/health/live')['status'] == 'live')
     record('Ready returns 200 after migrations', http('GET', '/health/ready')['status'] == 'ready')
     table_count = sql("SET NOCOUNT ON; SELECT COUNT(*) FROM sys.tables WHERE name <> '__EFMigrationsHistory';")
-    record('Fresh database contains exactly nine domain tables', table_count == '9')
+    record('Fresh database contains eleven domain tables including private chats', table_count == '11')
     migration_count = sql('SET NOCOUNT ON; SELECT COUNT(*) FROM __EFMigrationsHistory;')
     record('EF migration applied exactly once', migration_count == '1')
     record('API runs as a non-root user', compose('exec', '-T', 'api', 'id', '-u').stdout.strip() != '0')

@@ -118,6 +118,14 @@ public sealed class AccountDeletionService(KanbanDbContext db, PasswordService p
              .SetProperty(c => c.UpdatedAtUtc, clock.GetUtcNow().UtcDateTime), token);
         await db.Comments.Where(c => c.AuthorId == id).ExecuteUpdateAsync(s => s.SetProperty(c => c.AuthorId, (Guid?)null), token);
         await db.BoardMembers.Where(m => m.UserId == id).ExecuteDeleteAsync(token);
+        // Keep the other participant's history, without the deleted profile identity.
+        await db.DirectMessages.Where(m => m.SenderId == id).ExecuteUpdateAsync(s => s.SetProperty(m => m.SenderId, (Guid?)null), token);
+        await db.DirectChats.Where(c => c.FirstUserId == id || c.SecondUserId == id).ExecuteUpdateAsync(s =>
+            s.SetProperty(c => c.FirstUserId, c => c.FirstUserId == id ? null : c.FirstUserId)
+             .SetProperty(c => c.SecondUserId, c => c.SecondUserId == id ? null : c.SecondUserId), token);
+        var emptyChats = db.DirectChats.Where(c => c.FirstUserId == null && c.SecondUserId == null).Select(c => c.Id);
+        await db.DirectMessages.Where(m => emptyChats.Contains(m.ChatId)).ExecuteDeleteAsync(token);
+        await db.DirectChats.Where(c => c.FirstUserId == null && c.SecondUserId == null).ExecuteDeleteAsync(token);
         await db.Users.Where(u => u.Id == id).ExecuteDeleteAsync(token);
         await transaction.CommitAsync(token);
         return true;

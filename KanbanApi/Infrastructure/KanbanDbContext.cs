@@ -16,6 +16,9 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
     public DbSet<CardImage> CardImages => Set<CardImage>();
     public DbSet<Comment> Comments => Set<Comment>();
 
+    public DbSet<DirectChat> DirectChats => Set<DirectChat>();
+    public DbSet<DirectMessage> DirectMessages => Set<DirectMessage>();
+
     protected override void OnModelCreating(ModelBuilder model)
     {
         var user = model.Entity<User>();
@@ -113,6 +116,23 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         comment.HasOne<Card>().WithMany().HasForeignKey(x => x.CardId);
         comment.HasOne<User>().WithMany().HasForeignKey(x => x.AuthorId);
         comment.HasIndex(x => new { x.CardId, x.CreatedAtUtc, x.Id });
+
+        var chat = model.Entity<DirectChat>();
+        chat.ToTable("DirectChats", t => t.HasCheckConstraint("CK_DirectChats_Peers", "[FirstUserId] IS NULL OR [SecondUserId] IS NULL OR [FirstUserId] <> [SecondUserId]"));
+        chat.HasKey(x => x.Id);
+        chat.HasOne<User>().WithMany().HasForeignKey(x => x.FirstUserId);
+        chat.HasOne<User>().WithMany().HasForeignKey(x => x.SecondUserId);
+        chat.HasIndex(x => new { x.FirstUserId, x.SecondUserId }).IsUnique();
+        chat.HasIndex(x => x.SecondUserId);
+        var message = model.Entity<DirectMessage>();
+        message.ToTable("DirectMessages");
+        message.HasKey(x => x.Id);
+        message.Property(x => x.Id).UseIdentityColumn();
+        message.Property(x => x.Text).HasMaxLength(2000).IsRequired();
+        message.HasOne<DirectChat>().WithMany().HasForeignKey(x => x.ChatId);
+        message.HasOne<User>().WithMany().HasForeignKey(x => x.SenderId);
+        message.HasIndex(x => new { x.ChatId, x.Id });
+        message.HasIndex(x => new { x.ChatId, x.ClientMessageId }).IsUnique();
 
         // Avoid SQL Server multiple cascade paths; deletion is an explicit service transaction.
         foreach (var foreignKey in model.Model.GetEntityTypes().SelectMany(x => x.GetForeignKeys()))
