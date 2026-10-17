@@ -47,3 +47,14 @@ public sealed class CommentVersionQuery : ResourceVersionQuery
     [Required, RowVersion] public string ExpectedCommentVersion { get; set; } = "";
 }
 public sealed record PersonalCardDto(Guid BoardId, string BoardName, CardSummaryDto Card);
+
+public sealed record AccountDeletionBoardDto(Guid Id, string Name, string? NewOwnerName);
+public sealed record AccountDeletionPreviewDto(string Email, string ExpectedVersion, string ConfirmationToken,
+    IReadOnlyList<AccountDeletionBoardDto> OwnedBoards, int MembershipsToLeave);
+public sealed class DeleteAccountRequest
+{
+    [Required] public string CurrentPassword { get; set; } = "";
+    [Required, EmailAddress] public string ConfirmationEmail { get; set; } = "";
+    [Required, RowVersion] public string ExpectedVersion { get; set; } = "";
+    [Required, StringLength(64, MinimumLength = 64)] public string ConfirmationToken { get; set; } = "";
+}

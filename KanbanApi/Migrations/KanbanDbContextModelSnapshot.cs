@@ -157,7 +157,7 @@ namespace KanbanApi.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("CreatedById")
+                    b.Property<Guid?>("CreatedById")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -283,7 +283,7 @@ namespace KanbanApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AuthorId")
+                    b.Property<Guid?>("AuthorId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CardId")
@@ -448,8 +448,7 @@ namespace KanbanApi.Migrations
                     b.HasOne("KanbanApi.Domain.User", null)
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("KanbanApi.Domain.CardImage", b =>
@@ -481,8 +480,7 @@ namespace KanbanApi.Migrations
                     b.HasOne("KanbanApi.Domain.User", null)
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("KanbanApi.Domain.Card", null)
                         .WithMany()

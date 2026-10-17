@@ -61,7 +61,7 @@ public sealed class Card
     public DateOnly? DueDate { get; set; }
     public CardPriority Priority { get; set; } = CardPriority.Medium;
     public Guid? AssigneeId { get; set; }
-    public Guid CreatedById { get; set; }
+    public Guid? CreatedById { get; set; }
     public int Position { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
@@ -102,7 +102,7 @@ public sealed class Comment
     public DateTime? EditedAtUtc { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid CardId { get; set; }
-    public Guid AuthorId { get; set; }
+    public Guid? AuthorId { get; set; }
     public string Text { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

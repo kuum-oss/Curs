@@ -186,8 +186,9 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
     {
         var boardId = await CardBoard(cardId, userId, token);
         var query = db.Comments.Where(x => x.CardId == cardId); var total = await query.CountAsync(token);
-        var rows = await (from c in query join u in db.Users on c.AuthorId equals u.Id orderby c.CreatedAtUtc, c.Id
-                          select new CommentDto(c.Id, c.CardId, new UserDto(u.Id, u.Email, u.Name, Convert.ToBase64String(u.RowVersion), u.AvatarData != null), c.Text, c.CreatedAtUtc, Convert.ToBase64String(c.RowVersion), c.EditedAtUtc))
+        var rows = await (from c in query join author in db.Users on c.AuthorId equals author.Id into authors
+                          from u in authors.DefaultIfEmpty() orderby c.CreatedAtUtc, c.Id
+                          select new CommentDto(c.Id, c.CardId, u == null ? new UserDto(Guid.Empty, "", "Видалений користувач") : new UserDto(u.Id, u.Email, u.Name, Convert.ToBase64String(u.RowVersion), u.AvatarData != null), c.Text, c.CreatedAtUtc, Convert.ToBase64String(c.RowVersion), c.EditedAtUtc))
             .Skip(page.Offset).Take(page.Limit).ToListAsync(token);
         await access.RequireAsync(boardId, userId, false, token); return new(rows, total, page.Offset, page.Limit);
     }
