@@ -1,0 +1,236 @@
+{
+  "date": "2026-10-17",
+  "followup": "Seven-day account recovery, protected demo accounts, application icon",
+  "tested_application_revision": "0f31b48",
+  "server_revision": "12a0721",
+  "configuration": "Release",
+  "command": "KANBAN_TEST_CONFIGURATION=Release python3 scripts/verify-ph01.py account-recovery-acceptance",
+  "database": "Real Microsoft SQL Server 2022; isolated temporary test databases",
+  "counters": {
+    "total": "131",
+    "executed": "131",
+    "passed": "131",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "focusedTests": [
+    {
+      "name": "KanbanApi.Tests.AccountRecoveryTests.ConcurrentLoginAndCleanupAtDeadlineCannotResurrectAnExpiredAccount",
+      "outcome": "Passed",
+      "duration": "00:00:01.5881127"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountRecoveryMigrationTests.PendingWindowCannotBeDroppedAndDatabaseRequiresExactlySevenDays",
+      "outcome": "Passed",
+      "duration": "00:00:01.0818136"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopAccountDeletionTests.DemoProfileCannotOpenOrSubmitDeletionAndScheduleShowsRecoveryNotice",
+      "outcome": "Passed",
+      "duration": "00:00:00.0017765"
+    },
+    {
+      "name": "KanbanApi.Tests.AuthTests.LoginNormalizesEmailAndUnknownAccountMatchesWrongPasswordResponse",
+      "outcome": "Passed",
+      "duration": "00:00:01.6199802"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountDeletionTests.OrdinaryMemberLeavesWithoutChangingTheOtherOwnerOrTheirHistory",
+      "outcome": "Passed",
+      "duration": "00:00:01.3761050"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountRecoveryTests.ProtectedDemoIdentitySurvivesEmailChangesAndIsNeverScheduledOrPurged",
+      "outcome": "Passed",
+      "duration": "00:00:01.1184557"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountDeletionTests.BoardMembershipChangeAfterPreviewRollsBackAllDeletionEffects",
+      "outcome": "Passed",
+      "duration": "00:00:01.4811100"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountRecoveryTests.ExactDeadlineDeniesRecoveryAndCleanupRemovesOnlyExpiredAccount",
+      "outcome": "Passed",
+      "duration": "00:00:02.3625131"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountDeletionTests.ConcurrentInvitationAndDeletionCommitOnlyAConsistentOutcome",
+      "outcome": "Passed",
+      "duration": "00:00:01.7949041"
+    },
+    {
+      "name": "KanbanApi.Tests.AuthTests.TokenCannotReadADeletedAccount",
+      "outcome": "Passed",
+      "duration": "00:00:00.9359964"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopAccountDeletionTests.LateDeletionResponseFromOldSessionCannotClearNewSession",
+      "outcome": "Passed",
+      "duration": "00:00:00.0311294"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountDeletionTests.SharedBoardTransfersToExistingAdminAndPreservesAnonymousCommentsCardsAndImages",
+      "outcome": "Passed",
+      "duration": "00:00:02.3491057"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountRecoveryTests.SevenDayWindowKeepsAllDataAndLoginRestoresOriginalIdentityAndBoards",
+      "outcome": "Passed",
+      "duration": "00:00:01.9430853"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountDeletionTests.MissingConfirmationWrongPasswordWrongEmailAndStalePreviewCannotMutateAnything",
+      "outcome": "Passed",
+      "duration": "00:00:01.6374801"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountDeletionTests.FormerMemberDeletionDoesNotExposePrivateBoardAndStillAnonymizesHistory",
+      "outcome": "Passed",
+      "duration": "00:00:01.3615852"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountDeletionTests.OldestRemainingMemberBecomesOwnerAndAdminWhenNoOtherAdminExists",
+      "outcome": "Passed",
+      "duration": "00:00:01.7145966"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopAccountDeletionTests.ConfirmationNeedsPreviewOwnEmailAndPasswordCancelClearsSensitiveFields",
+      "outcome": "Passed",
+      "duration": "00:00:00.0210518"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountRecoveryTests.MemberSchedulingDeletionInvalidatesThePreviouslyDisplayedSuccessor",
+      "outcome": "Passed",
+      "duration": "00:00:02.1831359"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountDeletionTests.RemovesUserAndEntireSoloBoardGraphRevokesJwtAndAllowsEmailReuse",
+      "outcome": "Passed",
+      "duration": "00:00:02.5637076"
+    },
+    {
+      "name": "KanbanApi.Tests.AuthTests.ParallelRegistrationLeavesOnlyOneAccount",
+      "outcome": "Passed",
+      "duration": "00:00:00.7848569"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountRecoveryTests.RecoveryWindowCannotBeBypassedWithRepeatedOldTokenOrNewRegistration",
+      "outcome": "Passed",
+      "duration": "00:00:01.0530574"
+    },
+    {
+      "name": "KanbanApi.Tests.AccountDeletionMigrationTests.UpgradeKeepsExistingHistoryAndDowngradeCannotInventDeletedAuthors",
+      "outcome": "Passed",
+      "duration": "00:00:01.5541717"
+    },
+    {
+      "name": "KanbanApi.Tests.DesktopAccountDeletionTests.FailedOrChangedPreviewCannotLogOutOrAutomaticallyRetryDeletion",
+      "outcome": "Passed",
+      "duration": "00:00:00.0310298"
+    }
+  ],
+  "releaseBuild": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "schema": {
+    "tables": 9,
+    "migrations": 4,
+    "modelMatchesMigrations": true
+  },
+  "productionHttp": {
+    "checkedAtUtc": "2026-10-17T11:14:38.408784+00:00",
+    "requests": 33,
+    "checks": {
+      "previewNamesSuccessor": true,
+      "sevenDayRetentionAndLoginRecovery": true,
+      "expiredAccountAndOldJwtRejected": true,
+      "sharedBoardCardsCommentsAndMediaPreserved": true,
+      "linuxNativeImageDecoderWorks": true,
+      "fourProtectedDemoAccountsIntact": true,
+      "lastOwnerAndSoloBoardRemoved": true
+    },
+    "throwawayAccountsRemoved": true,
+    "existingAccountsChanged": false,
+    "fixtureClockOnly": "SQL shifts timestamps only on random accounts created by this run; real background worker performs cleanup"
+  },
+  "protectedDemoAccounts": [
+    {
+      "email": "demo.anastasiia@kanban.local",
+      "id": "c16f5fb6-b7a0-4d44-9714-b5375daa09dd",
+      "sameIdentity": true,
+      "loginWorks": true,
+      "deletionProtected": true,
+      "previewStatus": 403
+    },
+    {
+      "email": "demo.olena@kanban.local",
+      "id": "68e6917f-1ab4-45c4-80ac-8381efca2879",
+      "sameIdentity": true,
+      "loginWorks": true,
+      "deletionProtected": true,
+      "previewStatus": 403
+    },
+    {
+      "email": "demo.dmytro@kanban.local",
+      "id": "ed1c716c-4886-49ea-ad41-931cfa6e54dd",
+      "sameIdentity": true,
+      "loginWorks": true,
+      "deletionProtected": true,
+      "previewStatus": 403
+    },
+    {
+      "email": "demo.iryna@kanban.local",
+      "id": "735f485c-47db-4846-8588-1790cf16369d",
+      "sameIdentity": true,
+      "loginWorks": true,
+      "deletionProtected": true,
+      "previewStatus": 403
+    }
+  ],
+  "icon": {
+    "pngDimensions": [
+      1024,
+      1024
+    ],
+    "icoFrames": 6,
+    "icnsIncludedInMacOsBundle": true,
+    "cfBundleIconFile": "kanbanboard.icns",
+    "sourceSvgIncluded": true,
+    "sidebarAndWindowResourceConfigured": true
+  },
+  "existingBoardDuringAuthorSchemaUpgrade": {
+    "board": "16abacce-c26e-49a8-b819-239c253b9077",
+    "beforeSha256": "72d60753c34833ac0bda0c19a7a95fdfc3c920e9d48deac3f1da8789bbfacf5e",
+    "cards": 10,
+    "mediaResources": 10,
+    "afterSha256": "72d60753c34833ac0bda0c19a7a95fdfc3c920e9d48deac3f1da8789bbfacf5e",
+    "preserved": true
+  },
+  "nativeClient": {
+    "startupProbe": "Styles loaded, framework initialized, Main window opened",
+    "finalVisualVerification": "Not confirmed: repeated Computer Use timeoutReached after manual Mac unlock",
+    "newScreenshots": false
+  },
+  "retention": {
+    "days": 7,
+    "loginBeforeDeadlineCancelsDeletion": true,
+    "loginAtOrAfterDeadlineRejected": true,
+    "sharedBoardsPreservedAfterDeadline": true,
+    "cleanupCadenceSeconds": 60,
+    "cleanupAlsoRunsAtStartup": true,
+    "demoDeletionAllowed": false
+  }
+}
