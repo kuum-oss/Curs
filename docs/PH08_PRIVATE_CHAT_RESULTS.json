@@ -1,0 +1,72 @@
+{
+  "verifiedAtUtc": "2026-10-17T12:01:39.959777+00:00",
+  "serverRevision": "e7d9baa",
+  "clientRevision": "3268897",
+  "tests": {
+    "total": "148",
+    "executed": "148",
+    "passed": "148",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "finalDesktopTests": {
+    "passed": 4,
+    "failed": 0
+  },
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0
+  },
+  "schema": {
+    "tables": 11,
+    "migrations": 5,
+    "pendingModelChanges": false,
+    "destructiveDowngradeGuardTestPassed": true
+  },
+  "dockerHttp": {
+    "verifiedAtUtc": "2026-10-17T11:58:58.997679+00:00",
+    "httpRequests": 20,
+    "checks": [
+      "single dialog in both directions",
+      "idempotent retry",
+      "recipient history and unread acknowledgement",
+      "reply visible to original sender",
+      "outsider and anonymous isolation"
+    ],
+    "randomAccountsCleaned": 3,
+    "existingAccountsChanged": false
+  },
+  "nativeExchange": {
+    "nativeMessageReceivedByPeer": true,
+    "peerReplySent": true,
+    "chatId": "0ed374fc-f003-46c2-afa6-af20552e7550",
+    "nativeMessageId": 3,
+    "replyMessageId": 4,
+    "demoAccountsDeleted": false
+  },
+  "ui": {
+    "teamChatButtonsVerified": true,
+    "selfChatHidden": true,
+    "conversationOpenedFromTeam": true,
+    "outgoingDisplayed": true,
+    "replyAutomaticallyDisplayed": true,
+    "inspectedScreenshot": true,
+    "twoDemoMessagesRetained": true,
+    "historySurvivedAppRestart": true,
+    "finalBuildScreenshotInspected": true
+  },
+  "serverPersistence": "existing MSSQL volume",
+  "demoAccountsDeleted": false
+}
