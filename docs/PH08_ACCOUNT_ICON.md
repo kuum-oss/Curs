@@ -39,7 +39,7 @@
 
 ## Іконка
 
-[Власний векторний знак та формати](../Curs/Assets/README.md): PNG 1024 × 1024, ICO з шістьма розмірами, ICNS для macOS. Підключено ресурс вікна, executable, ліву панель та `Contents/Resources/kanbanboard.icns` із `CFBundleIconFile`. Для іконки Dock запускайте зібраний `.app`: саме `Window.Icon` у macOS цього не задає. [Код Avalonia 11.3.12](https://github.com/AvaloniaUI/Avalonia/blob/11.3.12/src/Avalonia.Native/WindowImpl.cs#L210).
+[Власний векторний знак та формати](../Curs/Assets/README.md): PNG 1024 × 1024, ICO з шістьма розмірами, ICNS для macOS. Підключено ресурс вікна, executable, ліву панель та `Contents/Resources/kanbanboard.icns` із `CFBundleIconFile`. Пакет задає статичну іконку macOS; виправлення нижче також задає іконку запущеного процесу. Саме `Window.Icon` у macOS цього не робить. [Код Avalonia 11.3.12](https://github.com/AvaloniaUI/Avalonia/blob/11.3.12/src/Avalonia.Native/WindowImpl.cs#L210).
 
 ## Перевірки
 
@@ -61,3 +61,13 @@ scripts/package-macos.sh
 ```
 
 HTTP-скрипт працює лише з `127.0.0.1:5000` і власними випадковими `delete-check-…@example.test`; зміщення часу додатково обмежене ID, префіксом email, наявним запитом видалення й відсутністю demo-захисту. Паролі/JWT не записуються до протоколу чи Git. Робочий SQL volume не видалявся.
+
+## Виправлення після перевірки користувачем 17.10.2026
+
+Користувач показав стандартну іконку macOS у Dock і недоречну постійну підказку про видалення на звичайному вході. `Window.Icon` та іконка пакета не покривали всі способи запуску. Додано встановлення вбудованого PNG через [NSApplication.applicationIconImage](https://developer.apple.com/documentation/appkit/nsapplication/applicationiconimage) після ініціалізації Avalonia. Це працює також при запуску через Rider / `dotnet`, незалежно від кешу іконки пакета. Інші платформи пропускають нативний виклик.
+
+Постійну підказку про 7 днів прибрано з входу та реєстрації. Після фактичного запиту видалення залишається повідомлення: «Обліковий запис буде видалено [дата] о [час]. Щоб скасувати видалення, увійдіть протягом 7 днів». Правила збереження даних і захист demo не змінювалися.
+
+Повторно перевірено: Release — 0 помилок / 0 попереджень; усі 4 `DesktopAccountDeletionTests` пройшли; `.app` оновлено. Нативний стенд запустив клієнт без пакета, прочитав власний `NSApplication.applicationIconImage`, експортував його TIFF та завершився з кодом 0. Експортоване зображення оглянуто: власний бірюзовий логотип замість стандартного значка. CUA після перезапуску показав звичайний екран входу без підказки, що підтверджено деревом доступності та скриншотом. Прямий знімок Dock інструмент не отримав (`timeoutReached`), тому окремий скриншот Dock не заявляється.
+
+Локальні ігноровані докази: `TestResults/icon-login-build.log`, `icon-login-desktop.trx`, `icon-login-native-probe.log`, `icon-login-running-dock.png`. Виправлення: `0fe1223` — нативна іконка, `dbd7550` — текст входу.
