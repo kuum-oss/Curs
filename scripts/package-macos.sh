@@ -6,7 +6,8 @@ if [ "$(uname -s)" != Darwin ]; then
     exit 1
 fi
 task_bundle="$task_root/TestResults/KanbanBoard.app"
-mkdir -p "$task_bundle/Contents/MacOS"
+mkdir -p "$task_bundle/Contents/MacOS" "$task_bundle/Contents/Resources"
+cp "$task_root/Curs/Assets/kanbanboard.icns" "$task_bundle/Contents/Resources/kanbanboard.icns"
 # Let Launch Services start the apphost itself. A shell launcher changes the
 # window's process identity and prevents reliable native pointer routing.
 if [ -x "$task_root/.tools/dotnet/dotnet" ]; then
@@ -22,6 +23,7 @@ Path(sys.argv[1]).write_bytes(plistlib.dumps({
     'CFBundleExecutable': 'Curs',
     'CFBundleIdentifier': 'com.kuum.kanbanboard',
     'CFBundleName': 'KanbanBoard',
+    'CFBundleIconFile': 'kanbanboard.icns',
     'CFBundlePackageType': 'APPL',
     'NSHighResolutionCapable': True,
 }))

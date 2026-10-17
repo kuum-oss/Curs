@@ -2,7 +2,7 @@
  <Grid ColumnDefinitions="220,*">
   <Border Background="#F7F9FC" BorderBrush="#E2E7EE" BorderThickness="0,0,1,0" Padding="12,24,12,20">
    <Grid RowDefinitions="Auto,*,Auto">
-    <StackPanel Orientation="Horizontal" Spacing="12" Margin="12,0,0,26"><Border Background="#2397A3" CornerRadius="7" Padding="8"><PathIcon Width="22" Height="22" Foreground="White" Data="M1,1 L9,1 9,21 1,21 Z M13,1 L21,1 21,21 13,21 Z"/></Border><TextBlock Text="KanbanBoard" FontWeight="Bold" FontSize="17"/></StackPanel>
+    <StackPanel Orientation="Horizontal" Spacing="12" Margin="12,0,0,26"><Image Source="/Assets/kanbanboard.png" Width="42" Height="42"/><TextBlock Text="KanbanBoard" FontWeight="Bold" FontSize="17"/></StackPanel>
     <StackPanel Grid.Row="1" Spacing="4">
      <Button Classes="nav" Classes.active="{Binding IsBoardsPage}" Command="{Binding BoardsCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Width="18" Height="18" Data="M1,1 L8,1 8,19 1,19 Z M12,1 L19,1 19,19 12,19 Z"/><TextBlock Text="Мої дошки"/></StackPanel></Button>
      <Button Classes="nav" Classes.active="{Binding IsFavoritesPage}" Command="{Binding FavoritesCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><TextBlock Text="☆" FontSize="21" Width="18"/><TextBlock Text="Обране"/></StackPanel></Button>
