@@ -38,24 +38,24 @@
     </StackPanel></Border>
    </Grid>
    <Border BorderBrush="#F0B4B7" BorderThickness="1" CornerRadius="8" Padding="18"><Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
-    <StackPanel Spacing="6"><TextBlock Text="Видалення облікового запису" FontWeight="SemiBold" FontSize="18"/><TextBlock Text="Остаточне видалення особистих даних. Перед підтвердженням ви побачите наслідки для дощок." Classes="muted" FontSize="12" TextWrapping="Wrap"/></StackPanel>
+    <StackPanel Spacing="6"><TextBlock Text="Цей демонстраційний аккаунт захищений від видалення." IsVisible="{Binding IsDeletionProtected}" Foreground="#168C98" TextWrapping="Wrap"/><TextBlock Text="Видалення облікового запису" FontWeight="SemiBold" FontSize="18"/><TextBlock Text="Після запиту аккаунт і дошки зберігаються 7 днів. Вхід протягом цього строку скасовує видалення." Classes="muted" FontSize="12" TextWrapping="Wrap"/></StackPanel>
     <Button Grid.Column="1" Name="BeginDeleteAccountButton" Content="Видалити мій аккаунт" Classes="danger" Command="{Binding BeginDeleteAccountCommand}" VerticalAlignment="Center"/>
    </Grid></Border>
   </StackPanel>
  </ScrollViewer>
  <Border Classes="overlay" IsVisible="{Binding DeleteAccountVisible}">
   <Border Classes="modal" MaxWidth="740" MaxHeight="690" Padding="24"><Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
-   <StackPanel Spacing="8"><TextBlock Text="Видалити мій аккаунт назавжди?" FontSize="23" FontWeight="SemiBold" TextWrapping="Wrap"/><TextBlock Text="Цю дію неможливо скасувати." Foreground="#C83E46"/></StackPanel>
+   <StackPanel Spacing="8"><TextBlock Text="Запланувати видалення аккаунта?" FontSize="23" FontWeight="SemiBold" TextWrapping="Wrap"/><TextBlock Text="Є 7 днів для відновлення: просто увійдіть у свій аккаунт." Foreground="#168C98" TextWrapping="Wrap"/></StackPanel>
    <ScrollViewer Grid.Row="1"><StackPanel Spacing="12">
-    <TextBlock Text="Ваш email, ім’я, пароль і фото профілю буде видалено. Усі сеанси завершаться." TextWrapping="Wrap"/>
-    <TextBlock Text="Спільні дошки та картки залишаться. Ваші коментарі збережуться від імені «Видалений користувач». Дошки без інших учасників буде видалено разом із вмістом." TextWrapping="Wrap"/>
+    <TextBlock Text="Усі поточні сеанси завершаться. Ваші дані та дошки залишаться в БД на 7 днів. Вхід до завершення строку повністю скасує видалення." TextWrapping="Wrap"/>
+    <TextBlock Text="Якщо ви не повернетеся за 7 днів: особисті дані й дошки без інших учасників буде видалено. Спільні дошки передамо учаснику; коментарі залишаться від імені «Видалений користувач»." TextWrapping="Wrap"/>
     <TextBlock Text="{Binding DeletionMemberships}" Classes="muted" TextWrapping="Wrap"/>
     <StackPanel IsVisible="{Binding HasDeletionBoards}" Spacing="8"><TextBlock Text="Ваші дошки" FontWeight="SemiBold"/><ItemsControl ItemsSource="{Binding DeletionBoards}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:AccountDeletionImpactViewModel"><TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,0,0,8"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel>
     <TextBlock Text="Для підтвердження введіть цей email:" Classes="label"/><TextBlock Text="{Binding DeleteAccountEmail}" FontWeight="SemiBold"/>
     <TextBox Name="DeleteAccountEmailInput" Text="{Binding DeleteEmail,Mode=TwoWay}" Watermark="Ваш поточний email" IsEnabled="{Binding !IsBusy}" MaxLength="254"/>
     <TextBlock Text="Поточний пароль" Classes="label"/><TextBox Name="DeleteAccountPasswordInput" Text="{Binding DeletePassword,Mode=TwoWay}" PasswordChar="●" IsEnabled="{Binding !IsBusy}" MaxLength="72"/>
    </StackPanel></ScrollViewer>
-   <StackPanel Grid.Row="2" Spacing="12"><TextBlock Text="{Binding Error}" Classes="error" IsVisible="{Binding HasError}"/><Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12"><TextBlock Text="Зачекайте…" IsVisible="{Binding IsBusy}" VerticalAlignment="Center"/><Button Grid.Column="1" Content="Скасувати" Command="{Binding CancelDeleteAccountCommand}"/><Button Grid.Column="2" Name="ConfirmDeleteAccountButton" Content="Видалити назавжди" Classes="danger" Command="{Binding ConfirmDeleteAccountCommand}"/></Grid></StackPanel>
+   <StackPanel Grid.Row="2" Spacing="12"><TextBlock Text="{Binding Error}" Classes="error" IsVisible="{Binding HasError}"/><Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12"><TextBlock Text="Зачекайте…" IsVisible="{Binding IsBusy}" VerticalAlignment="Center"/><Button Grid.Column="1" Content="Скасувати" Command="{Binding CancelDeleteAccountCommand}"/><Button Grid.Column="2" Name="ConfirmDeleteAccountButton" Content="Запланувати видалення" Classes="danger" Command="{Binding ConfirmDeleteAccountCommand}"/></Grid></StackPanel>
   </Grid></Border>
  </Border>
  </Grid>

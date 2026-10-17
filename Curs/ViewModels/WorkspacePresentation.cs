@@ -128,6 +128,7 @@ public sealed partial class BoardWorkspaceViewModel
     public ActionCommand RemoveBoardCoverCommand{get;private set;}=null!;
     public ActionCommand DiscardNavigationCommand{get;private set;}=null!;
     public ActionCommand StayCommand{get;private set;}=null!;
+    public void ShowSessionNotice(string notice)=>Status=notice;
     private void InitializePresentation()
     {
         Profile=new(services);

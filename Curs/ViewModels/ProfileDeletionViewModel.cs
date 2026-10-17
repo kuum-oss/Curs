@@ -8,15 +8,17 @@ namespace Curs.ViewModels;
 
 public sealed record AccountDeletionImpactViewModel(AccountDeletionBoardDto Board)
 {
-    public string Description=>Board.NewOwnerName is null?$"{Board.Name} — видалити назавжди":$"{Board.Name} — новий власник: {Board.NewOwnerName}";
+    public string Description=>Board.NewOwnerName is null?$"{Board.Name} — видалити після 7 днів":$"{Board.Name} — після 7 днів новий власник: {Board.NewOwnerName}";
 }
 public sealed partial class ProfileViewModel
 {
     private AccountDeletionPreviewDto? deletion;
     private string deletePassword="",deleteEmail="";
+    public bool IsDeletionProtected=>loaded?.IsDeletionProtected==true;
+    public bool CanRequestDeletion=>CanEdit&&loaded is not null&&!IsDeletionProtected;
     public bool DeleteAccountVisible=>deletion is not null;
     public string DeleteAccountEmail=>deletion?.Email??"";
-    public string DeletionMemberships=>$"Вихід зі спільних дощок: {deletion?.MembershipsToLeave??0}. Призначення на вас буде знято.";
+    public string DeletionMemberships=>$"Після 7 днів: вихід зі спільних дощок: {deletion?.MembershipsToLeave??0}. Призначення на вас буде знято.";
     public IEnumerable<AccountDeletionImpactViewModel> DeletionBoards=>deletion?.OwnedBoards.Select(b=>new AccountDeletionImpactViewModel(b))??[];
     public bool HasDeletionBoards=>deletion?.OwnedBoards.Count>0;
     public string DeletePassword{get=>deletePassword;set{deletePassword=value;Notify();RefreshDeletionCommands();}}
@@ -26,7 +28,7 @@ public sealed partial class ProfileViewModel
     public ActionCommand ConfirmDeleteAccountCommand{get;private set;}=null!;
     private void InitializeDeletionCommands()
     {
-        BeginDeleteAccountCommand=new(()=>_=BeginDeleteAccount(),()=>CanEdit&&loaded is not null);
+        BeginDeleteAccountCommand=new(()=>_=BeginDeleteAccount(),()=>CanRequestDeletion);
         CancelDeleteAccountCommand=new(CancelDeleteAccount,()=>!IsBusy);
         ConfirmDeleteAccountCommand=new(()=>_=DeleteAccount(),()=>!IsBusy&&deletion is not null&&DeletePassword.Length>0&&string.Equals(DeleteEmail.Trim(),deletion.Email,StringComparison.OrdinalIgnoreCase));
     }
@@ -36,14 +38,14 @@ public sealed partial class ProfileViewModel
     }
     private void NotifyDeletion()
     {
-        Notify(nameof(DeleteAccountVisible));Notify(nameof(DeleteAccountEmail));Notify(nameof(DeletionBoards));Notify(nameof(HasDeletionBoards));Notify(nameof(DeletionMemberships));Notify(nameof(CanEdit));
+        Notify(nameof(IsDeletionProtected));Notify(nameof(CanRequestDeletion));Notify(nameof(DeleteAccountVisible));Notify(nameof(DeleteAccountEmail));Notify(nameof(DeletionBoards));Notify(nameof(HasDeletionBoards));Notify(nameof(DeletionMemberships));Notify(nameof(CanEdit));
         SaveCommand.Refresh();PasswordCommand.Refresh();ResetCommand.Refresh();DeleteAvatarCommand.Refresh();RefreshDeletionCommands();
     }
     private void ResetDeletion(){deletion=null;DeletePassword="";DeleteEmail="";NotifyDeletion();}
     public void CancelDeleteAccount(){if(!IsBusy){ResetDeletion();Error="";}}
     public Task BeginDeleteAccount()=>Run(async token=>
     {
-        if(loaded is null)return;
+        if(loaded is null||IsDeletionProtected)return;
         var preview=await services.Profile.DeletionPreview(token);token.ThrowIfCancellationRequested();
         ClearPasswords();deletion=preview;DeletePassword="";DeleteEmail="";NotifyDeletion();
     });

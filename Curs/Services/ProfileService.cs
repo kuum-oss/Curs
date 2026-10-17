@@ -13,8 +13,8 @@ public sealed class ProfileService(ApiClient api, SessionService session)
     public async Task DeleteAccount(DeleteAccountRequest request,CancellationToken token)
     {
         var observed=session.AccessToken;
-        await api.SendAsync<object>(HttpMethod.Delete,"api/profile",request,token);
-        session.ClearIfCurrent(observed);
+        var scheduled=await api.SendAsync<AccountDeletionScheduledDto>(HttpMethod.Delete,"api/profile",request,token)??throw new InvalidOperationException();
+        session.ClearIfCurrent(observed,$"Видалення заплановано на {scheduled.DeletionDueAtUtc.ToLocalTime():dd.MM.yyyy HH:mm}. Увійдіть протягом 7 днів, щоб відновити аккаунт і дошки.");
     }
     public async Task<UserDto> Refresh(CancellationToken token)
     {

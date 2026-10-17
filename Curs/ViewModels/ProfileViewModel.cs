@@ -47,7 +47,7 @@ public sealed partial class ProfileViewModel : ViewModelBase, IDisposable
     public Task Open()=>Run(async t=>Apply(await services.Profile.Refresh(t)));
     private void Apply(UserDto user)
     {
-        ResetDeletion();loaded=user;Name=user.Name;Email=user.Email;Avatar=new(user);_=Avatar.Load(services);ClearPasswords();
+        ResetDeletion();loaded=user;Name=user.Name;Email=user.Email;Avatar=new(user);_=Avatar.Load(services);ClearPasswords();NotifyDeletion();
     }
     private void ClearPasswords(){CurrentPassword="";NewPassword="";Confirmation="";}
     public Task Save()=>Run(async t=>

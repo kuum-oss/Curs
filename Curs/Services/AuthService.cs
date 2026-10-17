@@ -17,7 +17,7 @@ public sealed class AuthService(ApiClient api, SessionService session, Navigatio
         var response = await api.SendAsync<AuthResponse>(HttpMethod.Post, path, request, cancellationToken)
             ?? throw new InvalidOperationException("Сервер не повернув дані сесії.");
         cancellationToken.ThrowIfCancellationRequested();
-        session.SignIn(response.AccessToken, response.User);
+        session.SignIn(response.AccessToken, response.User, response.AccountRestored ? "Аккаунт відновлено. Заплановане видалення скасовано." : null);
         navigation.OpenBoards();
     }
     public async Task<UserDto> MeAsync(CancellationToken cancellationToken = default) =>

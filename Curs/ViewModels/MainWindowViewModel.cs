@@ -37,7 +37,8 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
     public string Name { get => name; set { name = value; Notify(); } }
     public string Error { get => error; private set { error = value; Notify(); Notify(nameof(HasError)); } }
     public bool HasError => !string.IsNullOrWhiteSpace(Error);
-    public string Status { get => status; private set { status = value; Notify(); } }
+    public string Status { get => status; private set { status = value; Notify(); Notify(nameof(HasStatus)); } }
+    public bool HasStatus => !string.IsNullOrWhiteSpace(Status);
     public bool IsRegister { get => isRegister; private set { isRegister = value; Notify(); Notify(nameof(FormTitle)); Notify(nameof(SubmitLabel)); Notify(nameof(SwitchLabel)); } }
     public bool IsBusy { get => isBusy; private set { isBusy = value; Notify(); Notify(nameof(CanEdit)); SubmitCommand.Refresh(); SwitchCommand.Refresh(); CheckSessionCommand.Refresh(); } }
     public bool CanEdit => !IsBusy;
@@ -69,6 +70,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
         if (IsRegister) await Services.Auth.RegisterAsync(Email, Name, Password, token);
         else await Services.Auth.LoginAsync(Email, Password, token);
         await Workspace.Loading;
+        if(Services.Session.PublicNotice is {} notice)Workspace.ShowSessionNotice(notice);
     });
 
     public Task CheckSessionAsync() => RunAsync(async token =>
@@ -102,7 +104,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
     private void ClearFields() { Email = ""; Name = ""; Password = ""; Error = ""; Status = ""; IsRegister = false; }
     private void SessionChanged()
     {
-        ClearFields(); Notify(nameof(IsSignedIn)); Notify(nameof(ShowAuth)); Notify(nameof(UserName)); Notify(nameof(UserEmail));
+        ClearFields(); Status=Services.Session.PublicNotice??""; Notify(nameof(IsSignedIn)); Notify(nameof(ShowAuth)); Notify(nameof(UserName)); Notify(nameof(UserEmail));
         CheckSessionCommand.Refresh();
     }
     public void Dispose() { Workspace.Dispose(); operation?.Cancel(); Services.Session.Changed -= SessionChanged; }
