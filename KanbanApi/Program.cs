@@ -33,6 +33,7 @@ builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<AccountDeletionService>();
+if (!builder.Environment.IsEnvironment("Testing")) builder.Services.AddHostedService<AccountDeletionCleanupWorker>();
 builder.Services.AddScoped<BoardCoverService>();
 builder.Services.AddScoped<BoardAccess>();
 builder.Services.AddScoped<BoardService>();

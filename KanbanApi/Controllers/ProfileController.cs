@@ -20,7 +20,7 @@ public sealed class ProfileController(ProfileService profile, AccountDeletionSer
     [HttpGet("deletion-preview")] public async Task<ActionResult<AccountDeletionPreviewDto>> DeletionPreview(CancellationToken token)
     { Response.Headers.CacheControl = "no-store, private"; return Ok(await deletion.Preview(UserId, token)); }
     [HttpDelete] public async Task<IActionResult> Delete(DeleteAccountRequest request, CancellationToken token)
-    { await deletion.Delete(UserId, request, token); return NoContent(); }
+    { return Accepted(await deletion.Schedule(UserId, request, token)); }
     [HttpPut] public async Task<ActionResult<UserDto>> Update(UpdateProfileRequest request, CancellationToken token) => Ok(await profile.Update(UserId, request, token));
     [HttpPut("password")] public async Task<ActionResult<AuthResponse>> Password(ChangePasswordRequest request, CancellationToken token) => Ok(await profile.ChangePassword(UserId, request, token));
     [HttpPut("avatar"), RequestSizeLimit(ImageLimits.RequestBytes), RequestFormLimits(MultipartBodyLengthLimit = ImageLimits.RequestBytes)]

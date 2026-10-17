@@ -10,6 +10,9 @@ public sealed class User
     public string Name { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public int SessionVersion { get; set; }
+    public bool IsProtectedDemo { get; set; }
+    public DateTime? DeletionRequestedAtUtc { get; set; }
+    public DateTime? DeletionDueAtUtc { get; set; }
     public byte[] RowVersion { get; set; } = [];
     public byte[]? AvatarData { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;

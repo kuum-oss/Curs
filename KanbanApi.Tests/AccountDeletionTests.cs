@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using KanbanApi.Domain;
+using KanbanApi.Application;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Mvc.Testing;
 using KanbanContracts;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -11,6 +14,11 @@ namespace KanbanApi.Tests;
 [Collection("sql")]
 public sealed class AccountDeletionTests(SqlFixture fixture)
 {
+    private readonly AccountDeletionTestClock clock=new();
+    private async Task Expire(WebApplicationFactory<Program> app)
+    {
+        clock.Advance(TimeSpan.FromDays(7));using var scope=app.Services.CreateScope();await scope.ServiceProvider.GetRequiredService<AccountDeletionService>().PurgeExpired(default);
+    }
     private const string Password="delete-account123!";
     private static async Task<AuthResponse> User(HttpClient client,string name="Власник")
     {
@@ -34,10 +42,10 @@ public sealed class AccountDeletionTests(SqlFixture fixture)
     [SqlFact]
     public async Task RemovesUserAndEntireSoloBoardGraphRevokesJwtAndAllowsEmailReuse()
     {
-        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=app.CreateClient();var auth=await User(c);var g=await Graph(auth.User.Id);
+        using var app=clock.Factory(fixture.ConnectionString);using var c=app.CreateClient();var auth=await User(c);var g=await Graph(auth.User.Id);
         await using(var db=fixture.CreateContext()){var u=(await db.Users.FindAsync(auth.User.Id))!;u.AvatarData=[8,9];await db.SaveChangesAsync();}
         var p=await Preview(c);Assert.Single(p.OwnedBoards);Assert.Null(p.OwnedBoards[0].NewOwnerName);Assert.Equal(auth.User.Email,p.Email);
-        Assert.Equal(HttpStatusCode.NoContent,(await Delete(c,Request(p))).StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted,(await Delete(c,Request(p))).StatusCode);await Expire(app);
         await using(var db=fixture.CreateContext())
         {
             Assert.False(await db.Users.AnyAsync(u=>u.Id==auth.User.Id));Assert.False(await db.Boards.AnyAsync(b=>b.Id==g.Board.Id));Assert.False(await db.Cards.AnyAsync(x=>x.Id==g.Card.Id));Assert.False(await db.Comments.AnyAsync(x=>x.Id==g.Comment.Id));Assert.False(await db.CardImages.AnyAsync(i=>i.CardId==g.Card.Id));Assert.False(await db.BoardMembers.AnyAsync(m=>m.UserId==auth.User.Id));
@@ -49,8 +57,8 @@ public sealed class AccountDeletionTests(SqlFixture fixture)
     [SqlFact]
     public async Task SharedBoardTransfersToExistingAdminAndPreservesAnonymousCommentsCardsAndImages()
     {
-        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var admin=app.CreateClient();using var member=app.CreateClient();var a=await User(c);var b=await User(admin,"Адміністратор");var m=await User(member,"Старший учасник");var g=await Graph(a.User.Id,(m.User.Id,BoardRole.Member,10),(b.User.Id,BoardRole.Admin,1));
-        var p=await Preview(c);Assert.Equal(b.User.Name,p.OwnedBoards.Single().NewOwnerName);Assert.Equal(HttpStatusCode.NoContent,(await Delete(c,Request(p))).StatusCode);
+        using var app=clock.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var admin=app.CreateClient();using var member=app.CreateClient();var a=await User(c);var b=await User(admin,"Адміністратор");var m=await User(member,"Старший учасник");var g=await Graph(a.User.Id,(m.User.Id,BoardRole.Member,10),(b.User.Id,BoardRole.Admin,1));
+        var p=await Preview(c);Assert.Equal(b.User.Name,p.OwnedBoards.Single().NewOwnerName);Assert.Equal(HttpStatusCode.Accepted,(await Delete(c,Request(p))).StatusCode);await Expire(app);
         var board=(await admin.GetFromJsonAsync<BoardDetailsDto>($"/api/boards/{g.Board.Id}"))!;Assert.Equal(b.User.Id,board.OwnerId);Assert.NotEqual(Convert.ToBase64String(g.Board.RowVersion),board.Version);
         var details=(await admin.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{g.Card.Id}"))!;Assert.True(details.Card.HasImage);Assert.Null(details.Card.Assignee);Assert.Equal("Спільний опис",details.Description);
         var comments=(await admin.GetFromJsonAsync<PagedResult<CommentDto>>($"/api/cards/{g.Card.Id}/comments"))!;Assert.Equal(1,comments.TotalCount);var comment=Assert.Single(comments.Items);Assert.Equal(Guid.Empty,comment.Author.Id);Assert.Equal("",comment.Author.Email);Assert.Equal("Видалений користувач",comment.Author.Name);Assert.False(comment.Author.HasAvatar);Assert.Equal("Історія обговорення",comment.Text);
@@ -59,30 +67,30 @@ public sealed class AccountDeletionTests(SqlFixture fixture)
     [SqlFact]
     public async Task OldestRemainingMemberBecomesOwnerAndAdminWhenNoOtherAdminExists()
     {
-        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var peer=app.CreateClient();using var newer=app.CreateClient();var a=await User(c);var b=await User(peer,"Перший учасник");var z=await User(newer,"Новий учасник");var g=await Graph(a.User.Id,(z.User.Id,BoardRole.Member,1),(b.User.Id,BoardRole.Member,5));
-        var p=await Preview(c);Assert.Equal(b.User.Name,p.OwnedBoards.Single().NewOwnerName);Assert.Equal(HttpStatusCode.NoContent,(await Delete(c,Request(p))).StatusCode);
+        using var app=clock.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var peer=app.CreateClient();using var newer=app.CreateClient();var a=await User(c);var b=await User(peer,"Перший учасник");var z=await User(newer,"Новий учасник");var g=await Graph(a.User.Id,(z.User.Id,BoardRole.Member,1),(b.User.Id,BoardRole.Member,5));
+        var p=await Preview(c);Assert.Equal(b.User.Name,p.OwnedBoards.Single().NewOwnerName);Assert.Equal(HttpStatusCode.Accepted,(await Delete(c,Request(p))).StatusCode);await Expire(app);
         await using var db=fixture.CreateContext();Assert.Equal(b.User.Id,(await db.Boards.FindAsync(g.Board.Id))!.OwnerId);Assert.Equal(BoardRole.Admin,(await db.BoardMembers.FindAsync(g.Board.Id,b.User.Id))!.Role);Assert.Equal(BoardRole.Member,(await db.BoardMembers.FindAsync(g.Board.Id,z.User.Id))!.Role);
     }
     [SqlFact]
     public async Task FormerMemberDeletionDoesNotExposePrivateBoardAndStillAnonymizesHistory()
     {
-        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var peer=app.CreateClient();var a=await User(c);var b=await User(peer);var g=await Graph(b.User.Id);
+        using var app=clock.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var peer=app.CreateClient();var a=await User(c);var b=await User(peer);var g=await Graph(b.User.Id);
         await using(var db=fixture.CreateContext()){(await db.Cards.FindAsync(g.Card.Id))!.CreatedById=a.User.Id;(await db.Comments.FindAsync(g.Comment.Id))!.AuthorId=a.User.Id;await db.SaveChangesAsync();}
-        var p=await Preview(c);Assert.Empty(p.OwnedBoards);Assert.Equal(0,p.MembershipsToLeave);Assert.Equal(HttpStatusCode.NoContent,(await Delete(c,Request(p))).StatusCode);
+        var p=await Preview(c);Assert.Empty(p.OwnedBoards);Assert.Equal(0,p.MembershipsToLeave);Assert.Equal(HttpStatusCode.Accepted,(await Delete(c,Request(p))).StatusCode);await Expire(app);
         await using var check=fixture.CreateContext();Assert.Equal(b.User.Id,(await check.Boards.FindAsync(g.Board.Id))!.OwnerId);Assert.Null((await check.Comments.FindAsync(g.Comment.Id))!.AuthorId);Assert.Null((await check.Cards.FindAsync(g.Card.Id))!.CreatedById);
     }
     [SqlFact]
     public async Task OrdinaryMemberLeavesWithoutChangingTheOtherOwnerOrTheirHistory()
     {
-        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var peer=app.CreateClient();var a=await User(c);var b=await User(peer);var g=await Graph(b.User.Id,(a.User.Id,BoardRole.Member,1));
+        using var app=clock.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var peer=app.CreateClient();var a=await User(c);var b=await User(peer);var g=await Graph(b.User.Id,(a.User.Id,BoardRole.Member,1));
         await using(var db=fixture.CreateContext()){(await db.Cards.FindAsync(g.Card.Id))!.AssigneeId=a.User.Id;await db.SaveChangesAsync();}
-        var p=await Preview(c);Assert.Empty(p.OwnedBoards);Assert.Equal(1,p.MembershipsToLeave);Assert.Equal(HttpStatusCode.NoContent,(await Delete(c,Request(p))).StatusCode);
+        var p=await Preview(c);Assert.Empty(p.OwnedBoards);Assert.Equal(1,p.MembershipsToLeave);Assert.Equal(HttpStatusCode.Accepted,(await Delete(c,Request(p))).StatusCode);await Expire(app);
         await using var check=fixture.CreateContext();Assert.Equal(b.User.Id,(await check.Boards.FindAsync(g.Board.Id))!.OwnerId);var card=(await check.Cards.FindAsync(g.Card.Id))!;Assert.Equal(b.User.Id,card.CreatedById);Assert.Null(card.AssigneeId);Assert.Equal(b.User.Id,(await check.Comments.FindAsync(g.Comment.Id))!.AuthorId);
     }
     [SqlFact]
     public async Task MissingConfirmationWrongPasswordWrongEmailAndStalePreviewCannotMutateAnything()
     {
-        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var anonymous=app.CreateClient();var a=await User(c);var g=await Graph(a.User.Id);var p=await Preview(c);
+        using var app=clock.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var anonymous=app.CreateClient();var a=await User(c);var g=await Graph(a.User.Id);var p=await Preview(c);
         foreach(var change in new Action<DeleteAccountRequest>[] {r=>r.CurrentPassword="wrong",r=>r.CurrentPassword=new string('Ж',73),r=>r.ConfirmationEmail="other@example.test",r=>r.ConfirmationToken="",r=>r.ConfirmationToken=new string('0',64),r=>r.ExpectedVersion=Convert.ToBase64String(new byte[8])})
         {
             var request=Request(p);change(request);Assert.Contains((await Delete(c,request)).StatusCode,new[]{HttpStatusCode.BadRequest,HttpStatusCode.Conflict});
@@ -93,7 +101,7 @@ public sealed class AccountDeletionTests(SqlFixture fixture)
     [SqlFact]
     public async Task BoardMembershipChangeAfterPreviewRollsBackAllDeletionEffects()
     {
-        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var peer=app.CreateClient();var a=await User(c);var b=await User(peer);var solo=await Graph(a.User.Id);var shared=await Graph(a.User.Id,(b.User.Id,BoardRole.Member,1));var p=await Preview(c);
+        using var app=clock.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var peer=app.CreateClient();var a=await User(c);var b=await User(peer);var solo=await Graph(a.User.Id);var shared=await Graph(a.User.Id,(b.User.Id,BoardRole.Member,1));var p=await Preview(c);
         var response=await c.PutAsJsonAsync($"/api/boards/{shared.Board.Id}",new UpdateBoardRequest{Name="Зміни після перегляду",ExpectedBoardVersion=Convert.ToBase64String(shared.Board.RowVersion)});response.EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.Conflict,(await Delete(c,Request(p))).StatusCode);
         await using var db=fixture.CreateContext();Assert.True(await db.Users.AnyAsync(u=>u.Id==a.User.Id));Assert.True(await db.Boards.AnyAsync(x=>x.Id==solo.Board.Id));Assert.Equal(a.User.Id,(await db.Boards.FindAsync(shared.Board.Id))!.OwnerId);Assert.Equal(solo.Board.RowVersion,(await db.Boards.FindAsync(solo.Board.Id))!.RowVersion);
@@ -101,10 +109,17 @@ public sealed class AccountDeletionTests(SqlFixture fixture)
     [SqlFact]
     public async Task ConcurrentInvitationAndDeletionCommitOnlyAConsistentOutcome()
     {
-        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var invite=app.CreateClient();using var peer=app.CreateClient();var a=await User(c);var b=await User(peer);invite.DefaultRequestHeaders.Authorization=c.DefaultRequestHeaders.Authorization;var g=await Graph(a.User.Id);var p=await Preview(c);
+        using var app=clock.Factory(fixture.ConnectionString);using var c=app.CreateClient();using var invite=app.CreateClient();using var peer=app.CreateClient();var a=await User(c);var b=await User(peer);invite.DefaultRequestHeaders.Authorization=c.DefaultRequestHeaders.Authorization;var g=await Graph(a.User.Id);var p=await Preview(c);
         var deleting=Delete(c,Request(p));var adding=invite.PostAsJsonAsync($"/api/boards/{g.Board.Id}/members",new AddMemberRequest{Email=b.User.Email,ExpectedBoardVersion=Convert.ToBase64String(g.Board.RowVersion)});await Task.WhenAll(deleting,adding);
-        Assert.Contains(deleting.Result.StatusCode,new[]{HttpStatusCode.NoContent,HttpStatusCode.Conflict});Assert.Contains(adding.Result.StatusCode,new[]{HttpStatusCode.Created,HttpStatusCode.Unauthorized,HttpStatusCode.NotFound,HttpStatusCode.Conflict});
-        await using var db=fixture.CreateContext();if(deleting.Result.StatusCode==HttpStatusCode.NoContent){Assert.False(await db.Users.AnyAsync(x=>x.Id==a.User.Id));Assert.False(await db.Boards.AnyAsync(x=>x.Id==g.Board.Id));}else{Assert.True(await db.Users.AnyAsync(x=>x.Id==a.User.Id));Assert.True(await db.Boards.AnyAsync(x=>x.Id==g.Board.Id));}
+        Assert.Contains(deleting.Result.StatusCode,new[]{HttpStatusCode.Accepted,HttpStatusCode.Conflict});Assert.Contains(adding.Result.StatusCode,new[]{HttpStatusCode.Created,HttpStatusCode.Unauthorized,HttpStatusCode.NotFound,HttpStatusCode.Conflict});
+        if(deleting.Result.StatusCode==HttpStatusCode.Accepted)await Expire(app);
+        await using var db=fixture.CreateContext();if(deleting.Result.StatusCode==HttpStatusCode.Accepted)
+        {
+            Assert.False(await db.Users.AnyAsync(x=>x.Id==a.User.Id));
+            if(adding.Result.StatusCode==HttpStatusCode.Created)Assert.Equal(b.User.Id,(await db.Boards.FindAsync(g.Board.Id))!.OwnerId);
+            else Assert.False(await db.Boards.AnyAsync(x=>x.Id==g.Board.Id));
+        }
+        else{Assert.True(await db.Users.AnyAsync(x=>x.Id==a.User.Id));Assert.True(await db.Boards.AnyAsync(x=>x.Id==g.Board.Id));}
         Assert.False(await db.BoardMembers.AnyAsync(m=>!db.Users.Any(u=>u.Id==m.UserId)||!db.Boards.Any(board=>board.Id==m.BoardId)));
     }
 }

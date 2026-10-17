@@ -59,7 +59,7 @@ public sealed class JwtService(JwtSettings settings, TimeProvider clock)
                 }
                 if (!int.TryParse(context.Principal?.FindFirstValue("sv"), out var version) ||
                     !await context.HttpContext.RequestServices.GetRequiredService<KanbanDbContext>().Users.AsNoTracking()
-                        .AnyAsync(u => u.Id == id && u.SessionVersion == version, context.HttpContext.RequestAborted))
+                        .AnyAsync(u => u.Id == id && u.SessionVersion == version && u.DeletionDueAtUtc == null, context.HttpContext.RequestAborted))
                     context.Fail("Session revoked.");
             },
         };

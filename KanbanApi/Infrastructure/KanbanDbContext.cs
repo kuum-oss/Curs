@@ -19,7 +19,8 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
     protected override void OnModelCreating(ModelBuilder model)
     {
         var user = model.Entity<User>();
-        user.ToTable("Users");
+        user.ToTable("Users", t => t.HasCheckConstraint("CK_Users_DeletionWindow", "([DeletionRequestedAtUtc] IS NULL AND [DeletionDueAtUtc] IS NULL) OR ([DeletionRequestedAtUtc] IS NOT NULL AND [DeletionDueAtUtc] IS NOT NULL AND [DeletionDueAtUtc] = DATEADD(day, 7, [DeletionRequestedAtUtc]))"));
+        user.HasIndex(x => x.DeletionDueAtUtc);
         user.HasKey(x => x.Id);
         user.Property(x => x.RowVersion).IsRowVersion();
         user.Property(x => x.AvatarData).HasColumnType("varbinary(max)");

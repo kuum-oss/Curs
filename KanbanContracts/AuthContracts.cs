@@ -33,4 +33,4 @@ public sealed class PasswordLimitsAttribute : ValidationAttribute
         && Encoding.UTF8.GetByteCount(password) <= 72 && !password.Contains('\0');
 }
 
-public sealed record AuthResponse(string AccessToken, DateTime ExpiresAtUtc, UserDto User);
+public sealed record AuthResponse(string AccessToken, DateTime ExpiresAtUtc, UserDto User, bool AccountRestored = false);

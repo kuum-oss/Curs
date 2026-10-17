@@ -8,7 +8,7 @@ namespace KanbanApi.Application;
 
 public static class UserPresentation
 {
-    public static UserDto Dto(User user) => new(user.Id, user.Email, user.Name, Convert.ToBase64String(user.RowVersion), user.AvatarData is not null);
+    public static UserDto Dto(User user) => new(user.Id, user.Email, user.Name, Convert.ToBase64String(user.RowVersion), user.AvatarData is not null, DemoAccounts.IsProtected(user));
 }
 
 public sealed class ProfileService(KanbanDbContext db, PasswordService passwords, JwtService jwt, ImageProcessor images)

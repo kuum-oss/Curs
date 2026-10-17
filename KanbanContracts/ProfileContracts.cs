@@ -58,3 +58,5 @@ public sealed class DeleteAccountRequest
     [Required, RowVersion] public string ExpectedVersion { get; set; } = "";
     [Required, StringLength(64, MinimumLength = 64)] public string ConfirmationToken { get; set; } = "";
 }
+
+public sealed record AccountDeletionScheduledDto(DateTime DeletionDueAtUtc);

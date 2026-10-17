@@ -17,7 +17,7 @@ public static class FieldLimits
     public const int ImageBytes = 5 * 1024 * 1024;
 }
 
-public sealed record UserDto(Guid Id, string Email, string Name, string? Version = null, bool HasAvatar = false);
+public sealed record UserDto(Guid Id, string Email, string Name, string? Version = null, bool HasAvatar = false, bool IsDeletionProtected = false);
 public sealed record BoardSummaryDto(Guid Id, string Name, string? Description, BoardRole Role,
     int CardCount = 0, int MemberCount = 0, IReadOnlyList<UserDto>? Participants = null,
     bool HasCover = false, string? Version = null, bool IsFavorite = false, bool IsArchived = false, DateTime? LastOpenedAtUtc = null);
