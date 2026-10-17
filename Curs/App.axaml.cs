@@ -19,6 +19,7 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            MacApplicationIcon.Apply();
             var services = new ClientServices(new Uri(Environment.GetEnvironmentVariable("KANBAN_API_URL") ?? "http://127.0.0.1:5000/"),
                 action => Dispatcher.UIThread.Post(action));
             var viewModel = new MainWindowViewModel(services);
