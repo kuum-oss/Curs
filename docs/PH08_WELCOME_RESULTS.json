@@ -1,0 +1,69 @@
+{
+  "verifiedAtUtc": "2026-10-17T11:45:01.880002+00:00",
+  "applicationRevision": "6e14756",
+  "tests": {
+    "configuration": "Release",
+    "database": "isolated real MSSQL databases",
+    "counters": {
+      "total": "138",
+      "executed": "138",
+      "passed": "138",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "trx": "TestResults/welcome-acceptance.trx"
+  },
+  "focusedTests": {
+    "passed": 16,
+    "newRememberMeTests": 7,
+    "failed": 0,
+    "skipped": 0
+  },
+  "build": {
+    "configuration": "Release",
+    "errors": 0,
+    "warnings": 0,
+    "log": "TestResults/welcome-build.log"
+  },
+  "macKeychain": {
+    "nativeRoundTrip": true,
+    "createReadUpdateClear": true,
+    "testUsedOnlyRandomOwnEntry": true,
+    "testUsedRealCredentials": false,
+    "log": "TestResults/welcome-keychain-probe.log"
+  },
+  "nativeUi": {
+    "welcomeVisuallyInspected": true,
+    "registrationVisuallyInspected": true,
+    "passwordRevealAndResetChecked": true,
+    "rememberOnSignInAnastasiia": true,
+    "quitRelaunchAutoSignInSameUser": true,
+    "logoutReturnedToWelcome": true,
+    "rememberOffSignInOlena": true,
+    "quitRelaunchStayedAnonymous": true,
+    "demoAccountsOrBoardsEditedOrDeleted": false,
+    "finalSavedSessionPresent": false
+  },
+  "retention": {
+    "passwordStored": false,
+    "location": "macOS login Keychain",
+    "apiScoped": true,
+    "jwtLifetimeHours": 24,
+    "serverValidationBeforeWorkspace": true,
+    "explicitLogoutClearsSavedCredential": true,
+    "normalAppCloseKeepsSavedCredential": true,
+    "otherPlatformsUseMemoryOnly": true
+  },
+  "package": "TestResults/KanbanBoard.app"
+}
