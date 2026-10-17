@@ -33,12 +33,13 @@ public sealed class ApiClient(HttpClient http)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    public async Task<T?> SendAsync<T>(HttpMethod method, string path, object? payload = null, CancellationToken cancellationToken = default)
+    public async Task<T?> SendAsync<T>(HttpMethod method, string path, object? payload = null, CancellationToken cancellationToken = default, string? accessToken = null)
     {
         // Relative paths keep credentials on the configured API host.
         if (!Uri.TryCreate(path, UriKind.Relative, out _) || path.StartsWith("//", StringComparison.Ordinal))
             throw new ArgumentException("Use a relative API path.", nameof(path));
         using var request = new HttpRequestMessage(method, path);
+        if (accessToken is not null) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         if (payload is not null) request.Content = JsonContent.Create(payload, options: Json);
         using var response = await http.SendAsync(request, cancellationToken);

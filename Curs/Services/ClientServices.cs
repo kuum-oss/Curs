@@ -15,12 +15,14 @@ public sealed class ClientServices : IDisposable
     public ContentService Content { get; }
     public ProfileService Profile { get; }
     public ImageService Images { get; }
+    public RememberedSession Remembered { get; }
 
-    public ClientServices(Uri baseAddress, Action<Action>? dispatch = null, HttpMessageHandler? transport = null)
+    public ClientServices(Uri baseAddress, Action<Action>? dispatch = null, HttpMessageHandler? transport = null, ISessionStore? sessionStore = null)
     {
         if (!baseAddress.IsAbsoluteUri || (baseAddress.Scheme != "http" && baseAddress.Scheme != "https"))
             throw new ArgumentException("Configure an absolute HTTP(S) API address.", nameof(baseAddress));
         Session = new SessionService(dispatch);
+        Remembered = new RememberedSession(Session, sessionStore ?? new MemorySessionStore());
         Navigation = new NavigationService(Session);
         // Authenticated redirects are deliberately not followed to another host.
         http = new HttpClient(new SessionHandler(Session) { InnerHandler = transport ?? new SocketsHttpHandler
@@ -40,5 +42,5 @@ public sealed class ClientServices : IDisposable
         Images = new ImageService(Api, Session);
     }
 
-    public void Dispose() { Session.Clear(); Images.Dispose(); Navigation.Dispose(); http.Dispose(); }
+    public void Dispose() { Remembered.Dispose(); Session.Clear(); Images.Dispose(); Navigation.Dispose(); http.Dispose(); }
 }

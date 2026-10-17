@@ -23,5 +23,14 @@ public sealed class AuthService(ApiClient api, SessionService session, Navigatio
     public async Task<UserDto> MeAsync(CancellationToken cancellationToken = default) =>
         await api.SendAsync<UserDto>(HttpMethod.Get, "api/auth/me", cancellationToken: cancellationToken)
         ?? throw new InvalidOperationException("Сервер не повернув дані користувача.");
+    public async Task RestoreAsync(string accessToken, CancellationToken cancellationToken)
+    {
+        // Validate before exposing the workspace; a saved profile is never trusted.
+        var user = await api.SendAsync<UserDto>(HttpMethod.Get, "api/auth/me", cancellationToken: cancellationToken, accessToken: accessToken)
+            ?? throw new InvalidOperationException("Сервер не повернув дані користувача.");
+        cancellationToken.ThrowIfCancellationRequested();
+        session.SignIn(accessToken, user);
+        navigation.OpenBoards();
+    }
     public void Logout() => session.Clear();
 }
