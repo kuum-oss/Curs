@@ -52,7 +52,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
     public bool HasError => !string.IsNullOrWhiteSpace(Error);
     public string Status { get => status; private set { status = value; Notify(); Notify(nameof(HasStatus)); } }
     public bool HasStatus => !string.IsNullOrWhiteSpace(Status);
-    public bool IsRegister { get => isRegister; private set { isRegister = value; Notify(); Notify(nameof(FormTitle)); Notify(nameof(SubmitLabel)); Notify(nameof(SwitchLabel)); } }
+    public bool IsRegister { get => isRegister; private set { isRegister = value; Notify(); Notify(nameof(FormTitle)); Notify(nameof(FormSubtitle)); Notify(nameof(SubmitLabel)); Notify(nameof(SwitchLabel)); } }
     public bool IsBusy { get => isBusy; private set { isBusy = value; Notify(); Notify(nameof(CanEdit)); Notify(nameof(CanRetrySavedSession)); SubmitCommand.Refresh(); SwitchCommand.Refresh(); CheckSessionCommand.Refresh(); RetrySavedSessionCommand.Refresh(); } }
     public bool CanEdit => !IsBusy;
     public bool IsSignedIn => Services.Session.User is not null;
@@ -60,6 +60,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IDisposable
     public string UserName => Services.Session.User?.Name ?? "";
     public string UserEmail => Services.Session.User?.Email ?? "";
     public string FormTitle => IsRegister ? "Створити обліковий запис" : "Вхід до KanbanBoard";
+    public string FormSubtitle => IsRegister ? "Почніть планувати та працювати разом із командою." : "Увійдіть, щоб працювати зі своїми дошками.";
     public string SubmitLabel => IsRegister ? "Зареєструватися" : "Увійти";
     public string SwitchLabel => IsRegister ? "Уже маєте обліковий запис? Увійти" : "Новий користувач? Зареєструватися";
     public ActionCommand SubmitCommand { get; }

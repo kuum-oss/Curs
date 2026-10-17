@@ -1,31 +1,61 @@
 <Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:Curs.ViewModels" xmlns:views="using:Curs.Views" x:Class="Curs.MainWindow" x:DataType="vm:MainWindowViewModel" Icon="/Assets/kanbanboard.ico" Title="{Binding Title}" Width="1480" Height="940" MinWidth="1100" MinHeight="740" Background="White" RequestedThemeVariant="Light">
+ <Window.Styles>
+  <Style Selector="TextBox.welcome-input"><Setter Property="MinHeight" Value="48"/><Setter Property="CornerRadius" Value="9"/><Setter Property="Padding" Value="14,12"/><Setter Property="FontSize" Value="15"/></Style>
+  <Style Selector="Button.welcome-link"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="#168C98"/><Setter Property="HorizontalAlignment" Value="Center"/><Setter Property="Padding" Value="4,8"/></Style>
+  <Style Selector="ToggleSwitch.welcome-toggle"><Setter Property="OnContent" Value="Запам’ятати мене"/><Setter Property="OffContent" Value="Запам’ятати мене"/></Style>
+ </Window.Styles>
  <Grid>
-  <Grid IsVisible="{Binding ShowAuth}" Background="#F2F7F9" RowDefinitions="Auto,*"><StackPanel Margin="40" Spacing="8"><TextBlock Text="KanbanBoard" FontSize="28" FontWeight="Bold" Foreground="#168C98"/><TextBlock Text="Командне планування завдань" Classes="muted"/></StackPanel><Grid Grid.Row="1" Margin="0,0,0,60">
-                <Border MaxWidth="480" Width="480" HorizontalAlignment="Center" IsVisible="{Binding ShowAuth}" Background="White" CornerRadius="16" Padding="32">
-                    <StackPanel Spacing="14">
-                        <TextBlock Text="{Binding FormTitle}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
-                        <TextBlock Text="Увійдіть, щоб працювати зі своїми дошками." Foreground="#58677D" TextWrapping="Wrap" />
-                        <StackPanel Spacing="6" IsVisible="{Binding IsRegister}">
-                            <TextBlock Text="Ім'я" />
-                            <TextBox Name="NameInput" Text="{Binding Name, Mode=TwoWay}" Watermark="Ваше ім'я" IsEnabled="{Binding CanEdit}" MaxLength="100" />
-                        </StackPanel>
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Email" />
-                            <TextBox Name="EmailInput" Text="{Binding Email, Mode=TwoWay}" Watermark="name@example.com" IsEnabled="{Binding CanEdit}" MaxLength="254" />
-                        </StackPanel>
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Пароль" />
-                            <TextBox Name="PasswordInput" Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" Watermark="Ваш пароль" IsEnabled="{Binding CanEdit}" MaxLength="72" />
-                            <TextBlock IsVisible="{Binding IsRegister}" Text="Від 8 символів, до 72 байтів UTF-8." FontSize="12" Foreground="#58677D" />
-                        </StackPanel>
-                        <TextBlock Text="{Binding Status}" Classes="success" TextWrapping="Wrap" IsVisible="{Binding HasStatus}"/>
-                        <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" Foreground="#B42318" TextWrapping="Wrap" />
-                        <TextBlock IsVisible="{Binding IsBusy}" Text="Зачекайте…" Foreground="#58677D" />
-                        <Button Name="SubmitButton" Content="{Binding SubmitLabel}" Command="{Binding SubmitCommand}" IsDefault="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Classes="primary" Padding="16,12" />
-                        <Button Name="SwitchButton" Content="{Binding SwitchLabel}" Command="{Binding SwitchCommand}" HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Border>
-  </Grid></Grid>
+  <ScrollViewer IsVisible="{Binding ShowAuth}" Background="#F2F8FA" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+   <Grid Margin="64,38,64,0" ColumnDefinitions="0.95*,1.05*" MaxWidth="1420" HorizontalAlignment="Stretch">
+    <StackPanel Margin="0,0,48,38" Spacing="0">
+     <StackPanel Orientation="Horizontal" Spacing="14" Margin="0,0,0,40">
+      <Image Source="/Assets/kanbanboard.png" Width="52" Height="52"/>
+      <TextBlock Text="KanbanBoard" FontSize="25" FontWeight="Bold"/>
+     </StackPanel>
+     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left" MaxHeight="218">
+      <StackPanel><TextBlock Text="Плануйте." FontSize="54" FontWeight="Bold" LineHeight="61"/><TextBlock Text="Співпрацюйте." FontSize="54" FontWeight="Bold" LineHeight="61"/><TextBlock Text="Досягайте." FontSize="54" FontWeight="Bold" LineHeight="61" Foreground="#1697A4"/></StackPanel>
+     </Viewbox>
+     <TextBlock Text="Усі ваші ідеї, задачі та проєкти в одному місці." TextWrapping="Wrap" FontSize="18" Foreground="#788398" Margin="0,20,0,36" MaxWidth="470" HorizontalAlignment="Left"/>
+     <Grid ColumnDefinitions="64,*" Margin="0,0,0,26">
+      <Border Width="64" Height="64" Background="#D9F2F1" CornerRadius="17"><PathIcon Width="30" Height="30" Foreground="#168C98" Data="M3,3 L27,3 27,27 3,27 Z M11,3 L11,27 M19,3 L19,27 M3,10 L27,10 M6,14 L8,14 8,20 6,20 Z M14,14 L16,14 16,18 14,18 Z M22,14 L24,14 24,23 22,23 Z"/></Border>
+      <StackPanel Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Center" Spacing="6"><TextBlock Text="Гнучкі дошки" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Налаштовуйте під свої потреби" TextWrapping="Wrap" Foreground="#788398" FontSize="15"/></StackPanel>
+     </Grid>
+     <Grid ColumnDefinitions="64,*" Margin="0,0,0,26">
+      <Border Width="64" Height="64" Background="#D9F2F1" CornerRadius="17"><PathIcon Width="32" Height="32" Foreground="#168C98" Data="M11,3 A5,5 0 1 0 11,13 A5,5 0 1 0 11,3 M24,4 A4,4 0 1 0 24,12 A4,4 0 1 0 24,4 M2,28 L2,23 C2,15 20,15 20,23 L20,28 Z M23,18 C31,18 31,22 31,28 L24,28 24,23 Z"/></Border>
+      <StackPanel Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Center" Spacing="6"><TextBlock Text="Командна робота" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Запрошуйте учасників та розподіляйте задачі" TextWrapping="Wrap" Foreground="#788398" FontSize="15"/></StackPanel>
+     </Grid>
+     <Grid ColumnDefinitions="64,*">
+      <Border Width="64" Height="64" Background="#D9F2F1" CornerRadius="17"><PathIcon Width="30" Height="30" Foreground="#168C98" Data="M2,28 L28,28 28,30 2,30 Z M4,17 L9,17 9,26 4,26 Z M12,3 L17,3 17,26 12,26 Z M20,11 L25,11 25,26 20,26 Z"/></Border>
+      <StackPanel Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Center" Spacing="6"><TextBlock Text="Прогрес і результати" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Відстежуйте статус і досягайте цілей" TextWrapping="Wrap" Foreground="#788398" FontSize="15"/></StackPanel>
+     </Grid>
+    </StackPanel>
+    <StackPanel Grid.Column="1" Margin="0,28,0,0" Spacing="24">
+     <Border Background="White" CornerRadius="24" Padding="36,32" BoxShadow="0 15 45 0 #101D4250" MaxWidth="600" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="14">
+       <TextBlock Text="{Binding FormTitle}" FontSize="28" FontWeight="Bold" TextWrapping="Wrap"/>
+       <TextBlock Text="{Binding FormSubtitle}" Foreground="#788398" TextWrapping="Wrap" Margin="0,0,0,5"/>
+       <StackPanel Spacing="7" IsVisible="{Binding IsRegister}"><TextBlock Text="Ім’я" Classes="label"/><TextBox Name="NameInput" Classes="welcome-input" Text="{Binding Name, Mode=TwoWay}" Watermark="Ваше ім’я" IsEnabled="{Binding CanEdit}" MaxLength="100"/></StackPanel>
+       <StackPanel Spacing="7"><TextBlock Text="Email" Classes="label"/><TextBox Name="EmailInput" Classes="welcome-input" Text="{Binding Email, Mode=TwoWay}" Watermark="name@example.com" IsEnabled="{Binding CanEdit}" MaxLength="254"/></StackPanel>
+       <StackPanel Spacing="7"><TextBlock Text="Пароль" Classes="label"/>
+        <Grid ColumnDefinitions="*,Auto">
+         <TextBox Grid.ColumnSpan="2" Name="PasswordInput" Classes="welcome-input" Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" RevealPassword="{Binding RevealPassword}" Watermark="Ваш пароль" IsEnabled="{Binding CanEdit}" MaxLength="72" Padding="14,12,52,12"/>
+         <Button Grid.Column="1" Classes="ghost" Width="46" Padding="12" Command="{Binding TogglePasswordCommand}" IsEnabled="{Binding CanEdit}" ToolTip.Tip="{Binding PasswordVisibilityLabel}" AutomationProperties.Name="{Binding PasswordVisibilityLabel}"><PathIcon Width="20" Height="20" Data="M1,10 C5,2 15,2 19,10 C15,18 5,18 1,10 Z M10,6 A4,4 0 1 0 10,14 A4,4 0 1 0 10,6"/></Button>
+        </Grid>
+        <TextBlock IsVisible="{Binding IsRegister}" Text="Від 8 символів, до 72 байтів UTF-8." FontSize="12" Foreground="#788398"/>
+       </StackPanel>
+       <ToggleSwitch Name="RememberMeSwitch" Classes="welcome-toggle" IsChecked="{Binding RememberMe, Mode=TwoWay}" IsEnabled="{Binding CanEdit}" AutomationProperties.Name="Запам’ятати мене"/>
+       <TextBlock Text="{Binding Status}" Classes="success" TextWrapping="Wrap" IsVisible="{Binding HasStatus}"/>
+       <TextBlock Text="{Binding Error}" Classes="error" IsVisible="{Binding HasError}"/>
+       <Button Content="Повторити автоматичний вхід" Classes="welcome-link" Command="{Binding RetrySavedSessionCommand}" IsVisible="{Binding CanRetrySavedSession}"/>
+       <TextBlock IsVisible="{Binding IsBusy}" Text="Виконуємо вхід…" Foreground="#788398"/>
+       <Button Name="SubmitButton" Content="{Binding SubmitLabel}" Command="{Binding SubmitCommand}" IsDefault="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Classes="primary" CornerRadius="9" FontSize="16" MinHeight="48"/>
+       <Button Name="SwitchButton" Content="{Binding SwitchLabel}" Command="{Binding SwitchCommand}" Classes="welcome-link" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+      </StackPanel>
+     </Border>
+     <views:WelcomeBoardPreview Margin="-48,0,-24,-30"/>
+    </StackPanel>
+   </Grid>
+  </ScrollViewer>
   <Border IsVisible="{Binding IsSignedIn}"><views:BoardWorkspaceView DataContext="{Binding Workspace}"/></Border>
  </Grid>
 </Window>
