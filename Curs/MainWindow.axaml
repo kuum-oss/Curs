@@ -19,7 +19,6 @@
                             <TextBlock IsVisible="{Binding IsRegister}" Text="Від 8 символів, до 72 байтів UTF-8." FontSize="12" Foreground="#58677D" />
                         </StackPanel>
                         <TextBlock Text="{Binding Status}" Classes="success" TextWrapping="Wrap" IsVisible="{Binding HasStatus}"/>
-                        <TextBlock Text="Вхід протягом 7 днів після запиту видалення відновлює аккаунт і дошки." Classes="muted" FontSize="12" TextWrapping="Wrap"/>
                         <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" Foreground="#B42318" TextWrapping="Wrap" />
                         <TextBlock IsVisible="{Binding IsBusy}" Text="Зачекайте…" Foreground="#58677D" />
                         <Button Name="SubmitButton" Content="{Binding SubmitLabel}" Command="{Binding SubmitCommand}" IsDefault="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Classes="primary" Padding="16,12" />

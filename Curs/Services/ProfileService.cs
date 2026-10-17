@@ -14,7 +14,7 @@ public sealed class ProfileService(ApiClient api, SessionService session)
     {
         var observed=session.AccessToken;
         var scheduled=await api.SendAsync<AccountDeletionScheduledDto>(HttpMethod.Delete,"api/profile",request,token)??throw new InvalidOperationException();
-        session.ClearIfCurrent(observed,$"Видалення заплановано на {scheduled.DeletionDueAtUtc.ToLocalTime():dd.MM.yyyy HH:mm}. Увійдіть протягом 7 днів, щоб відновити аккаунт і дошки.");
+        session.ClearIfCurrent(observed,$"Обліковий запис буде видалено {scheduled.DeletionDueAtUtc.ToLocalTime():dd.MM.yyyy о HH:mm}. Щоб скасувати видалення, увійдіть протягом 7 днів.");
     }
     public async Task<UserDto> Refresh(CancellationToken token)
     {
