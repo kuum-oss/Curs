@@ -80,12 +80,14 @@
   },
   "demoAccountsDeleted": false,
   "publication": {
-    "status": "blocked_by_github_authentication",
+    "status": "implementation_published_and_verified",
     "branch": "card-checklists",
-    "attemptedRevision": "e13901c",
-    "httpsError": "Invalid username or token. Password authentication is not supported for Git operations.",
-    "sshFallback": "No trusted ED25519 host key; strict verification retained.",
-    "mainUpdated": false,
-    "remoteVerified": false
+    "mainBranch": "main",
+    "verifiedImplementationRevision": "0b4bbceed445ac49890a4a7f3ab22a7b6dc60319",
+    "verifiedAtUtc": "2026-10-19T19:11:59.093286+00:00",
+    "mainUpdated": true,
+    "remoteVerified": true,
+    "mergeMethod": "fast-forward",
+    "previousAuthenticationBlockerResolved": true
   }
 }
