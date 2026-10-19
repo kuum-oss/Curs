@@ -1,0 +1,93 @@
+{
+  "verifiedAtUtc": "2026-10-19T19:49:07.533034+00:00",
+  "serverRevision": "1442d7a",
+  "clientRevision": "2c60781",
+  "tests": {
+    "total": "166",
+    "executed": "166",
+    "passed": "166",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0
+  },
+  "schema": {
+    "tables": 13,
+    "migrations": 7,
+    "pendingModelChanges": false,
+    "downgradeGuardTestPassed": true
+  },
+  "dockerHttp": {
+    "verifiedAtUtc": "2026-10-19T19:38:43.895332+00:00",
+    "httpRequests": 26,
+    "checks": [
+      "four persisted notification types without message retry duplicates",
+      "deadline generation is idempotent",
+      "card deep link and read state",
+      "recipient isolation and anonymous rejection",
+      "chat deep link",
+      "read all persisted"
+    ],
+    "demoAccountsChanged": false,
+    "randomAccounts": 3
+  },
+  "regressions": {
+    "chat": {
+      "verifiedAtUtc": "2026-10-19T19:47:20.520029+00:00",
+      "httpRequests": 20,
+      "checks": [
+        "single dialog in both directions",
+        "idempotent retry",
+        "recipient history and unread acknowledgement",
+        "reply visible to original sender",
+        "outsider and anonymous isolation"
+      ],
+      "randomAccountsCleaned": 3,
+      "existingAccountsChanged": false
+    },
+    "checklists": {
+      "verifiedAtUtc": "2026-10-19T19:47:21.211815+00:00",
+      "httpRequests": 17,
+      "checks": [
+        "create five ordered items, three completed",
+        "edit, check, reorder, and reject a stale concurrent save",
+        "invalid checklist cannot partially save",
+        "board summary agrees with saved details",
+        "older clients preserve checklist when field omitted"
+      ],
+      "existingAccountsChanged": false,
+      "nativeIdentityKept": false
+    }
+  },
+  "native": {
+    "fourTypesVisible": true,
+    "badgeSequence": [
+      4,
+      3,
+      2,
+      0
+    ],
+    "cardTargetOpened": true,
+    "chatTargetOpened": true,
+    "readAllAndUnreadFilterVerified": true,
+    "signedOutAfterCheck": true
+  },
+  "disposableAccountsCleaned": 3,
+  "protectedDemosRemaining": 4,
+  "existingVolumePreserved": true,
+  "containersHealthy": true
+}
