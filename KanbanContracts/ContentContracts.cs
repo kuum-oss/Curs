@@ -18,13 +18,22 @@ public sealed class UpdateColumnRequest : CreateColumnRequest
 {
     [Required(ErrorMessage = "Оновіть дані перед зміною."), RowVersion] public string ExpectedVersion { get; set; } = "";
 }
-public class CardFieldsRequest : BoardMutationRequest
+public class CardFieldsRequest : BoardMutationRequest, IValidatableObject
 {
     [Required(ErrorMessage = "Введіть назву картки."), StringLength(FieldLimits.CardTitle, ErrorMessage = "Назва картки: не більше 200 символів.")] public string Title { get; set; } = "";
     [StringLength(FieldLimits.CardDescription, ErrorMessage = "Опис картки: не більше 10 000 символів.")] public string? Description { get; set; }
     public DateOnly? DueDate { get; set; }
     [EnumDataType(typeof(CardPriority), ErrorMessage = "Оберіть допустимий пріоритет.")] public CardPriority Priority { get; set; } = CardPriority.Medium;
     public Guid? AssigneeId { get; set; }
+    // null preserves an existing checklist for older clients; [] explicitly clears it.
+    [MaxLength(100, ErrorMessage = "Не більше 100 пунктів у чек-листі.")]
+    public List<ChecklistItemInput>? Checklist { get; set; }
+    public IEnumerable<ValidationResult> Validate(ValidationContext context)
+    {
+        if (Checklist is not null && (Checklist.Any(i => i is null || i.Id == Guid.Empty) ||
+            Checklist.Where(i => i is not null).Select(i => i.Id).Distinct().Count() != Checklist.Count))
+            yield return new ValidationResult("Пункти мають унікальні непорожні ідентифікатори.", [nameof(Checklist)]);
+    }
     [Required(ErrorMessage = "Передайте список тегів."), MaxLength(100, ErrorMessage = "Не більше 100 тегів на картку.")] public List<Guid> TagIds { get; set; } = [];
 }
 public sealed class CreateCardRequest : CardFieldsRequest

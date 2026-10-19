@@ -58,7 +58,8 @@ public sealed class BoardService(KanbanDbContext db, BoardAccess access)
             await db.CardTags.Where(x => cards.Contains(x.CardId) || tags.Contains(x.TagId)).ExecuteDeleteAsync(token);
             await db.CardImages.Where(x => cards.Contains(x.CardId)).ExecuteDeleteAsync(token);
             await db.Comments.Where(x => cards.Contains(x.CardId)).ExecuteDeleteAsync(token);
-            await db.Cards.Where(x => columns.Contains(x.ColumnId)).ExecuteDeleteAsync(token);
+            await db.ChecklistItems.Where(x => cards.Contains(x.CardId)).ExecuteDeleteAsync(token);
+        await db.Cards.Where(x => columns.Contains(x.ColumnId)).ExecuteDeleteAsync(token);
             await db.Columns.Where(x => x.BoardId == boardId).ExecuteDeleteAsync(token);
             await db.Tags.Where(x => x.BoardId == boardId).ExecuteDeleteAsync(token);
             await db.BoardMembers.Where(x => x.BoardId == boardId).ExecuteDeleteAsync(token);

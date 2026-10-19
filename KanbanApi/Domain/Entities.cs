@@ -128,3 +128,12 @@ public sealed class DirectMessage
     public string Text { get; set; } = "";
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
+
+public sealed class ChecklistItem
+{
+    public Guid Id { get; set; }
+    public Guid CardId { get; set; }
+    public string Title { get; set; } = "";
+    public bool IsCompleted { get; set; }
+    public int Position { get; set; }
+}

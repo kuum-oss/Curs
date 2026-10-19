@@ -277,6 +277,36 @@ namespace KanbanApi.Migrations
                     b.ToTable("CardTags", (string)null);
                 });
 
+            modelBuilder.Entity("KanbanApi.Domain.ChecklistItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CardId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardId", "Position");
+
+                    b.ToTable("ChecklistItems", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ChecklistItems_Position", "[Position] >= 0");
+                        });
+                });
+
             modelBuilder.Entity("KanbanApi.Domain.Comment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -557,6 +587,15 @@ namespace KanbanApi.Migrations
                     b.HasOne("KanbanApi.Domain.Tag", null)
                         .WithMany()
                         .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("KanbanApi.Domain.ChecklistItem", b =>
+                {
+                    b.HasOne("KanbanApi.Domain.Card", null)
+                        .WithMany()
+                        .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });

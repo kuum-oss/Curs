@@ -16,6 +16,7 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
     public DbSet<CardImage> CardImages => Set<CardImage>();
     public DbSet<Comment> Comments => Set<Comment>();
 
+    public DbSet<ChecklistItem> ChecklistItems => Set<ChecklistItem>();
     public DbSet<DirectChat> DirectChats => Set<DirectChat>();
     public DbSet<DirectMessage> DirectMessages => Set<DirectMessage>();
 
@@ -133,6 +134,13 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         message.HasOne<User>().WithMany().HasForeignKey(x => x.SenderId);
         message.HasIndex(x => new { x.ChatId, x.Id });
         message.HasIndex(x => new { x.ChatId, x.ClientMessageId }).IsUnique();
+
+        var checklist = model.Entity<ChecklistItem>();
+        checklist.ToTable("ChecklistItems", t => t.HasCheckConstraint("CK_ChecklistItems_Position", "[Position] >= 0"));
+        checklist.HasKey(x => x.Id);
+        checklist.Property(x => x.Title).HasMaxLength(300).IsRequired();
+        checklist.HasOne<Card>().WithMany().HasForeignKey(x => x.CardId);
+        checklist.HasIndex(x => new { x.CardId, x.Position });
 
         // Avoid SQL Server multiple cascade paths; deletion is an explicit service transaction.
         foreach (var foreignKey in model.Model.GetEntityTypes().SelectMany(x => x.GetForeignKeys()))

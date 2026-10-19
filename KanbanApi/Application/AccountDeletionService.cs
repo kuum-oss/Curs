@@ -139,6 +139,7 @@ public sealed class AccountDeletionService(KanbanDbContext db, PasswordService p
         await db.CardTags.Where(t => cards.Contains(t.CardId) || tags.Contains(t.TagId)).ExecuteDeleteAsync(token);
         await db.CardImages.Where(i => cards.Contains(i.CardId)).ExecuteDeleteAsync(token);
         await db.Comments.Where(c => cards.Contains(c.CardId)).ExecuteDeleteAsync(token);
+        await db.ChecklistItems.Where(c => cards.Contains(c.CardId)).ExecuteDeleteAsync(token);
         await db.Cards.Where(c => columns.Contains(c.ColumnId)).ExecuteDeleteAsync(token);
         await db.Columns.Where(c => ids.Contains(c.BoardId)).ExecuteDeleteAsync(token);
         await db.Tags.Where(t => ids.Contains(t.BoardId)).ExecuteDeleteAsync(token);

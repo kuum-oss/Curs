@@ -63,6 +63,7 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
         await db.CardTags.Where(x => ids.Contains(x.CardId)).ExecuteDeleteAsync(token);
         await db.CardImages.Where(x => ids.Contains(x.CardId)).ExecuteDeleteAsync(token);
         await db.Comments.Where(x => ids.Contains(x.CardId)).ExecuteDeleteAsync(token);
+        await db.ChecklistItems.Where(x => ids.Contains(x.CardId)).ExecuteDeleteAsync(token);
         await cards.ExecuteDeleteAsync(token);
     }
     public async Task<PagedResult<CardSummaryDto>> Cards(Guid boardId, Guid userId, CardQuery page, CancellationToken token)
@@ -106,21 +107,30 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
                           orderby t.Name, t.Id select new { ct.CardId, Tag = new TagDto(t.Id, t.Name, t.Color) }).ToListAsync(token);
         var images = await db.CardImages.Where(x => ids.Contains(x.CardId)).Select(x => x.CardId).ToListAsync(token);
         var comments = await db.Comments.Where(c=>ids.Contains(c.CardId)).GroupBy(c=>c.CardId).Select(g=>new{Id=g.Key,Count=g.Count()}).ToDictionaryAsync(g=>g.Id,g=>g.Count,token);
+        var checks = await db.ChecklistItems.Where(i => ids.Contains(i.CardId)).GroupBy(i => i.CardId)
+            .Select(g => new { Id = g.Key, Total = g.Count(), Done = g.Count(i => i.IsCompleted) }).ToDictionaryAsync(g => g.Id, token);
         return cards.Select(c => new CardSummaryDto(c.Id, c.ColumnId, c.Title, c.DueDate, c.Priority,
             c.AssigneeId is Guid id ? users.GetValueOrDefault(id) : null, c.Position, tags.Where(t => t.CardId == c.Id).Select(t => t.Tag).ToList(),
-            images.Contains(c.Id), Convert.ToBase64String(c.RowVersion), c.Description, comments.GetValueOrDefault(c.Id), c.IsArchived)).ToList();
+            images.Contains(c.Id), Convert.ToBase64String(c.RowVersion), c.Description, comments.GetValueOrDefault(c.Id), c.IsArchived, checks.GetValueOrDefault(c.Id)?.Done ?? 0, checks.GetValueOrDefault(c.Id)?.Total ?? 0)).ToList();
     }
     private async Task<CardDetailsDto> Details(Card card, CancellationToken token)
     {
         var summary = (await Summaries([card], token))[0];
         var type = await db.CardImages.Where(x => x.CardId == card.Id).Select(x => x.ContentType).SingleOrDefaultAsync(token);
-        return new(summary, card.Description, type, card.CreatedAtUtc, card.UpdatedAtUtc);
+        var items = await db.ChecklistItems.AsNoTracking().Where(i => i.CardId == card.Id).OrderBy(i => i.Position).ThenBy(i => i.Id)
+            .Select(i => new ChecklistItemDto(i.Id, i.Title, i.IsCompleted, i.Position)).ToListAsync(token);
+        return new(summary, card.Description, type, card.CreatedAtUtc, card.UpdatedAtUtc, items);
     }
     public async Task<CardDetailsDto> GetCard(Guid cardId, Guid userId, CancellationToken token)
     {
         var boardId = await CardBoard(cardId, userId, token);
-        var card = await db.Cards.AsNoTracking().SingleOrDefaultAsync(x => x.Id == cardId, token) ?? throw Missing();
-        var result = await Details(card, token); await access.RequireAsync(boardId, userId, false, token); return result;
+        return await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, token);
+            var card = await db.Cards.AsNoTracking().SingleOrDefaultAsync(x => x.Id == cardId, token) ?? throw Missing();
+            var result = await Details(card, token); await access.RequireAsync(boardId, userId, false, token);
+            await transaction.CommitAsync(token); return result;
+        });
     }
     private async Task Fields(Card card, Guid boardId, CardFieldsRequest request, CancellationToken token)
     {
@@ -133,6 +143,21 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
         card.DueDate = request.DueDate; card.Priority = request.Priority; card.AssigneeId = request.AssigneeId; card.UpdatedAtUtc = DateTime.UtcNow;
         await db.CardTags.Where(x => x.CardId == card.Id).ExecuteDeleteAsync(token);
         foreach (var tag in request.TagIds) db.CardTags.Add(new CardTag { CardId = card.Id, TagId = tag });
+        if (request.Checklist is {} requested)
+        {
+            var ids = requested.Select(i => i.Id).ToArray();
+            if (requested.Count > 100 || requested.Any(i => i.Id == Guid.Empty || string.IsNullOrWhiteSpace(i.Title) || i.Title.Length > 300) || ids.Distinct().Count() != ids.Length ||
+                await db.ChecklistItems.AnyAsync(i => ids.Contains(i.Id) && i.CardId != card.Id, token))
+                throw new ApiException(400, "invalid_checklist", "Перевірте текст та унікальність пунктів чек-листа.");
+            var existing = await db.ChecklistItems.Where(i => i.CardId == card.Id).ToDictionaryAsync(i => i.Id, token);
+            db.ChecklistItems.RemoveRange(existing.Values.Where(i => !ids.Contains(i.Id)));
+            for (var position = 0; position < requested.Count; position++)
+            {
+                var input = requested[position];
+                if (!existing.TryGetValue(input.Id, out var item)) { item = new ChecklistItem { Id = input.Id, CardId = card.Id }; db.ChecklistItems.Add(item); }
+                item.Title = input.Title.Trim(); item.IsCompleted = input.IsCompleted; item.Position = position;
+            }
+        }
     }
     public Task<CardDetailsDto> CreateCard(Guid boardId, Guid userId, CreateCardRequest request, CancellationToken token) =>
         access.MutateAsync(boardId, userId, request.ExpectedBoardVersion, false, async member =>
