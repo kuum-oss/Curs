@@ -102,7 +102,7 @@ public sealed partial class BoardWorkspaceViewModel : ViewModelBase, IDisposable
         DeleteCommand = new ActionCommand(RequestDelete, () => !IsBusy && IsAdmin);
         ConfirmCommand = new ActionCommand(() => _ = ConfirmAsync(), () => !IsBusy && ShowConfirmation);
         CancelCommand = new ActionCommand(CancelConfirmation, () => !IsBusy);
-        services.Session.Changed += SessionChanged; services.Navigation.Changed += NavigationChanged; InitializePresentation();
+        services.Session.Changed += SessionChanged; services.Navigation.Changed += NavigationChanged; InitializePresentation(); Notifications=new(services,NavigateNotification);
     }
 
     private void NavigationChanged()
@@ -239,10 +239,10 @@ public sealed partial class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     }
     public void Clear()
     {
-        Content.Clear();
+        Notifications?.Clear(); Content.Clear();
         operation?.Cancel(); operation = null; IsBusy = false;
         foreach(var old in Boards)old.Dispose(); foreach(var old in Members)old.Avatar.Dispose(); Boards.Clear(); Members.Clear(); ResetPresentation(); selected = null; NewName = ""; NewDescription = ""; EditName = ""; EditDescription = ""; MemberEmail = "";
         Error = ""; Status = ""; CancelConfirmation(); NotifyBoard(); Notify(nameof(HasBoards)); Notify(nameof(IsEmpty));
     }
-    public void Dispose() { Clear(); DisposePresentation(); presentationLifetime.Cancel();presentationLifetime.Dispose(); Content.Dispose(); services.Session.Changed -= SessionChanged; services.Navigation.Changed -= NavigationChanged; }
+    public void Dispose() { Clear(); Notifications.Dispose(); DisposePresentation(); presentationLifetime.Cancel();presentationLifetime.Dispose(); Content.Dispose(); services.Session.Changed -= SessionChanged; services.Navigation.Changed -= NavigationChanged; }
 }

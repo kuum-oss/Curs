@@ -17,6 +17,7 @@ public sealed class ClientServices : IDisposable
     public ImageService Images { get; }
     public RememberedSession Remembered { get; }
     public ChatService Chats { get; }
+    public NotificationService Notifications { get; }
 
     public ClientServices(Uri baseAddress, Action<Action>? dispatch = null, HttpMessageHandler? transport = null, ISessionStore? sessionStore = null)
     {
@@ -39,6 +40,7 @@ public sealed class ClientServices : IDisposable
         Auth = new AuthService(Api, Session, Navigation);
         Boards = new BoardService(Api);
         Chats = new ChatService(Api);
+        Notifications = new NotificationService(Api);
         Content = new ContentService(Api);
         Profile = new ProfileService(Api,Session);
         Images = new ImageService(Api, Session);

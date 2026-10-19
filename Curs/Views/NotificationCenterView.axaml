@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:Curs.ViewModels" x:Class="Curs.Views.NotificationCenterView" x:DataType="vm:NotificationViewModel">
+ <UserControl.Styles><Style Selector="Button.notification-tab.active"><Setter Property="Background" Value="#DDF3F1"/><Setter Property="Foreground" Value="#168C98"/></Style></UserControl.Styles>
+ <Grid IsVisible="{Binding Visible}">
+  <Button Background="#18000000" BorderThickness="0" CornerRadius="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Command="{Binding CloseCommand}"/>
+  <Border Classes="modal" Width="470" MaxHeight="650" Margin="185,78,20,20" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="20" BoxShadow="0 10 35 0 #220F263A">
+   <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10"><TextBlock Text="Сповіщення" FontSize="23" FontWeight="SemiBold"/><Button Grid.Column="1" Content="Прочитати всі" Classes="ghost" FontSize="11" Command="{Binding ReadAllCommand}"/><Button Grid.Column="2" Content="×" Classes="icon" Command="{Binding CloseCommand}"/></Grid>
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,14"><Button Classes="notification-tab" Content="Усі" Classes.active="{Binding !OnlyUnread}" Command="{Binding AllCommand}"/><Button Classes="notification-tab" Content="{Binding UnreadLabel}" Classes.active="{Binding OnlyUnread}" Command="{Binding UnreadCommand}"/></StackPanel>
+    <ScrollViewer Grid.Row="2"><StackPanel Spacing="8">
+     <TextBlock Text="Сповіщень поки немає" Classes="muted" IsVisible="{Binding IsEmpty}" Margin="12,25" HorizontalAlignment="Center"/>
+     <ItemsControl ItemsSource="{Binding Items}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:NotificationRow">
+      <Border Background="{Binding Background}" CornerRadius="10" Margin="0,0,0,8" Padding="10"><Grid ColumnDefinitions="26,*,24" ColumnSpacing="8">
+       <Border Background="#D9F1F0" CornerRadius="13" Width="26" Height="26" VerticalAlignment="Top"><TextBlock Text="{Binding Icon}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#168C98"/></Border>
+       <Button Grid.Column="1" Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding OpenCommand}" IsEnabled="{Binding CanOpen}"><StackPanel Spacing="6"><TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" TextWrapping="Wrap"/><TextBlock Text="{Binding Context}" Classes="muted" FontSize="11" TextWrapping="Wrap"/><TextBlock Text="{Binding Time}" Classes="muted" FontSize="10"/></StackPanel></Button>
+       <Button Grid.Column="2" Content="●" Classes="icon" Foreground="#168C98" FontSize="10" IsVisible="{Binding IsUnread}" Command="{Binding ReadCommand}" ToolTip.Tip="Позначити прочитаним"/>
+      </Grid></Border>
+     </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+     <Button Content="Попередні сповіщення" Command="{Binding MoreCommand}" IsVisible="{Binding HasMore}" HorizontalAlignment="Center"/>
+    </StackPanel></ScrollViewer>
+    <TextBlock Grid.Row="3" Text="{Binding Error}" Classes="error" TextWrapping="Wrap" Margin="0,8,0,0"/>
+   </Grid>
+  </Border>
+ </Grid>
+</UserControl>

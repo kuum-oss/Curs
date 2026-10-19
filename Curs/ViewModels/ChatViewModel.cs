@@ -99,6 +99,12 @@ public sealed class ChatViewModel : ViewModelBase,IDisposable
             else if(selected is {} current)await Select(current,t);
         });
     }
+    public Task ShowId(Guid id)
+    {
+        Active=true;
+        return Run(async t=>{await ReloadList(t);var chat=Threads.SingleOrDefault(c=>c.Chat.Id==id)?.Chat;
+            if(chat is null)throw new ApiClientException(404,new ApiProblem{Title="Чат більше недоступний."});await Select(chat,t);});
+    }
     public Task Open(ChatDto chat)=>Run(t=>Select(chat,t));
     private async Task Select(ChatDto chat,CancellationToken token)
     {

@@ -261,7 +261,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         AddCommentCommand = Command(AddCommentAsync, () => ExistingCard);
         ConfirmCommand = Command(ConfirmAsync, () => ShowConfirmation);
         CancelCommand = new ActionCommand(CancelConfirmation, () => !IsBusy);
-        services.Session.Changed += SessionChanged; InitializePresentation(); InitializeChecklist();
+        services.Session.Changed += SessionChanged; InitializePresentation(); InitializeChecklist(); InsertMentionCommand=new(InsertMention);
     }
     private ActionCommand Command(Func<Task> action, Func<bool>? allowed = null) => new(() => _ = action(), () => !IsBusy && !polling && IsVisible && (allowed?.Invoke() ?? true));
     private void SessionChanged() { if (services.Session.AccessToken is null) Clear(); }
@@ -406,7 +406,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         else return;
         token.ThrowIfCancellationRequested(); CloseEditor(); selectedColumn = null; await Load(board.Id, token); NotifyState(); Status = "Видалення завершено.";
     });
-    public void CloseEditor() { LoadChecklist(null); DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible)); NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
+    public void CloseEditor() { MentionPerson=null; LoadChecklist(null); DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible)); NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
 
     public bool BeginDrag(Guid id, bool card)
     {

@@ -11,7 +11,7 @@ public partial class BoardWorkspaceView:UserControl
     private readonly DispatcherTimer poll=new(){Interval=TimeSpan.FromSeconds(5)};
     public BoardWorkspaceView()
     {
-        AvaloniaXamlLoader.Load(this);poll.Tick+=async(_,_)=>{if(DataContext is BoardWorkspaceViewModel model)await model.PollPresentation();};
+        AvaloniaXamlLoader.Load(this);poll.Tick+=async(_,_)=>{if(DataContext is BoardWorkspaceViewModel model){await model.Notifications.Refresh();await model.PollPresentation();}};
         AttachedToVisualTree+=(_,_)=>poll.Start();DetachedFromVisualTree+=(_,_)=>poll.Stop();
     }
     private void OpenTile(object? sender,TappedEventArgs e){if(sender is Control{DataContext:BoardListItemViewModel row})row.OpenCommand.Execute(null);}
