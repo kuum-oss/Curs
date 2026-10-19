@@ -1,0 +1,82 @@
+{
+  "verifiedAtUtc": "2026-10-19T18:58:05.410090+00:00",
+  "conceptRevision": "f07db74",
+  "serverRevision": "a0efc32",
+  "clientRevision": "6e15187",
+  "acceptanceRevision": "71037fc",
+  "tests": {
+    "total": "157",
+    "executed": "157",
+    "passed": "157",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0,
+    "nativePublishSucceeded": true
+  },
+  "schema": {
+    "tables": 12,
+    "migrations": 6,
+    "pendingModelChanges": false,
+    "destructiveDowngradeGuardTestPassed": true
+  },
+  "dockerHttp": {
+    "verifiedAtUtc": "2026-10-19T18:38:48.970866+00:00",
+    "httpRequests": 17,
+    "checks": [
+      "create five ordered items, three completed",
+      "edit, check, reorder, and reject a stale concurrent save",
+      "invalid checklist cannot partially save",
+      "board summary agrees with saved details",
+      "older clients preserve checklist when field omitted"
+    ],
+    "existingAccountsChanged": false,
+    "nativeIdentityKept": false,
+    "randomAccountsCleaned": 1
+  },
+  "nativeServerVerification": {
+    "verifiedAtUtc": "2026-10-19T18:52:35.934917+00:00",
+    "savedItemCount": 5,
+    "completed": 3,
+    "positionsContiguous": true,
+    "nativeEditsPersisted": true,
+    "dragAndDrop": "confirmed by user after native mouse automation failed with noWindowsAvailable",
+    "serverAndBoardProgressAgree": true
+  },
+  "ui": {
+    "addEditToggleDeleteVerified": true,
+    "arrowReorderVerified": true,
+    "saveReopenVerified": true,
+    "discardDraftVerified": true,
+    "boardProgressVerified": true,
+    "screenshotsInspected": true,
+    "dragAndDrop": "user manually confirmed drag, save, and reopen",
+    "automatedMouseLimitation": "noWindowsAvailable / cgWindowNotFound"
+  },
+  "docker": {
+    "api": "healthy",
+    "sqlserver": "healthy",
+    "existingVolumePreserved": true,
+    "protectedDemoCount": 4,
+    "remainingDisposableChecklistUsers": 0
+  },
+  "screenshots": {
+    "docs/screenshots/checklists/02-board.png": "df32b4f6ac760a04d962afd5a91c8ef2d61b39e2faf42eed22a0474c98f22d37",
+    "docs/screenshots/checklists/01-editor.png": "17a6d62ee89b8a1c7e7e955d4533d909592b266e88540f480c314dc282adada5"
+  },
+  "demoAccountsDeleted": false
+}
