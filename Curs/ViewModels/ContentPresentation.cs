@@ -102,9 +102,9 @@ public sealed partial class BoardContentViewModel
     {
         if(EditorVisible)
         {
-            if(selectedCard is null)return Title.Length>0||Description.Length>0||DueDate.Length>0||Tags.Any(t=>t.Selected)||Assignee?.Id is not null;
+            if(selectedCard is null)return ChecklistHasChanges()||Title.Length>0||Description.Length>0||DueDate.Length>0||Tags.Any(t=>t.Selected)||Assignee?.Id is not null;
             var card=selectedCard.Card;
-            return Title!=card.Title||Description!=(selectedCard.Description??"")||DueDate!=(card.DueDate?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)??"")||Priority!=card.Priority||Assignee?.Id!=card.Assignee?.Id||!Tags.Where(t=>t.Selected).Select(t=>t.Tag.Id).ToHashSet().SetEquals(card.Tags.Select(t=>t.Id))||CommentText.Length>0;
+            return ChecklistHasChanges()||Title!=card.Title||Description!=(selectedCard.Description??"")||DueDate!=(card.DueDate?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)??"")||Priority!=card.Priority||Assignee?.Id!=card.Assignee?.Id||!Tags.Where(t=>t.Selected).Select(t=>t.Tag.Id).ToHashSet().SetEquals(card.Tags.Select(t=>t.Id))||CommentText.Length>0;
         }
         return selectedColumn is not null&&ColumnName!=selectedColumn.Name;
     }

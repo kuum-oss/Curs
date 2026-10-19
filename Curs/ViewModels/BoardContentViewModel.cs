@@ -261,7 +261,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         AddCommentCommand = Command(AddCommentAsync, () => ExistingCard);
         ConfirmCommand = Command(ConfirmAsync, () => ShowConfirmation);
         CancelCommand = new ActionCommand(CancelConfirmation, () => !IsBusy);
-        services.Session.Changed += SessionChanged; InitializePresentation();
+        services.Session.Changed += SessionChanged; InitializePresentation(); InitializeChecklist();
     }
     private ActionCommand Command(Func<Task> action, Func<bool>? allowed = null) => new(() => _ = action(), () => !IsBusy && !polling && IsVisible && (allowed?.Invoke() ?? true));
     private void SessionChanged() { if (services.Session.AccessToken is null) Clear(); }
@@ -345,6 +345,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     {
         var card = await services.Content.Card(id, token); var comments = await GetComments(id, token); token.ThrowIfCancellationRequested();
         selectedCard = card; selectedColumn = Columns.Single(c => c.Column.Id == card.Card.ColumnId).Column; ColumnName = selectedColumn.Name;
+        LoadChecklist(card.Checklist);
         Title = card.Card.Title; Description = card.Description ?? ""; DueDate = card.Card.DueDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? ""; Priority = card.Card.Priority;
         Assignee = Assignees.FirstOrDefault(a => a.Id == card.Card.Assignee?.Id) ?? Assignees.FirstOrDefault();
         foreach (var tag in Tags) tag.Selected = card.Card.Tags.Any(t => t.Id == tag.Tag.Id);
@@ -365,15 +366,17 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
             if (!DateOnly.TryParseExact(DueDate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)) { Error = "Дедлайн: введіть дату у форматі РРРР-ММ-ДД або залиште порожнім."; return; }
             date = parsed;
         }
+        if (!string.IsNullOrWhiteSpace(NewChecklistText)) { Error = "Натисніть «Додати», щоб включити новий пункт до чек-листа."; return; }
+        if (ChecklistItems.Any(i => string.IsNullOrWhiteSpace(i.Title) || i.Title.Length > 300)) { Error = "Кожен пункт: від 1 до 300 символів."; return; }
         var tags = Tags.Where(t => t.Selected).Select(t => t.Tag.Id).ToList();
         CardDetailsDto? saved;
         if (selectedCard is null)
         {
             if (!CanCreate) return;
-            saved = await services.Content.CreateCard(board.Id, new() { ColumnId = selectedColumn.Id, Title = Title, Description = Description, DueDate = date, Priority = Priority, AssigneeId = Assignee?.Id, TagIds = tags, ExpectedBoardVersion = board.Version }, token);
+            saved = await services.Content.CreateCard(board.Id, new() { ColumnId = selectedColumn.Id, Title = Title, Description = Description, DueDate = date, Priority = Priority, AssigneeId = Assignee?.Id, TagIds = tags, Checklist = ChecklistPayload(), ExpectedBoardVersion = board.Version }, token);
         }
-        else saved = await services.Content.UpdateCard(selectedCard.Card.Id, new() { Title = Title, Description = Description, DueDate = date, Priority = Priority, AssigneeId = Assignee?.Id, TagIds = tags, ExpectedBoardVersion = board.Version, ExpectedVersion = selectedCard.Card.Version }, token);
-        token.ThrowIfCancellationRequested(); selectedCard = saved; await Load(board.Id, token); NotifyState(); Status = "Картку збережено.";
+        else saved = await services.Content.UpdateCard(selectedCard.Card.Id, new() { Title = Title, Description = Description, DueDate = date, Priority = Priority, AssigneeId = Assignee?.Id, TagIds = tags, Checklist = ChecklistPayload(), ExpectedBoardVersion = board.Version, ExpectedVersion = selectedCard.Card.Version }, token);
+        token.ThrowIfCancellationRequested(); selectedCard = saved; LoadChecklist(saved?.Checklist); await Load(board.Id, token); NotifyState(); Status = "Картку збережено.";
     });
     public Task CreateTagAsync() => Run(async token =>
     {
@@ -403,7 +406,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         else return;
         token.ThrowIfCancellationRequested(); CloseEditor(); selectedColumn = null; await Load(board.Id, token); NotifyState(); Status = "Видалення завершено.";
     });
-    public void CloseEditor() { DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible)); NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
+    public void CloseEditor() { LoadChecklist(null); DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible)); NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
 
     public bool BeginDrag(Guid id, bool card)
     {
@@ -518,12 +521,13 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private void RefreshCommands()
     {
-        ArchiveCardCommand?.Refresh();SaveCommentCommand?.Refresh();DeleteCommentCommand?.Refresh();
+        ChecklistChanged();ArchiveCardCommand?.Refresh();SaveCommentCommand?.Refresh();DeleteCommentCommand?.Refresh();
         foreach (var command in new[] { RefreshCommand, CreateColumnCommand, RenameColumnCommand, DeleteColumnCommand, SaveCardCommand, DeleteCardCommand, CloseEditorCommand, CreateTagCommand, AddCommentCommand, ConfirmCommand, CancelCommand }) command.Refresh();
         foreach (var col in Columns) col.Refresh();
     }
     private void ClearData()
     {
+        LoadChecklist(null);
         filterDelay?.Cancel();filterRevision++;CancelImages();DisposeRows();FullImage=null;services.Images.Clear();
         suppressFilters=true;Search="";FilterPriority=PriorityFilters[0];FilterDeadline=DeadlineFilters[0];FilterTag=null;FilterAssignee=null;TagFilters.Clear();AssigneeFilters.Clear();suppressFilters=false;
         board = null; complete = false; dragging = false; filtered = false; RemoteChangesPending = false;

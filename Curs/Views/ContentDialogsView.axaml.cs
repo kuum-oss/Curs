@@ -1,4 +1,7 @@
 using System;
+using System.Linq;
+using Avalonia;
+using Avalonia.VisualTree;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Input;
@@ -8,6 +11,37 @@ namespace Curs.Views;
 public partial class ContentDialogsView:UserControl
 {
     public ContentDialogsView()=>AvaloniaXamlLoader.Load(this);
+    private Guid? checklistSource;
+    private Border? checklistTarget;
+    private Point checklistStart;
+    private bool checklistDragging,checklistAfter;
+    private void ChecklistDragPressed(object? sender,PointerPressedEventArgs e)
+    {
+        if(sender is not Control{DataContext:ChecklistItemViewModel row} grip||DataContext is not BoardContentViewModel{CanEdit:true}||!e.GetCurrentPoint(grip).Properties.IsLeftButtonPressed)return;
+        checklistSource=row.Id;checklistStart=e.GetPosition(this);checklistDragging=false;e.Pointer.Capture(grip);e.Handled=true;
+    }
+    private void ChecklistDragMoved(object? sender,PointerEventArgs e)
+    {
+        if(checklistSource is null||DataContext is not BoardContentViewModel{CanEdit:true})return;
+        var point=e.GetPosition(this);if(!checklistDragging&&Math.Abs(point.Y-checklistStart.Y)<5)return;checklistDragging=true;
+        checklistTarget?.Classes.Remove("checklist-over");checklistTarget=null;
+        foreach(var row in this.GetVisualDescendants().OfType<Border>().Where(b=>Equals(b.Tag,"ChecklistRow")))
+        {
+            var local=e.GetPosition(row);
+            if(local.X>=0&&local.X<=row.Bounds.Width&&local.Y>=0&&local.Y<=row.Bounds.Height&&row.DataContext is ChecklistItemViewModel item&&item.Id!=checklistSource)
+            {checklistTarget=row;checklistAfter=local.Y>row.Bounds.Height/2;row.Classes.Add("checklist-over");break;}
+        }
+        e.Handled=true;
+    }
+    private void ChecklistDragReleased(object? sender,PointerReleasedEventArgs e)
+    {
+        var source=checklistSource;var target=checklistTarget?.DataContext as ChecklistItemViewModel;var after=checklistAfter;var moved=checklistDragging;
+        ResetChecklistDrag();e.Pointer.Capture(null);
+        if(moved&&source is {} id&&target is not null&&DataContext is BoardContentViewModel model)model.MoveChecklistItem(id,target.Id,after);
+        e.Handled=true;
+    }
+    private void ChecklistDragCaptureLost(object? sender,PointerCaptureLostEventArgs e)=>ResetChecklistDrag();
+    private void ResetChecklistDrag(){checklistTarget?.Classes.Remove("checklist-over");checklistTarget=null;checklistSource=null;checklistDragging=false;}
     private void CoverDragOver(object? sender,DragEventArgs e)
     {
         if(sender is Control target&&DataContext is BoardContentViewModel model)
