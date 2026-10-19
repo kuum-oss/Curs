@@ -27,7 +27,7 @@ public sealed class SqlSchemaTests(SqlFixture fixture)
     }
 
     [SqlFact]
-    public async Task MigrationCreatesTwelveTablesAndIsIdempotent()
+    public async Task MigrationCreatesThirteenTablesAndIsIdempotent()
     {
         await using var db = fixture.CreateContext();
         var before = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
@@ -35,7 +35,7 @@ public sealed class SqlSchemaTests(SqlFixture fixture)
         Assert.Equal(db.Database.GetMigrations().ToArray(), before);
         Assert.Equal(before, (await db.Database.GetAppliedMigrationsAsync()).ToArray());
         var tables = await db.Database.SqlQueryRaw<string>("SELECT [name] AS [Value] FROM sys.tables WHERE [name] <> '__EFMigrationsHistory'").ToListAsync();
-        Assert.Equal(new[] { "BoardMembers", "Boards", "CardImages", "CardTags", "Cards", "ChecklistItems", "Columns", "Comments", "DirectChats", "DirectMessages", "Tags", "Users" }.Order(StringComparer.Ordinal).ToArray(), tables.Order(StringComparer.Ordinal).ToArray());
+        Assert.Equal(new[] { "BoardMembers", "Boards", "CardImages", "CardTags", "Cards", "ChecklistItems", "Columns", "Comments", "DirectChats", "DirectMessages", "Notifications", "Tags", "Users" }.Order(StringComparer.Ordinal).ToArray(), tables.Order(StringComparer.Ordinal).ToArray());
     }
 
     [SqlFact]

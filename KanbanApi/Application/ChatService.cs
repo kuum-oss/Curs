@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KanbanApi.Application;
 
-public sealed class ChatService(KanbanDbContext db, TimeProvider clock)
+public sealed class ChatService(KanbanDbContext db, TimeProvider clock, NotificationService notifications)
 {
     private static ApiException Missing() => new(404, "chat_not_found", "Чат не знайдено.");
     private static readonly UserDto Deleted = new(Guid.Empty, "", "Видалений користувач");
@@ -79,7 +79,8 @@ public sealed class ChatService(KanbanDbContext db, TimeProvider clock)
             if (peer is null || !await db.Users.AnyAsync(u => u.Id == peer && u.DeletionDueAtUtc == null, token))
                 throw new ApiException(409, "recipient_unavailable", "Зараз цьому користувачу не можна написати.");
             var message = new DirectMessage { ChatId = chatId, SenderId = user, ClientMessageId = request.ClientMessageId, Text = request.Text.Trim(), CreatedAtUtc = clock.GetUtcNow().UtcDateTime };
-            db.DirectMessages.Add(message); await db.SaveChangesAsync(token); await tx.CommitAsync(token); return Dto(message);
+            db.DirectMessages.Add(message); await db.SaveChangesAsync(token);
+            notifications.Messaged(peer.Value,user,message);await db.SaveChangesAsync(token);await tx.CommitAsync(token); return Dto(message);
         });
     }
     public Task Read(Guid user, Guid chatId, long messageId, CancellationToken token) => db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
@@ -90,7 +91,10 @@ public sealed class ChatService(KanbanDbContext db, TimeProvider clock)
         if (!await db.DirectMessages.AnyAsync(m => m.ChatId == chatId && m.Id == messageId, token)) throw Missing();
         if (chat.FirstUserId == user) chat.FirstReadId = Math.Max(chat.FirstReadId, messageId);
         else chat.SecondReadId = Math.Max(chat.SecondReadId, messageId);
-        await db.SaveChangesAsync(token); await tx.CommitAsync(token);
+        await db.SaveChangesAsync(token);
+        await db.Notifications.Where(n=>n.UserId==user&&n.Kind==NotificationKind.Message&&n.ChatId==chatId&&n.MessageId<=messageId&&n.ReadAtUtc==null)
+            .ExecuteUpdateAsync(s=>s.SetProperty(n=>n.ReadAtUtc,clock.GetUtcNow().UtcDateTime),token);
+        await tx.CommitAsync(token);
     });
     private async Task<DirectChat> Lock(Guid user, Guid chatId, CancellationToken token)
     {

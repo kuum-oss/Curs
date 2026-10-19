@@ -137,3 +137,20 @@ public sealed class ChecklistItem
     public bool IsCompleted { get; set; }
     public int Position { get; set; }
 }
+
+public sealed class Notification
+{
+    public long Id { get; set; }
+    public Guid UserId { get; set; }
+    public Guid? ActorId { get; set; }
+    public NotificationKind Kind { get; set; }
+    public string EventKey { get; set; } = "";
+    // Targets intentionally have no FK: deleted resources leave a safe, unavailable history entry.
+    public Guid? CardId { get; set; }
+    public Guid? CommentId { get; set; }
+    public Guid? ChatId { get; set; }
+    public long? MessageId { get; set; }
+    public DateOnly? DueDate { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime? ReadAtUtc { get; set; }
+}

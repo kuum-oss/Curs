@@ -126,6 +126,8 @@ public sealed class AccountDeletionService(KanbanDbContext db, PasswordService p
         var emptyChats = db.DirectChats.Where(c => c.FirstUserId == null && c.SecondUserId == null).Select(c => c.Id);
         await db.DirectMessages.Where(m => emptyChats.Contains(m.ChatId)).ExecuteDeleteAsync(token);
         await db.DirectChats.Where(c => c.FirstUserId == null && c.SecondUserId == null).ExecuteDeleteAsync(token);
+        await db.Notifications.Where(n=>n.UserId==id).ExecuteDeleteAsync(token);
+        await db.Notifications.Where(n=>n.ActorId==id).ExecuteUpdateAsync(s=>s.SetProperty(n=>n.ActorId,(Guid?)null),token);
         await db.Users.Where(u => u.Id == id).ExecuteDeleteAsync(token);
         await transaction.CommitAsync(token);
         return true;

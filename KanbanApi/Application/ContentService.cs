@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KanbanApi.Application;
 
-public sealed class ContentService(KanbanDbContext db, BoardAccess access)
+public sealed class ContentService(KanbanDbContext db, BoardAccess access, NotificationService notifications)
 {
     private static ApiException Missing() => BoardAccess.NotFound();
     private static void Version(byte[] actual, string expected)
@@ -166,7 +166,7 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
                 throw new ApiException(403, "forbidden", "Створення карток на цій дошці обмежено.");
             if (!await db.Columns.AnyAsync(x => x.Id == request.ColumnId && x.BoardId == boardId, token)) throw Missing();
             var card = new Card { ColumnId = request.ColumnId, CreatedById = userId, Position = await db.Cards.CountAsync(x => x.ColumnId == request.ColumnId, token) };
-            db.Cards.Add(card); await Fields(card, boardId, request, token); await db.SaveChangesAsync(token); return await Details(card, token);
+            db.Cards.Add(card); await Fields(card, boardId, request, token); notifications.Assigned(card,userId); await db.SaveChangesAsync(token); return await Details(card, token);
         }, token);
     public async Task<CardDetailsDto> UpdateCard(Guid cardId, Guid userId, UpdateCardRequest request, CancellationToken token)
     {
@@ -174,7 +174,8 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
         return await access.MutateAsync(boardId, userId, request.ExpectedBoardVersion, false, async _ =>
         {
             var card = await db.Cards.SingleOrDefaultAsync(x => x.Id == cardId, token) ?? throw Missing();
-            Version(card.RowVersion, request.ExpectedVersion); await Fields(card, boardId, request, token);
+            Version(card.RowVersion, request.ExpectedVersion); var oldAssignee=card.AssigneeId; await Fields(card, boardId, request, token);
+            if(oldAssignee!=card.AssigneeId)notifications.Assigned(card,userId);
             await db.SaveChangesAsync(token); return await Details(card, token);
         }, token);
     }
@@ -225,6 +226,7 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
             var card = await db.Cards.SingleOrDefaultAsync(x => x.Id == cardId, token) ?? throw Missing();
             Version(card.RowVersion, request.ExpectedVersion); card.UpdatedAtUtc = DateTime.UtcNow;
             var comment = new Comment { CardId = cardId, AuthorId = userId, Text = request.Text.Trim() }; db.Comments.Add(comment);
+            await notifications.Mentioned(comment,boardId,userId,"",token);
             var author = await db.Users.AsNoTracking().SingleAsync(x => x.Id == userId, token);
             await db.SaveChangesAsync(token);
             return new CommentDto(comment.Id, cardId, UserPresentation.Dto(author), comment.Text, comment.CreatedAtUtc, Convert.ToBase64String(comment.RowVersion));
@@ -252,7 +254,8 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access)
             card.UpdatedAtUtc=DateTime.UtcNow;
             if(text is null){db.Comments.Remove(comment);return null;}
             if(string.IsNullOrWhiteSpace(text))throw new ApiException(400,"validation_failed","Введіть коментар.");
-            comment.Text=text.Trim();comment.EditedAtUtc=DateTime.UtcNow;await db.SaveChangesAsync(token);
+            var previous=comment.Text;comment.Text=text.Trim();comment.EditedAtUtc=DateTime.UtcNow;
+            await notifications.Mentioned(comment,boardId,userId,previous,token);await db.SaveChangesAsync(token);
             var author=await db.Users.SingleAsync(u=>u.Id==comment.AuthorId,token);
             return new CommentDto(comment.Id,cardId,UserPresentation.Dto(author),comment.Text,comment.CreatedAtUtc,Convert.ToBase64String(comment.RowVersion),comment.EditedAtUtc);
         },token);

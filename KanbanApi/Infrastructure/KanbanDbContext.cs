@@ -20,6 +20,8 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
     public DbSet<DirectChat> DirectChats => Set<DirectChat>();
     public DbSet<DirectMessage> DirectMessages => Set<DirectMessage>();
 
+    public DbSet<Notification> Notifications => Set<Notification>();
+
     protected override void OnModelCreating(ModelBuilder model)
     {
         var user = model.Entity<User>();
@@ -141,6 +143,16 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         checklist.Property(x => x.Title).HasMaxLength(300).IsRequired();
         checklist.HasOne<Card>().WithMany().HasForeignKey(x => x.CardId);
         checklist.HasIndex(x => new { x.CardId, x.Position });
+
+        var notification = model.Entity<Notification>();
+        notification.ToTable("Notifications", t => t.HasCheckConstraint("CK_Notifications_Kind", "[Kind] IN (0,1,2,3)"));
+        notification.HasKey(x => x.Id);
+        notification.Property(x => x.Id).UseIdentityColumn();
+        notification.Property(x => x.EventKey).HasMaxLength(160).IsUnicode(false).IsRequired();
+        notification.HasOne<User>().WithMany().HasForeignKey(x => x.UserId);
+        notification.HasOne<User>().WithMany().HasForeignKey(x => x.ActorId);
+        notification.HasIndex(x => new { x.UserId, x.EventKey }).IsUnique();
+        notification.HasIndex(x => new { x.UserId, x.ReadAtUtc, x.Id });
 
         // Avoid SQL Server multiple cascade paths; deletion is an explicit service transaction.
         foreach (var foreignKey in model.Model.GetEntityTypes().SelectMany(x => x.GetForeignKeys()))
