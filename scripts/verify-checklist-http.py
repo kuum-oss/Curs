@@ -57,6 +57,7 @@ DELETE FROM Tags WHERE BoardId IN (SELECT Id FROM #boards);
 DELETE FROM BoardMembers WHERE BoardId IN (SELECT Id FROM #boards);
 DELETE FROM Columns WHERE BoardId IN (SELECT Id FROM #boards);
 DELETE FROM Boards WHERE Id IN (SELECT Id FROM #boards);
+DELETE FROM Notifications WHERE UserId='{uid}'; UPDATE Notifications SET ActorId=NULL WHERE ActorId='{uid}';
 DELETE FROM Users WHERE Id='{uid}'; COMMIT;"""
     values = {}
     for line in (root / '.env').read_text().splitlines():

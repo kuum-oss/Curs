@@ -41,6 +41,7 @@ def cleanup():
     literals=','.join("'"+i+"'" for i in ids)
     sql=f"""SET NOCOUNT ON; BEGIN TRAN;
 IF (SELECT COUNT(*) FROM Users WHERE Id IN ({literals}) AND Email LIKE 'chat-check-%@example.test' AND IsProtectedDemo=0)<>{len(ids)} THROW 50004,'Unsafe test cleanup',1;
+DELETE FROM Notifications WHERE UserId IN ({literals}); UPDATE Notifications SET ActorId=NULL WHERE ActorId IN ({literals});
 DELETE FROM DirectMessages WHERE ChatId IN (SELECT Id FROM DirectChats WHERE FirstUserId IN ({literals}) OR SecondUserId IN ({literals}));
 DELETE FROM DirectChats WHERE FirstUserId IN ({literals}) OR SecondUserId IN ({literals});
 """
