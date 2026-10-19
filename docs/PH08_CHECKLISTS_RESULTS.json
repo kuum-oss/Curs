@@ -78,5 +78,14 @@
     "docs/screenshots/checklists/02-board.png": "df32b4f6ac760a04d962afd5a91c8ef2d61b39e2faf42eed22a0474c98f22d37",
     "docs/screenshots/checklists/01-editor.png": "17a6d62ee89b8a1c7e7e955d4533d909592b266e88540f480c314dc282adada5"
   },
-  "demoAccountsDeleted": false
+  "demoAccountsDeleted": false,
+  "publication": {
+    "status": "blocked_by_github_authentication",
+    "branch": "card-checklists",
+    "attemptedRevision": "e13901c",
+    "httpsError": "Invalid username or token. Password authentication is not supported for Git operations.",
+    "sshFallback": "No trusted ED25519 host key; strict verification retained.",
+    "mainUpdated": false,
+    "remoteVerified": false
+  }
 }
