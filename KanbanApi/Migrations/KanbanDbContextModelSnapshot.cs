@@ -400,6 +400,9 @@ namespace KanbanApi.Migrations
                     b.Property<Guid?>("SenderId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("SharedCardId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(2000)

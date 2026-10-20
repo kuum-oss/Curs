@@ -14,5 +14,6 @@ public sealed class ChatsController(ChatService chats) : ControllerBase
     [HttpPost] public async Task<ActionResult<ChatDto>> Start(StartChatRequest request, CancellationToken token) => Ok(await chats.Start(UserId, request.RecipientId, token));
     [HttpGet("{id:guid}/messages")] public async Task<ActionResult<ChatMessagesDto>> Messages(Guid id, [FromQuery] long? beforeId, [FromQuery] long? afterId, CancellationToken token) => Ok(await chats.Messages(UserId, id, beforeId, afterId, token));
     [HttpPost("{id:guid}/messages")] public async Task<ActionResult<ChatMessageDto>> Send(Guid id, SendChatMessageRequest request, CancellationToken token) => Ok(await chats.Send(UserId, id, request, token));
+    [HttpGet("{id:guid}/messages/{messageId:long}/card")] public async Task<ActionResult<SharedCardDto>> OpenShared(Guid id,long messageId,CancellationToken token)=>Ok(await chats.OpenShared(UserId,id,messageId,token));
     [HttpPost("{id:guid}/read")] public async Task<IActionResult> Read(Guid id, ChatReadRequest request, CancellationToken token) { await chats.Read(UserId, id, request.LastReadMessageId, token); return NoContent(); }
 }

@@ -51,36 +51,43 @@ public sealed class ChatService(KanbanDbContext db, TimeProvider clock, Notifica
     public async Task<ChatMessagesDto> Messages(Guid user, Guid chatId, long? before, long? after, CancellationToken token)
     {
         if (before is <= 0 || after is < 0 || before.HasValue && after.HasValue) throw new ApiException(400, "invalid_cursor", "Некоректний запит історії.");
+        return await db.Database.CreateExecutionStrategy().ExecuteAsync(async()=>
+        {
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead,token);
         if (!await Mine(user).AnyAsync(c => c.Id == chatId, token)) throw Missing();
         var query = db.DirectMessages.AsNoTracking().Where(m => m.ChatId == chatId);
         if (before is {} b) query = query.Where(m => m.Id < b);
         if (after is {} a) query = query.Where(m => m.Id > a);
         var rows = await (after.HasValue ? query.OrderBy(m => m.Id) : query.OrderByDescending(m => m.Id))
-            .Take(51).Select(m => new ChatMessageDto(m.Id, m.SenderId, m.Text, m.CreatedAtUtc)).ToListAsync(token);
+            .Take(51).ToListAsync(token);
         var more = rows.Count > 50; var page = rows.Take(50).OrderBy(m => m.Id).ToList();
-        return new(page, more);
+        var result=new ChatMessagesDto(await Present(user,page,token),more);await tx.CommitAsync(token);return result;
+        });
     }
     public Task<ChatMessageDto> Send(Guid user, Guid chatId, SendChatMessageRequest request, CancellationToken token)
     {
-        if (request.ClientMessageId == Guid.Empty || string.IsNullOrWhiteSpace(request.Text) || request.Text.Length > 2000)
-            throw new ApiException(400, "invalid_message", "Повідомлення: від 1 до 2000 символів.");
+        var text=(request.Text??"").Trim();
+        if(request.ClientMessageId==Guid.Empty||request.Text is {Length:>2000}||request.SharedCardId==Guid.Empty||text.Length==0&&request.SharedCardId is null)
+            throw new ApiException(400,"invalid_message","Введіть повідомлення до 2000 символів або оберіть картку.");
+        if(text.Length==0)text="Поділилися карткою";
         return db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
         {
             db.ChangeTracker.Clear();
-            await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, token);
+            await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, token);
             var chat = await Lock(user, chatId, token);
             var previous = await db.DirectMessages.SingleOrDefaultAsync(m => m.ChatId == chatId && m.ClientMessageId == request.ClientMessageId, token);
             if (previous is not null)
             {
-                if (previous.SenderId != user || previous.Text != request.Text.Trim()) throw new ApiException(409, "message_id_conflict", "Це повідомлення вже надіслано з іншим вмістом.");
-                return Dto(previous);
+                if (previous.SenderId != user || previous.Text != text || previous.SharedCardId != request.SharedCardId) throw new ApiException(409, "message_id_conflict", "Це повідомлення вже надіслано з іншим вмістом.");
+                return (await Present(user,[previous],token))[0];
             }
             var peer = Peer(chat, user);
             if (peer is null || !await db.Users.AnyAsync(u => u.Id == peer && u.DeletionDueAtUtc == null, token))
                 throw new ApiException(409, "recipient_unavailable", "Зараз цьому користувачу не можна написати.");
-            var message = new DirectMessage { ChatId = chatId, SenderId = user, ClientMessageId = request.ClientMessageId, Text = request.Text.Trim(), CreatedAtUtc = clock.GetUtcNow().UtcDateTime };
+            if(request.SharedCardId is {} shared&&!await AvailableCards(user,[shared]).AnyAsync(token))throw CardMissing();
+            var message = new DirectMessage { ChatId = chatId, SenderId = user, ClientMessageId = request.ClientMessageId, SharedCardId=request.SharedCardId, Text = text, CreatedAtUtc = clock.GetUtcNow().UtcDateTime };
             db.DirectMessages.Add(message); await db.SaveChangesAsync(token);
-            notifications.Messaged(peer.Value,user,message);await db.SaveChangesAsync(token);await tx.CommitAsync(token); return Dto(message);
+            notifications.Messaged(peer.Value,user,message);await db.SaveChangesAsync(token);var result=(await Present(user,[message],token))[0];await tx.CommitAsync(token);return result;
         });
     }
     public Task Read(Guid user, Guid chatId, long messageId, CancellationToken token) => db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
@@ -102,5 +109,27 @@ public sealed class ChatService(KanbanDbContext db, TimeProvider clock, Notifica
         if (chat is null || chat.FirstUserId != user && chat.SecondUserId != user) throw Missing();
         return chat;
     }
-    private static ChatMessageDto Dto(DirectMessage message) => new(message.Id, message.SenderId, message.Text, message.CreatedAtUtc);
+    private static ApiException CardMissing()=>new(404,"shared_card_unavailable","Картка недоступна. Перевірте доступ до дошки.");
+    private IQueryable<SharedCardDto> AvailableCards(Guid user,Guid[] ids)=>
+        from c in db.Cards.AsNoTracking() join col in db.Columns on c.ColumnId equals col.Id
+        join b in db.Boards on col.BoardId equals b.Id join m in db.BoardMembers on b.Id equals m.BoardId
+        where ids.Contains(c.Id)&&m.UserId==user&&!c.IsArchived&&!b.IsArchived
+        select new SharedCardDto(c.Id,b.Id,c.Title,b.Name+" · "+col.Name,true);
+    private async Task<IReadOnlyList<ChatMessageDto>> Present(Guid user,IReadOnlyList<DirectMessage> messages,CancellationToken token)
+    {
+        var ids=messages.Select(m=>m.SharedCardId).OfType<Guid>().Distinct().ToArray();
+        var cards=await AvailableCards(user,ids).ToDictionaryAsync(c=>c.CardId!.Value,token);
+        return messages.Select(m=>new ChatMessageDto(m.Id,m.SenderId,m.Text,m.CreatedAtUtc,m.SharedCardId is {} id?
+            cards.GetValueOrDefault(id)??new SharedCardDto(null,null,"Картка недоступна","Немає доступу, картку видалено або архівовано.",false):null)).ToList();
+    }
+    public async Task<SharedCardDto> OpenShared(Guid user,Guid chat,long message,CancellationToken token)=>
+        await db.Database.CreateExecutionStrategy().ExecuteAsync(async()=>
+        {
+            await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead,token);
+            if(!await Mine(user).AnyAsync(c=>c.Id==chat,token))throw Missing();
+            var target=await db.DirectMessages.AsNoTracking().Where(m=>m.ChatId==chat&&m.Id==message).Select(m=>m.SharedCardId).SingleOrDefaultAsync(token);
+            if(target is null)throw CardMissing();
+            var result=await AvailableCards(user,[target.Value]).SingleOrDefaultAsync(token)??throw CardMissing();
+            await tx.CommitAsync(token);return result;
+        });
 }

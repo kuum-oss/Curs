@@ -125,6 +125,7 @@ public sealed class DirectMessage
     public Guid ChatId { get; set; }
     public Guid? SenderId { get; set; }
     public Guid ClientMessageId { get; set; }
+    public Guid? SharedCardId { get; set; }
     public string Text { get; set; } = "";
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
