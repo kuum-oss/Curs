@@ -36,16 +36,21 @@ public sealed class ChatThreadViewModel : IDisposable
     public ChatThreadViewModel(ChatDto chat,ChatViewModel owner){Chat=chat;Avatar=new(chat.Peer);OpenCommand=new(()=>_=owner.Open(chat));}
     public void Dispose()=>Avatar.Dispose();
 }
-public sealed class ChatMessageViewModel(ChatMessageDto message,Guid self)
+public sealed class ChatMessageViewModel(ChatMessageDto message,Guid self,ChatViewModel? owner=null)
 {
     public ChatMessageDto Message { get; }=message;
     public string Text=>Message.Text;
+    public bool HasSharedCard=>Message.SharedCard is not null;
+    public string SharedTitle=>Message.SharedCard?.Title??"";
+    public string SharedContext=>Message.SharedCard?.Context??"";
+    public string SharedOpenLabel=>Message.SharedCard?.CanOpen==true?"Відкрити картку":"Перевірити доступ";
+    public ActionCommand OpenSharedCommand{get;}=new(()=>{if(owner is not null)_=owner.OpenShared(message.Id);},()=>owner is not null&&!owner.IsBusy);
     public string Time=>Message.CreatedAtUtc.ToLocalTime().ToString("dd.MM · HH:mm");
     public string Author=>Message.SenderId==self?"Ви":Message.SenderId is null?"Видалений користувач":"";
     public HorizontalAlignment Alignment=>Message.SenderId==self?HorizontalAlignment.Right:HorizontalAlignment.Left;
     public IBrush Background=>Brush.Parse(Message.SenderId==self?"#DDF3F1":"#F0F3F8");
 }
-public sealed class ChatViewModel : ViewModelBase,IDisposable
+public sealed partial class ChatViewModel : ViewModelBase,IDisposable
 {
     private readonly ClientServices services;
     private CancellationTokenSource lifetime=new();
@@ -58,7 +63,7 @@ public sealed class ChatViewModel : ViewModelBase,IDisposable
     private readonly System.Collections.Generic.Dictionary<Guid,(string Text,Guid Nonce)> drafts=[];
     public ObservableCollection<ChatThreadViewModel> Threads{get;}=[];
     public ObservableCollection<ChatMessageViewModel> Messages{get;}=[];
-    public bool Active {get=>active;set{active=value;if(!value){NewLifetime();IsBusy=false;}}}
+    public bool Active {get=>active;set{active=value;if(!value){NewLifetime();IsBusy=false;CloseShare();}}}
     public bool HasConversation=>selected is not null;
     public bool NoConversation=>!HasConversation;
     public bool NoChats=>Threads.Count==0;
@@ -76,15 +81,15 @@ public sealed class ChatViewModel : ViewModelBase,IDisposable
     public ActionCommand OlderCommand{get;}
     public event Action? ScrollToEnd;
     public event Action? PrependingHistory;
-    public ChatViewModel(ClientServices services)
+    public ChatViewModel(ClientServices services,Action<Guid,Guid>? openCard=null)
     {
-        this.services=services;userId=services.Session.User?.Id;
+        this.services=services;this.openCard=openCard;userId=services.Session.User?.Id;
         SendCommand=new(()=>_=Send(),()=>CanSend&&!string.IsNullOrWhiteSpace(Draft)&&Draft.Length<=2000);
         OlderCommand=new(()=>_=Older(),()=>HasOlder&&!IsBusy);
-        services.Session.Changed+=SessionChanged;
+        InitializeSharing();services.Session.Changed+=SessionChanged;
     }
     private void SessionChanged(){var next=services.Session.User?.Id;if(next!=userId){Clear();userId=next;}}
-    private void Refresh(){Notify(nameof(CanSend));Notify(nameof(NoMessages));SendCommand.Refresh();OlderCommand.Refresh();}
+    private void Refresh(){Notify(nameof(CanSend));Notify(nameof(NoMessages));SendCommand.Refresh();OlderCommand.Refresh();RefreshSharing();foreach(var row in Messages)row.OpenSharedCommand.Refresh();}
     private void NotifySelection(){Notify(nameof(HasConversation));Notify(nameof(NoConversation));Notify(nameof(PeerName));Notify(nameof(PeerEmail));Notify(nameof(PeerUnavailable));Refresh();}
     private void SaveDraft(){if(selected is {} c)drafts[c.Id]=(draft,nonce);}
     private void RestoreDraft(){var d=selected is {} c?drafts.GetValueOrDefault(c.Id):default;draft=d.Text??"";nonce=d.Nonce==Guid.Empty?Guid.NewGuid():d.Nonce;Notify(nameof(Draft));}
@@ -108,7 +113,7 @@ public sealed class ChatViewModel : ViewModelBase,IDisposable
     public Task Open(ChatDto chat)=>Run(t=>Select(chat,t));
     private async Task Select(ChatDto chat,CancellationToken token)
     {
-        SaveDraft();selected=chat;RestoreDraft();Messages.Clear();fetchedThrough=0;HasOlder=false;NotifySelection();
+        CloseShare();SaveDraft();selected=chat;RestoreDraft();Messages.Clear();fetchedThrough=0;HasOlder=false;NotifySelection();
         var page=await services.Chats.Messages(chat.Id,token);token.ThrowIfCancellationRequested();
         Merge(page.Items);fetchedThrough=page.Items.LastOrDefault()?.Id??0;HasOlder=page.HasMore;ScrollToEnd?.Invoke();await MarkRead(token);
     }
@@ -126,7 +131,7 @@ public sealed class ChatViewModel : ViewModelBase,IDisposable
         foreach(var row in rows.Where(r=>Messages.All(m=>m.Message.Id!=r.Id)).OrderBy(r=>r.Id))
         {
             var index=0;while(index<Messages.Count&&Messages[index].Message.Id<row.Id)index++;
-            Messages.Insert(index,new(row,services.Session.User!.Id));
+            Messages.Insert(index,new(row,services.Session.User!.Id,this));
         }
         Notify(nameof(NoMessages));
     }
@@ -179,7 +184,7 @@ public sealed class ChatViewModel : ViewModelBase,IDisposable
     }
     public void Clear()
     {
-        NewLifetime();active=false;IsBusy=false;selected=null;draft="";drafts.Clear();Messages.Clear();
+        CloseShare();NewLifetime();active=false;IsBusy=false;selected=null;draft="";drafts.Clear();Messages.Clear();
         foreach(var row in Threads)row.Dispose();Threads.Clear();HasOlder=false;Error="";Notify(nameof(Draft));Notify(nameof(NoChats));NotifySelection();
     }
     public void Dispose(){services.Session.Changed-=SessionChanged;Clear();disposed=true;lifetime.Cancel();lifetime.Dispose();}

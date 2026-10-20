@@ -134,7 +134,7 @@ public sealed partial class BoardWorkspaceViewModel
     public void ShowSessionNotice(string notice)=>Status=notice;
     private void InitializePresentation()
     {
-        Profile=new(services);Chat=new(services);ChatsCommand=new(()=>Navigate(()=>_=ShowChats()));
+        Profile=new(services);Chat=new(services,(board,card)=>Navigate(()=>_=OpenLinkedCard(board,card)));ChatsCommand=new(()=>Navigate(()=>_=ShowChats()));
         BoardsCommand=new(()=>Navigate(()=>_=ShowPage("boards")));TasksCommand=new(()=>Navigate(()=>_=ShowPage("tasks")));TeamCommand=new(()=>Navigate(()=>_=ShowPage("team")));
         ArchiveCommand=new(()=>Navigate(()=>_=ShowPage("archive")));FavoritesCommand=new(()=>Navigate(()=>_=ShowPage("favorites")));ProfileCommand=new(()=>Navigate(()=>_=ShowProfile()));
         LogoutCommand=new(()=>Navigate(()=>services.Auth.Logout()));NewBoardCommand=new(()=>NewBoardVisible=true);
