@@ -1,0 +1,76 @@
+{
+  "verifiedAtUtc": "2026-10-20T16:15:43.638861+00:00",
+  "conceptRevision": "db175a8",
+  "serverRevision": "93827bb",
+  "clientRevision": "7a7e63d",
+  "acceptanceRevision": "82d1d45",
+  "tests": {
+    "total": "175",
+    "executed": "175",
+    "passed": "175",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0
+  },
+  "schema": {
+    "tables": 13,
+    "migrations": 8,
+    "pendingModelChanges": false,
+    "downgradeGuardTestPassed": true
+  },
+  "dockerHttp": {
+    "verifiedAtUtc": "2026-10-20T16:07:54.969812+00:00",
+    "httpRequests": 31,
+    "checks": [
+      "textless card share and idempotent message/notification",
+      "recipient opens the exact authorized card",
+      "revocation hides metadata and sharing does not grant access",
+      "existing link works after explicit access grant"
+    ],
+    "randomAccounts": 3,
+    "demoAccountsChanged": false
+  },
+  "notificationRegression": {
+    "verifiedAtUtc": "2026-10-20T16:14:03.541483+00:00",
+    "httpRequests": 26,
+    "checks": [
+      "four persisted notification types without message retry duplicates",
+      "deadline generation is idempotent",
+      "card deep link and read state",
+      "recipient isolation and anonymous rejection",
+      "chat deep link",
+      "read all persisted"
+    ],
+    "demoAccountsChanged": false,
+    "randomAccounts": 3
+  },
+  "native": {
+    "pickerAndSearchVerified": true,
+    "sharedMessagePersistedWithExactCard": true,
+    "typedDraftPreservedAfterSharingAndNavigation": true,
+    "cardEditorOpened": true,
+    "cachedLinkDeniedAfterRevocation": true,
+    "reopenedConversationHidesMetadata": true,
+    "signedOutAfterCheck": true
+  },
+  "disposableAccountsCleaned": 3,
+  "protectedDemosRemaining": 4,
+  "remainingOwnTemporaryAccounts": 0,
+  "existingVolume": "kanbanboard_sqlserver-data",
+  "containersHealthy": true
+}
