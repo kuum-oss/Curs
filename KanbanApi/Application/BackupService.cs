@@ -17,13 +17,14 @@ public sealed class BackupService(KanbanDbContext db,BoardAccess access,ImagePro
     public async Task<BoardBackup> Export(Guid user,Guid board,CancellationToken token)
     {
         var data=await Snapshot(user,board,true,token);var result=new BoardBackup("KanbanBoard",1,DateTime.UtcNow,Hash(data),data);
-        if(JsonSerializer.SerializeToUtf8Bytes(result,Json).Length>BackupLimits.MaxFileBytes)throw Large();return result;
+        if(JsonSerializer.SerializeToUtf8Bytes(result,Json).Length>BackupLimits.MaxFileBytes)throw Large();Validate(result);return result;
     }
     private Task<BackupBoard> Snapshot(Guid user,Guid id,bool media,CancellationToken token)=>db.Database.CreateExecutionStrategy().ExecuteAsync(async()=>
     {
         await using var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead,token);
         await access.RequireAsync(id,user,false,token);var b=await db.Boards.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,token)??throw BoardAccess.NotFound();
         await access.RequireAsync(id,user,false,token);
+        if(await db.Columns.CountAsync(x=>x.BoardId==id,token)>200||await db.Tags.CountAsync(x=>x.BoardId==id,token)>500)throw Large();
         var cols=await db.Columns.AsNoTracking().Where(x=>x.BoardId==id).OrderBy(x=>x.Position).ThenBy(x=>x.Id).ToListAsync(token);var colids=cols.Select(x=>x.Id).ToArray();
         var query=db.Cards.AsNoTracking().Where(x=>colids.Contains(x.ColumnId));if(await query.CountAsync(token)>BackupLimits.MaxCards)throw Large();
         var cards=await query.OrderBy(x=>x.Position).ThenBy(x=>x.Id).ToListAsync(token);var ids=cards.Select(x=>x.Id).ToArray();
