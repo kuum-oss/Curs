@@ -20,6 +20,7 @@ public sealed class User
 
 public sealed class Board
 {
+    public string? RestoreChecksum { get; set; }
     public Guid? OwnerId { get; set; }
     public bool IsArchived { get; set; }
     public byte[]? CoverOriginalData { get; set; }
@@ -56,6 +57,7 @@ public sealed class BoardColumn
 
 public sealed class Card
 {
+    public string? SourceAssigneeName { get; set; }
     public bool IsArchived { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ColumnId { get; set; }
@@ -101,6 +103,7 @@ public sealed class CardImage
 
 public sealed class Comment
 {
+    public string? SourceAuthorName { get; set; }
     public byte[] RowVersion { get; set; } = [];
     public DateTime? EditedAtUtc { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();

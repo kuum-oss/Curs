@@ -111,7 +111,7 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access, Notif
             .Select(g => new { Id = g.Key, Total = g.Count(), Done = g.Count(i => i.IsCompleted) }).ToDictionaryAsync(g => g.Id, token);
         return cards.Select(c => new CardSummaryDto(c.Id, c.ColumnId, c.Title, c.DueDate, c.Priority,
             c.AssigneeId is Guid id ? users.GetValueOrDefault(id) : null, c.Position, tags.Where(t => t.CardId == c.Id).Select(t => t.Tag).ToList(),
-            images.Contains(c.Id), Convert.ToBase64String(c.RowVersion), c.Description, comments.GetValueOrDefault(c.Id), c.IsArchived, checks.GetValueOrDefault(c.Id)?.Done ?? 0, checks.GetValueOrDefault(c.Id)?.Total ?? 0)).ToList();
+            images.Contains(c.Id), Convert.ToBase64String(c.RowVersion), c.Description, comments.GetValueOrDefault(c.Id), c.IsArchived, checks.GetValueOrDefault(c.Id)?.Done ?? 0, checks.GetValueOrDefault(c.Id)?.Total ?? 0, c.SourceAssigneeName)).ToList();
     }
     private async Task<CardDetailsDto> Details(Card card, CancellationToken token)
     {
@@ -140,6 +140,7 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access, Notif
             await db.Tags.CountAsync(x => x.BoardId == boardId && request.TagIds.Contains(x.Id), token) != request.TagIds.Count)
             throw new ApiException(400, "invalid_tags", "Теги мають бути унікальними й належати цій дошці.");
         card.Title = request.Title.Trim(); card.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+        if(card.AssigneeId!=request.AssigneeId||request.AssigneeId is not null)card.SourceAssigneeName=null;
         card.DueDate = request.DueDate; card.Priority = request.Priority; card.AssigneeId = request.AssigneeId; card.UpdatedAtUtc = DateTime.UtcNow;
         await db.CardTags.Where(x => x.CardId == card.Id).ExecuteDeleteAsync(token);
         foreach (var tag in request.TagIds) db.CardTags.Add(new CardTag { CardId = card.Id, TagId = tag });
@@ -214,7 +215,7 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access, Notif
         var query = db.Comments.Where(x => x.CardId == cardId); var total = await query.CountAsync(token);
         var rows = await (from c in query join author in db.Users on c.AuthorId equals author.Id into authors
                           from u in authors.DefaultIfEmpty() orderby c.CreatedAtUtc, c.Id
-                          select new CommentDto(c.Id, c.CardId, u == null ? new UserDto(Guid.Empty, "", "Видалений користувач") : new UserDto(u.Id, u.Email, u.Name, Convert.ToBase64String(u.RowVersion), u.AvatarData != null), c.Text, c.CreatedAtUtc, Convert.ToBase64String(c.RowVersion), c.EditedAtUtc))
+                          select new CommentDto(c.Id, c.CardId, u == null ? new UserDto(Guid.Empty, "", c.SourceAuthorName==null?"Видалений користувач":c.SourceAuthorName+" · з копії") : new UserDto(u.Id, u.Email, u.Name, Convert.ToBase64String(u.RowVersion), u.AvatarData != null), c.Text, c.CreatedAtUtc, Convert.ToBase64String(c.RowVersion), c.EditedAtUtc))
             .Skip(page.Offset).Take(page.Limit).ToListAsync(token);
         await access.RequireAsync(boardId, userId, false, token); return new(rows, total, page.Offset, page.Limit);
     }

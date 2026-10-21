@@ -29,7 +29,7 @@ public sealed class AccountDeletionMigrationTests(SqlFixture fixture)
             await db.Database.MigrateAsync();db.ChangeTracker.Clear();Assert.Equal(user.Id,(await db.Cards.FindAsync(card.Id))!.CreatedById);Assert.Equal(user.Id,(await db.Comments.FindAsync(comment.Id))!.AuthorId);Assert.Equal("Збережений коментар",(await db.Comments.FindAsync(comment.Id))!.Text);
             (await db.Cards.FindAsync(card.Id))!.CreatedById=null;(await db.Comments.FindAsync(comment.Id))!.AuthorId=null;await db.SaveChangesAsync();
             var error=await Assert.ThrowsAsync<SqlException>(()=>db.GetService<IMigrator>().MigrateAsync(previous));Assert.Equal(50001,error.Number);
-            Assert.Contains(await db.Database.GetAppliedMigrationsAsync(),m=>m.EndsWith("AccountDeletionAuthors"));db.ChangeTracker.Clear();Assert.Null((await db.Comments.FindAsync(comment.Id))!.AuthorId);Assert.Equal("Збережена картка",(await db.Cards.FindAsync(card.Id))!.Title);
+            Assert.Contains(await db.Database.GetAppliedMigrationsAsync(),m=>m.EndsWith("AccountDeletionAuthors"));db.ChangeTracker.Clear();Assert.Null(await db.Comments.Where(c=>c.Id==comment.Id).Select(c=>c.AuthorId).SingleAsync());Assert.Equal("Збережена картка",await db.Cards.Where(c=>c.Id==card.Id).Select(c=>c.Title).SingleAsync());
         }
         finally{await db.Database.EnsureDeletedAsync();}
     }

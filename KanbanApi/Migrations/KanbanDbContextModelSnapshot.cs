@@ -57,6 +57,11 @@ namespace KanbanApi.Migrations
                     b.Property<Guid?>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("RestoreChecksum")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
@@ -180,6 +185,10 @@ namespace KanbanApi.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
+
+                    b.Property<string>("SourceAssigneeName")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -330,6 +339,10 @@ namespace KanbanApi.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
+
+                    b.Property<string>("SourceAuthorName")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
 
                     b.Property<string>("Text")
                         .IsRequired()

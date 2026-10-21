@@ -28,7 +28,7 @@ public sealed record ColumnDto(Guid Id, Guid BoardId, string Name, int Position,
 public sealed record TagDto(Guid Id, string Name, string Color);
 public sealed record CardSummaryDto(Guid Id, Guid ColumnId, string Title, DateOnly? DueDate,
     CardPriority Priority, UserDto? Assignee, int Position, IReadOnlyList<TagDto> Tags,
-    bool HasImage, string Version, string? Description = null, int CommentCount = 0, bool IsArchived = false, int ChecklistCompleted = 0, int ChecklistTotal = 0);
+    bool HasImage, string Version, string? Description = null, int CommentCount = 0, bool IsArchived = false, int ChecklistCompleted = 0, int ChecklistTotal = 0, string? SourceAssigneeName = null);
 public sealed record CardDetailsDto(CardSummaryDto Card, string? Description,
     string? ImageContentType, DateTime CreatedAtUtc, DateTime UpdatedAtUtc, IReadOnlyList<ChecklistItemDto>? Checklist = null);
 public sealed record CommentDto(Guid Id, Guid CardId, UserDto Author, string Text, DateTime CreatedAtUtc, string? Version = null, DateTime? EditedAtUtc = null);

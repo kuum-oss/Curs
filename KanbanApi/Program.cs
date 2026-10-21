@@ -41,6 +41,7 @@ builder.Services.AddScoped<BoardAccess>();
 builder.Services.AddScoped<BoardService>();
 builder.Services.AddScoped<ContentService>();
 builder.Services.AddScoped<CalendarService>();
+builder.Services.AddScoped<BackupService>();
 builder.Services.AddScoped<OrderingService>();
 builder.Services.AddSingleton<ImageProcessor>();
 builder.Services.AddScoped<ImageService>();

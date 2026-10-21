@@ -44,6 +44,7 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         board.Property(x => x.CoverOriginalData).HasColumnType("varbinary(max)");
         board.Property(x => x.CoverThumbnailData).HasColumnType("varbinary(max)");
         board.Property(x => x.CoverContentType).HasMaxLength(50).IsUnicode(false);
+        board.Property(x=>x.RestoreChecksum).HasMaxLength(64).IsUnicode(false);
         board.Property(x => x.Name).HasMaxLength(FieldLimits.BoardName).IsRequired();
         board.Property(x => x.Description).HasMaxLength(FieldLimits.BoardDescription);
         board.Property(x => x.RowVersion).IsRowVersion();
@@ -72,6 +73,7 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
             t.HasCheckConstraint("CK_Cards_Description", "[Description] IS NULL OR DATALENGTH([Description]) <= 20000");
         });
         card.HasKey(x => x.Id);
+        card.Property(x=>x.SourceAssigneeName).HasMaxLength(160);
         card.Property(x => x.Title).HasMaxLength(FieldLimits.CardTitle).IsRequired();
         card.Property(x => x.Description).HasColumnType("nvarchar(max)");
         card.Property(x => x.DueDate).HasColumnType("date");
@@ -115,6 +117,7 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         comment.ToTable("Comments");
         comment.HasKey(x => x.Id);
         comment.Property(x => x.RowVersion).IsRowVersion();
+        comment.Property(x=>x.SourceAuthorName).HasMaxLength(160);
         comment.Property(x => x.Text).HasMaxLength(FieldLimits.Comment).IsRequired();
         comment.HasOne<Card>().WithMany().HasForeignKey(x => x.CardId);
         comment.HasOne<User>().WithMany().HasForeignKey(x => x.AuthorId);
