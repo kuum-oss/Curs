@@ -18,6 +18,7 @@ public sealed class ClientServices : IDisposable
     public RememberedSession Remembered { get; }
     public ChatService Chats { get; }
     public NotificationService Notifications { get; }
+    public CalendarService Calendar { get; }
 
     public ClientServices(Uri baseAddress, Action<Action>? dispatch = null, HttpMessageHandler? transport = null, ISessionStore? sessionStore = null)
     {
@@ -41,6 +42,7 @@ public sealed class ClientServices : IDisposable
         Boards = new BoardService(Api);
         Chats = new ChatService(Api);
         Notifications = new NotificationService(Api);
+        Calendar = new CalendarService(Api);
         Content = new ContentService(Api);
         Profile = new ProfileService(Api,Session);
         Images = new ImageService(Api, Session);
