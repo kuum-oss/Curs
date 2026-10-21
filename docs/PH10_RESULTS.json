@@ -26,5 +26,44 @@
     "p95Ms": 342.64,
     "scope": "statistics endpoint; same disposable board, local Docker API"
   },
-  "nativeAcceptance": "in progress; overview and drawer verified; awaiting unlocked Mac for final card-history and filter checks"
+  "nativeAcceptance": {
+    "completedOn": "2026-10-22",
+    "checks": [
+      "overview and drawer match approved block composition",
+      "all four KPI cards and seven bars",
+      "all four workload rows and scroll",
+      "board history to correct card",
+      "card-local history and before-after fields",
+      "deadline filter and automatic priority filter",
+      "search with empty result",
+      "unsaved card title survives details/history round trip",
+      "unsaved title not persisted to API",
+      "completion setting saved in UI and survives restart",
+      "ordinary and fullscreen windows",
+      "logout clears session"
+    ],
+    "screenshots": "screenshots/history-statistics/",
+    "automationLimit": "Direct AX setValue on a ComboBox restarted the native process; final selection checks used normal option clicks."
+  },
+  "finalDeployedApi": {
+    "fixedToday": "2026-10-21",
+    "completionSettingPersistedAfterClientRestart": true,
+    "unsavedDraftDidNotWrite": true,
+    "chronologicalHistory": true,
+    "priorityFilter": true,
+    "statisticsMatchFixture": true,
+    "load": {
+      "concurrentRequests": 20,
+      "successful": 20,
+      "maxMs": 609.61,
+      "p95Ms": 507.65,
+      "scope": "statistics endpoint; same disposable board, local Docker API; final deployed code"
+    }
+  },
+  "cleanup": {
+    "protectedDemoAccountsPresent": 4,
+    "remainingDisposableInsightsAccounts": 0,
+    "migrations": 10,
+    "domainTables": 14
+  }
 }
