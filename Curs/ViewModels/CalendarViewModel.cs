@@ -31,6 +31,7 @@ public sealed class CalendarDayViewModel(DateOnly date,DateOnly anchor,IReadOnly
 public sealed class CalendarViewModel:ViewModelBase,IDisposable
 {
     private readonly ClientServices services;
+    private Guid? userId;
     private readonly Action<Guid,Guid> open;
     private CancellationTokenSource lifetime=new();
     private DateOnly anchor=DateOnly.FromDateTime(DateTime.Today);
@@ -65,13 +66,13 @@ public sealed class CalendarViewModel:ViewModelBase,IDisposable
     public ActionCommand RefreshCommand{get;}
     public CalendarViewModel(ClientServices services,Action<Guid,Guid> open)
     {
-        this.services=services;this.open=open;
+        this.services=services;this.open=open;userId=services.Session.User?.Id;
         PreviousCommand=new(()=>_=Navigate(-1),()=>CanEdit&&anchor.Year>1900);NextCommand=new(()=>_=Navigate(1),()=>CanEdit&&anchor.Year<9998);
         TodayCommand=new(()=>_=SetAnchor(DateOnly.FromDateTime(DateTime.Today)),()=>CanEdit);WeekCommand=new(()=>_=SetMode(true),()=>CanEdit);MonthCommand=new(()=>_=SetMode(false),()=>CanEdit);RefreshCommand=new(()=>_=Refresh(),()=>CanEdit);
         services.Session.Changed+=SessionChanged;
     }
     public static DateOnly Monday(DateOnly date)=>date.AddDays(-(((int)date.DayOfWeek+6)%7));
-    private void SessionChanged(){if(services.Session.User is null)Clear();}
+    private void SessionChanged(){var next=services.Session.User?.Id;if(next!=userId){Clear();userId=next;}}
     public async Task Show()
     {
         Active=true;await Run(async t=>{var people=await services.Content.Team(t);t.ThrowIfCancellationRequested();var selected=assignee;Assignees.Clear();Assignees.Add(new(null,"Усі виконавці"));Assignees.Add(new(null,"Без виконавця",true));foreach(var u in people)Assignees.Add(new(u.Id,u.Name));assignee=Assignees.FirstOrDefault(x=>x.Id==selected?.Id&&x.Unassigned==(selected?.Unassigned??false))??Assignees[0];Notify(nameof(Assignee));await Load(t);});

@@ -19,6 +19,7 @@ public sealed class ClientServices : IDisposable
     public ChatService Chats { get; }
     public NotificationService Notifications { get; }
     public CalendarService Calendar { get; }
+    public BackupService Backups { get; }
 
     public ClientServices(Uri baseAddress, Action<Action>? dispatch = null, HttpMessageHandler? transport = null, ISessionStore? sessionStore = null)
     {
@@ -36,13 +37,14 @@ public sealed class ClientServices : IDisposable
             PooledConnectionLifetime = TimeSpan.FromSeconds(5),
             ConnectTimeout = TimeSpan.FromSeconds(3)
         } })
-        { BaseAddress = baseAddress, Timeout = TimeSpan.FromSeconds(10) };
+        { BaseAddress = baseAddress, Timeout = TimeSpan.FromMinutes(2) };
         Api = new ApiClient(http);
         Auth = new AuthService(Api, Session, Navigation);
         Boards = new BoardService(Api);
         Chats = new ChatService(Api);
         Notifications = new NotificationService(Api);
         Calendar = new CalendarService(Api);
+        Backups = new BackupService(Api);
         Content = new ContentService(Api);
         Profile = new ProfileService(Api,Session);
         Images = new ImageService(Api, Session);

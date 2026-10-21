@@ -22,7 +22,7 @@ public sealed partial class CardItemViewModel : ViewModelBase, IDisposable
     public void Dispose() { var old = Thumbnail; Thumbnail = null; old?.Dispose(); Avatar?.Dispose(); }
     public CardSummaryDto Card { get; }
     public string Title => Card.Title;
-    public string Summary => $"{Card.Priority} · {Card.DueDate?.ToString("yyyy-MM-dd") ?? "Без дедлайну"}\n{Card.Assignee?.Name ?? "Без відповідального"}";
+    public string Summary => $"{Card.Priority} · {Card.DueDate?.ToString("yyyy-MM-dd") ?? "Без дедлайну"}\n{Card.Assignee?.Name ?? (Card.SourceAssigneeName is {} name?name+" · з копії (не призначено)":"Без відповідального")}";
     public string Tags => string.Join(" · ", Card.Tags.Select(t => t.Name));
     public ActionCommand OpenCommand { get; }
     public CardItemViewModel(CardSummaryDto card, BoardContentViewModel workspace)
@@ -214,6 +214,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     public bool CanDeleteColumn => selectedColumn is not null && board is not null && (board.Role == BoardRole.Admin || board.CanDeleteCards || !Columns.SelectMany(c => c.Cards).Any(c => c.Card.ColumnId == selectedColumn.Id));
     public bool HasColumn => selectedColumn is not null;
     public bool EditorVisible { get => editor; private set { editor = value; Notify();Notify(nameof(AnyDialogVisible)); } }
+    public string SourceAssigneeNotice=>selectedCard?.Card.SourceAssigneeName is {} name?"Виконавець у копії: "+name+". Призначте учасника цієї дошки.":"";
     public bool ExistingCard => selectedCard is not null;
     public string EditorHeading => selectedCard is null ? "Нова картка" : "Редагування картки";
     public bool ShowConfirmation => pendingDelete is not null;
@@ -510,6 +511,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private void NotifyState()
     {
+        Notify(nameof(SourceAssigneeNotice));
         foreach (var name in new[] { nameof(CanCreate), nameof(CanDeleteCard), nameof(CanDeleteColumn), nameof(HasColumn), nameof(ExistingCard), nameof(EditorHeading), nameof(ShowConfirmation), nameof(ConfirmationText) }) Notify(name);
         NotifyPresentation();RefreshCommands();
         NotifyDrag();

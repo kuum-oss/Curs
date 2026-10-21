@@ -33,8 +33,10 @@ public sealed class ApiClient(HttpClient http)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    public async Task<T?> SendAsync<T>(HttpMethod method, string path, object? payload = null, CancellationToken cancellationToken = default, string? accessToken = null)
+    public async Task<T?> SendAsync<T>(HttpMethod method, string path, object? payload = null, CancellationToken cancellationToken = default, string? accessToken = null, TimeSpan? timeout = null)
     {
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(timeout??TimeSpan.FromSeconds(10));cancellationToken=deadline.Token;
         // Relative paths keep credentials on the configured API host.
         if (!Uri.TryCreate(path, UriKind.Relative, out _) || path.StartsWith("//", StringComparison.Ordinal))
             throw new ArgumentException("Use a relative API path.", nameof(path));
@@ -47,14 +49,16 @@ public sealed class ApiClient(HttpClient http)
         if (response.StatusCode == HttpStatusCode.NoContent) return default;
         return await response.Content.ReadFromJsonAsync<T>(Json, cancellationToken);
     }
-    public async Task<byte[]> BytesAsync(string path, CancellationToken token)
+    public async Task<byte[]> BytesAsync(string path, CancellationToken token, TimeSpan? timeout = null)
     {
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(token);deadline.CancelAfter(timeout??TimeSpan.FromSeconds(10));token=deadline.Token;
         ValidatePath(path);
         using var response = await http.GetAsync(path, token); await EnsureSuccess(response, token);
         return await response.Content.ReadAsByteArrayAsync(token);
     }
     public async Task<T?> MultipartAsync<T>(string path, HttpContent content, CancellationToken token)
     {
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(token);deadline.CancelAfter(TimeSpan.FromSeconds(10));token=deadline.Token;
         ValidatePath(path);
         using var response = await http.PutAsync(path, content, token); await EnsureSuccess(response, token);
         return await response.Content.ReadFromJsonAsync<T>(Json, token);

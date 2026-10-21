@@ -84,11 +84,14 @@ public sealed partial class BoardWorkspaceViewModel
     public UserDto? CurrentUser=>services.Session.User;
     public AvatarViewModel? CurrentAvatar{get=>currentAvatar;private set{currentAvatar?.Dispose();currentAvatar=value;Notify();}}
     public string UserName=>CurrentUser?.Name??"";
-    public string Page{get=>page;private set{page=value;if(Chat is not null&&value!="chats")Chat.Active=false;if(Calendar is not null&&value!="calendar")Calendar.Active=false;NotifyPresentation();}}
+    public string Page{get=>page;private set{page=value;if(Chat is not null&&value!="chats")Chat.Active=false;if(Calendar is not null&&value!="calendar")Calendar.Active=false;if(Backups is not null&&value!="backups")Backups.Active=false;NotifyPresentation();}}
     public bool BoardsVisible=>Page is "boards" or "archive" or "favorites";
     public bool BoardVisible=>Page=="board"&&ShowBoard;
     public bool TasksVisible=>Page=="tasks";
     public bool TeamVisible=>Page=="team";
+    public bool BackupsVisible=>Page=="backups";
+    public BackupViewModel Backups{get;private set;}=null!;
+    public ActionCommand BackupsCommand{get;private set;}=null!;
     public bool CalendarVisible=>Page=="calendar";
     public CalendarViewModel Calendar{get;private set;}=null!;
     public ActionCommand CalendarCommand{get;private set;}=null!;
@@ -137,6 +140,7 @@ public sealed partial class BoardWorkspaceViewModel
     public void ShowSessionNotice(string notice)=>Status=notice;
     private void InitializePresentation()
     {
+        Backups=new(services,id=>Navigate(()=>_=OpenVisualAsync(id)));BackupsCommand=new(()=>Navigate(()=>_=ShowBackups()));
         Calendar=new(services,(board,card)=>Navigate(()=>_=OpenLinkedCard(board,card)));CalendarCommand=new(()=>Navigate(()=>_=ShowCalendar()));
         Profile=new(services);Chat=new(services,(board,card)=>Navigate(()=>_=OpenLinkedCard(board,card)));ChatsCommand=new(()=>Navigate(()=>_=ShowChats()));
         BoardsCommand=new(()=>Navigate(()=>_=ShowPage("boards")));TasksCommand=new(()=>Navigate(()=>_=ShowPage("tasks")));TeamCommand=new(()=>Navigate(()=>_=ShowPage("team")));
@@ -150,7 +154,7 @@ public sealed partial class BoardWorkspaceViewModel
     }
     private void Navigate(Action next)
     {
-        if(IsBusy||Content.IsBusy||Profile.IsBusy)return;
+        if(IsBusy||Content.IsBusy||Profile.IsBusy||Backups.IsBusy)return;
         if(HasDraft){pendingNavigation=next;NavigationConfirmation=true;}else next();
     }
     private async Task ShowProfile(){Content.Clear();selected=null;Page="profile";await Profile.Open();}
@@ -161,6 +165,7 @@ public sealed partial class BoardWorkspaceViewModel
         if(next is "tasks" or "archive")await LoadOverview(next=="archive");
         if(next=="team")await RunAsync(async t=>{foreach(var old in Team)old.Dispose();Team.Clear();foreach(var user in await services.Content.Team(t)){var person=new TeamPersonViewModel(user,services.Session.User!.Id,peer=>Navigate(()=>_=ShowChats(peer)));Team.Add(person);_=person.Avatar.Load(services);}});
     }
+    private async Task ShowBackups(){Content.Clear();selected=null;CloseDialogs();Page="backups";NotifyBoard();await Backups.Show();}
     private async Task ShowCalendar(){Content.Clear();selected=null;CloseDialogs();Page="calendar";NotifyBoard();await Calendar.Show();}
     private async Task ShowChats(UserDto? peer=null){Content.Clear();selected=null;CloseDialogs();Page="chats";NotifyBoard();await Chat.Show(peer);}
     public Task OpenVisualAsync(Guid id)
@@ -215,7 +220,7 @@ public sealed partial class BoardWorkspaceViewModel
         RecentBoards.Clear();foreach(var tile in Boards.Where(b=>!b.Board.IsArchived).OrderByDescending(b=>b.Board.LastOpenedAtUtc).Take(5))RecentBoards.Add(tile);
         Notify(nameof(NoVisibleBoards));
     }
-    private void NotifyPresentation(){foreach(var name in new[]{nameof(IsBoardsPage),nameof(IsFavoritesPage),nameof(HeaderMembers),nameof(BoardsVisible),nameof(BoardVisible),nameof(TasksVisible),nameof(TeamVisible),nameof(ChatsVisible),nameof(CalendarVisible),nameof(ProfileVisible),nameof(IsArchive),nameof(PageTitle),nameof(PageSubtitle),nameof(FavoriteIcon),nameof(ArchiveLabel),nameof(MembersLabel)})Notify(name);RefreshTiles();}
-    private void ResetPresentation(){Calendar.Clear();Chat.Clear();CancelPresentation();CloseDialogs();Page="boards";foreach(var old in OverviewCards)old.Dispose();OverviewCards.Clear();foreach(var old in Team)old.Dispose();Team.Clear();Profile.Clear();CurrentAvatar=null;NavigationConfirmation=false;pendingNavigation=null;}
-    private void DisposePresentation(){Calendar.Dispose();Chat.Dispose();Profile.Dispose();CurrentAvatar=null;foreach(var old in OverviewCards)old.Dispose();foreach(var old in Team)old.Dispose();}
+    private void NotifyPresentation(){foreach(var name in new[]{nameof(IsBoardsPage),nameof(IsFavoritesPage),nameof(HeaderMembers),nameof(BoardsVisible),nameof(BoardVisible),nameof(TasksVisible),nameof(TeamVisible),nameof(ChatsVisible),nameof(CalendarVisible),nameof(BackupsVisible),nameof(ProfileVisible),nameof(IsArchive),nameof(PageTitle),nameof(PageSubtitle),nameof(FavoriteIcon),nameof(ArchiveLabel),nameof(MembersLabel)})Notify(name);RefreshTiles();}
+    private void ResetPresentation(){Backups.Clear();Calendar.Clear();Chat.Clear();CancelPresentation();CloseDialogs();Page="boards";foreach(var old in OverviewCards)old.Dispose();OverviewCards.Clear();foreach(var old in Team)old.Dispose();Team.Clear();Profile.Clear();CurrentAvatar=null;NavigationConfirmation=false;pendingNavigation=null;}
+    private void DisposePresentation(){Backups.Dispose();Calendar.Dispose();Chat.Dispose();Profile.Dispose();CurrentAvatar=null;foreach(var old in OverviewCards)old.Dispose();foreach(var old in Team)old.Dispose();}
 }
