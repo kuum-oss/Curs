@@ -56,6 +56,7 @@ public sealed partial class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     public ObservableCollection<BoardListItemViewModel> Boards { get; } = [];
     public ObservableCollection<MemberViewModel> Members { get; } = [];
     public BoardContentViewModel Content { get; }
+    public BoardInsightsViewModel Insights { get; private set; } = null!;
     public ActionCommand OpenContentCommand { get; }
     public BoardDetailsDto? SelectedBoard => selected;
     public bool ShowList => selected is null;
@@ -239,10 +240,10 @@ public sealed partial class BoardWorkspaceViewModel : ViewModelBase, IDisposable
     }
     public void Clear()
     {
-        Notifications?.Clear(); Content.Clear();
+        Insights?.Clear(); Notifications?.Clear(); Content.Clear();
         operation?.Cancel(); operation = null; IsBusy = false;
         foreach(var old in Boards)old.Dispose(); foreach(var old in Members)old.Avatar.Dispose(); Boards.Clear(); Members.Clear(); ResetPresentation(); selected = null; NewName = ""; NewDescription = ""; EditName = ""; EditDescription = ""; MemberEmail = "";
         Error = ""; Status = ""; CancelConfirmation(); NotifyBoard(); Notify(nameof(HasBoards)); Notify(nameof(IsEmpty));
     }
-    public void Dispose() { Clear(); Notifications.Dispose(); DisposePresentation(); presentationLifetime.Cancel();presentationLifetime.Dispose(); Content.Dispose(); services.Session.Changed -= SessionChanged; services.Navigation.Changed -= NavigationChanged; }
+    public void Dispose() { Clear(); Insights.Dispose(); Notifications.Dispose(); DisposePresentation(); presentationLifetime.Cancel();presentationLifetime.Dispose(); Content.Dispose(); services.Session.Changed -= SessionChanged; services.Navigation.Changed -= NavigationChanged; }
 }

@@ -84,7 +84,7 @@ public sealed partial class BoardWorkspaceViewModel
     public UserDto? CurrentUser=>services.Session.User;
     public AvatarViewModel? CurrentAvatar{get=>currentAvatar;private set{currentAvatar?.Dispose();currentAvatar=value;Notify();}}
     public string UserName=>CurrentUser?.Name??"";
-    public string Page{get=>page;private set{page=value;if(Chat is not null&&value!="chats")Chat.Active=false;if(Calendar is not null&&value!="calendar")Calendar.Active=false;if(Backups is not null&&value!="backups")Backups.Active=false;NotifyPresentation();}}
+    public string Page{get=>page;private set{page=value;if(value!="board")Insights?.Clear();if(Chat is not null&&value!="chats")Chat.Active=false;if(Calendar is not null&&value!="calendar")Calendar.Active=false;if(Backups is not null&&value!="backups")Backups.Active=false;NotifyPresentation();}}
     public bool BoardsVisible=>Page is "boards" or "archive" or "favorites";
     public bool BoardVisible=>Page=="board"&&ShowBoard;
     public bool TasksVisible=>Page=="tasks";
@@ -150,6 +150,7 @@ public sealed partial class BoardWorkspaceViewModel
         CloseDialogCommand=new(()=>{if(!IsBusy)CloseDialogs();});SaveMembersCommand=new(()=>_=SaveMembers(),()=>!IsBusy&&IsAdmin);
         FavoriteCommand=new(()=>_=FavoriteSelected());ArchiveBoardCommand=new(()=>_=ArchiveSelected());RemoveBoardCoverCommand=new(()=>_=RemoveBoardCover());
         StayCommand=new(()=>{pendingNavigation=null;NavigationConfirmation=false;});DiscardNavigationCommand=new(()=>{var next=pendingNavigation;pendingNavigation=null;NavigationConfirmation=false;Profile.CancelDeleteAccount();CloseDialogs();Content.CloseEditor();next?.Invoke();});
+        Insights=new(services,e=>Navigate(()=>_=OpenLinkedCard(e.BoardId,e.CardId)));
         RefreshIdentity();
     }
     private void Navigate(Action next)
@@ -176,6 +177,7 @@ public sealed partial class BoardWorkspaceViewModel
     {
         await OpenAsync(id);if(selected?.Id!=id)return;Page="board";CloseDialogs();await Content.OpenAsync(id);
         if(Content.BoardId!=id)return;
+        await Insights.Open(id,BoardTitle,IsAdmin,Members.Select(m=>m.Member.User));
         try{await services.Boards.Visit(id,CancellationToken.None);}catch(Exception){}
         foreach(var member in Members)_=member.Avatar.Load(services);
         await LoadAsync();

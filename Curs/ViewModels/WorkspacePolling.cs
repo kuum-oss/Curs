@@ -27,7 +27,7 @@ public sealed partial class BoardWorkspaceViewModel
                     }
                     var members=await services.Boards.MembersAsync(boardId,token);token.ThrowIfCancellationRequested();
                     if(IsBusy||HasDraft||selected?.Id!=id||Page!=originalPage)return;
-                    selected=metadata;foreach(var old in Members)old.Avatar.Dispose();Members.Clear();foreach(var member in members){var row=new MemberViewModel(member,this);Members.Add(row);_=row.Avatar.Load(services);}NotifyBoard();
+                    selected=metadata;Insights.SetAdmin(metadata.Role==BoardRole.Admin);await Insights.Refresh();if(Insights.IsHistory)await Insights.History.Load();foreach(var old in Members)old.Avatar.Dispose();Members.Clear();foreach(var member in members){var row=new MemberViewModel(member,this);Members.Add(row);_=row.Avatar.Load(services);}NotifyBoard();
                 }
             }
             else if(BoardsVisible)

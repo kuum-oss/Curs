@@ -20,6 +20,7 @@ public sealed class ClientServices : IDisposable
     public NotificationService Notifications { get; }
     public CalendarService Calendar { get; }
     public BackupService Backups { get; }
+    public InsightsService Insights { get; }
 
     public ClientServices(Uri baseAddress, Action<Action>? dispatch = null, HttpMessageHandler? transport = null, ISessionStore? sessionStore = null)
     {
@@ -45,6 +46,7 @@ public sealed class ClientServices : IDisposable
         Notifications = new NotificationService(Api);
         Calendar = new CalendarService(Api);
         Backups = new BackupService(Api);
+        Insights = new InsightsService(Api);
         Content = new ContentService(Api);
         Profile = new ProfileService(Api,Session);
         Images = new ImageService(Api, Session);

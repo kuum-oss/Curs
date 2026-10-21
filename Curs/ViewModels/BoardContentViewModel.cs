@@ -98,10 +98,12 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     public ActionCommand ResetFiltersCommand { get; }
     public ActionCommand RemoveCoverCommand { get; }
     public Task Filtering { get; private set; } = Task.CompletedTask;
+    public string FiltersLabel => "Фільтри" + (new object?[]{FilterPriority?.Value,FilterDeadline?.Value,FilterTag?.Id,FilterAssignee?.Id}.Count(x=>x is not null) is var n && n>0 ? $" ({n})" : "");
     private CardQuery Query() => new() { Search=Search,Priority=FilterPriority?.Value,TagId=FilterTag?.Id,AssigneeId=FilterAssignee?.Id,Deadline=FilterDeadline?.Value,Today=localToday() };
     private void ScheduleFilters()
     {
         if(suppressFilters)return;
+        Notify(nameof(FiltersLabel));
         filterRevision++; CardsFiltered=!string.IsNullOrWhiteSpace(Search)||FilterPriority?.Value is not null||FilterTag?.Id is not null||FilterAssignee?.Id is not null||FilterDeadline?.Value is not null;
         filterDelay?.Cancel();filterDelay?.Dispose();filterDelay=new(); if(filtering)operation?.Cancel();
         if(board is null)return;
@@ -345,7 +347,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     public Task OpenCardAsync(Guid id) => Run(async token =>
     {
         var card = await services.Content.Card(id, token); var comments = await GetComments(id, token); token.ThrowIfCancellationRequested();
-        selectedCard = card; selectedColumn = Columns.Single(c => c.Column.Id == card.Card.ColumnId).Column; ColumnName = selectedColumn.Name;
+        ResetCardHistory(); selectedCard = card; selectedColumn = Columns.Single(c => c.Column.Id == card.Card.ColumnId).Column; ColumnName = selectedColumn.Name;
         LoadChecklist(card.Checklist);
         Title = card.Card.Title; Description = card.Description ?? ""; DueDate = card.Card.DueDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? ""; Priority = card.Card.Priority;
         Assignee = Assignees.FirstOrDefault(a => a.Id == card.Card.Assignee?.Id) ?? Assignees.FirstOrDefault();
@@ -407,7 +409,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         else return;
         token.ThrowIfCancellationRequested(); CloseEditor(); selectedColumn = null; await Load(board.Id, token); NotifyState(); Status = "Видалення завершено.";
     });
-    public void CloseEditor() { MentionPerson=null; LoadChecklist(null); DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible)); NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
+    public void CloseEditor() { ResetCardHistory(); MentionPerson=null; LoadChecklist(null); DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible)); NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
 
     public bool BeginDrag(Guid id, bool card)
     {
@@ -511,6 +513,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private void NotifyState()
     {
+        Notify(nameof(ShowCardDetails));Notify(nameof(ShowCardHistory));
         Notify(nameof(SourceAssigneeNotice));
         foreach (var name in new[] { nameof(CanCreate), nameof(CanDeleteCard), nameof(CanDeleteColumn), nameof(HasColumn), nameof(ExistingCard), nameof(EditorHeading), nameof(ShowConfirmation), nameof(ConfirmationText) }) Notify(name);
         NotifyPresentation();RefreshCommands();
@@ -529,6 +532,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private void ClearData()
     {
+        ResetCardHistory();
         LoadChecklist(null);
         filterDelay?.Cancel();filterRevision++;CancelImages();DisposeRows();FullImage=null;services.Images.Clear();
         suppressFilters=true;Search="";FilterPriority=PriorityFilters[0];FilterDeadline=DeadlineFilters[0];FilterTag=null;FilterAssignee=null;TagFilters.Clear();AssigneeFilters.Clear();suppressFilters=false;
@@ -539,5 +543,5 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible));NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); EditorVisible = false; IsVisible = false; pendingDelete = null; NotifyState();
     }
     public void Clear() { operation?.Cancel(); operation = null; polling = false; transientError = false; Notify(nameof(IsPolling)); IsBusy = false; ClearData(); Error = ""; Status = ""; }
-    public void Dispose() { Clear();imagesLifetime.Dispose();filterDelay?.Dispose();services.Session.Changed -= SessionChanged; }
+    public void Dispose() { Clear();cardHistory?.Dispose();imagesLifetime.Dispose();filterDelay?.Dispose();services.Session.Changed -= SessionChanged; }
 }
