@@ -21,7 +21,7 @@ public sealed class ActivityViewModel : IDisposable
     public string Day=>Row.CreatedAtUtc.ToLocalTime().ToString("dd MMMM yyyy",CultureInfo.GetCultureInfo("uk-UA"));
     public string Time=>Row.CreatedAtUtc.ToLocalTime().ToString("HH:mm");
     public string When=>Row.CreatedAtUtc.ToLocalTime().ToString("dd MMM, HH:mm",CultureInfo.GetCultureInfo("uk-UA"));
-    public string Action=>Row.Field switch{"created"=>"створив(-ла) картку","deleted"=>"видалив(-ла) картку","column"=>"перемістив(-ла) картку","deadline"=>"змінив(-ла) дедлайн","priority"=>"змінив(-ла) пріоритет","assignee"=>"змінив(-ла) виконавця","title"=>"змінив(-ла) назву","description"=>"змінив(-ла) опис",_=>"змінив(-ла) архів"};
+    public string Action=>Row.Field switch{"created"=>"· картку створено","deleted"=>"· картку видалено","column"=>"· картку переміщено","deadline"=>"· дедлайн змінено","priority"=>"· пріоритет змінено","assignee"=>"· виконавця змінено","title"=>"· назву змінено","description"=>"· опис змінено",_=>"· архів змінено"};
     public string Field=>Row.Field switch{"created"=>"Створення","deleted"=>"Видалення","column"=>"Колонка","deadline"=>"Дедлайн","priority"=>"Пріоритет","assignee"=>"Виконавець","title"=>"Назва","description"=>"Опис",_=>"Архів"};
     private string Format(string? value)=>Row.Field=="deadline"&&DateOnly.TryParse(value,out var date)?date.ToString("d MMM",CultureInfo.GetCultureInfo("uk-UA")):value??"—";
     public string Before=>Format(Row.Before);
@@ -48,7 +48,7 @@ public sealed class HistoryViewModel : ViewModelBase, IDisposable
     public ObservableCollection<ActivityViewModel> Events { get; }=[];
     public ObservableCollection<HistoryPerson> People { get; }=[];
     public HistoryOption[] Kinds { get; }=[new(null,"Усі зміни"),new("deadline","Дедлайн"),new("assignee","Виконавець"),new("priority","Пріоритет"),new("column","Колонка"),new("title","Назва"),new("description","Опис"),new("created","Створення"),new("deleted","Видалення"),new("archive","Архів")];
-    public HistoryPeriod[] Periods { get; }=[new(7,"За 7 днів"),new(30,"За 30 днів"),new(90,"За 90 днів")];
+    public HistoryPeriod[] Periods { get; }=[new(7,"За 7 днів"),new(30,"За 30 днів"),new(90,"За 90 днів"),new(0,"Уся історія")];
     public string Search{get=>search;set{search=value;Notify();_=Load();}}
     public HistoryPerson? Person{get=>person;set{person=value;Notify();_=Load();}}
     public HistoryOption? Kind{get=>kind;set{kind=value;Notify();_=Load();}}

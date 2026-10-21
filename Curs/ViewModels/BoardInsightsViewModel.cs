@@ -42,7 +42,8 @@ public sealed class BoardInsightsViewModel : ViewModelBase,IDisposable
     public bool Busy{get=>busy;private set{busy=value;Notify();SaveCompletionCommand.Refresh();}}
     public bool CanConfigure=>admin;
     public string BoardName=>boardName;
-    public string Error{get=>error;private set{error=value;Notify();}}
+    public string Error{get=>error;private set{error=value;Notify();Notify(nameof(HasError));}}
+    public bool HasError=>Error.Length>0;
     public bool HasRecent=>Recent.Count>0;
     public bool HasData=>stats is not null;
     public bool NeedsCompletion=>stats is not null&&stats.CompletionColumnId is null;
@@ -60,7 +61,7 @@ public sealed class BoardInsightsViewModel : ViewModelBase,IDisposable
     {
         this.services=services;this.open=open;History=new(services,open);
         BoardCommand=new(()=>SetMode("board"));HistoryCommand=new(()=>{SetMode("history");_=History.Load();});OverviewCommand=new(()=>{SetMode("overview");_=Refresh();});
-        ToggleDrawerCommand=new(()=>{Drawer=!Drawer;if(Drawer)_=Refresh();});CloseDrawerCommand=new(()=>Drawer=false);FullOverviewCommand=new(()=>{Drawer=false;SetMode("overview");_=Refresh();});
+        ToggleDrawerCommand=new(()=>{if(!Drawer&&IsOverview)SetMode("board");Drawer=!Drawer;if(Drawer)_=Refresh();});CloseDrawerCommand=new(()=>Drawer=false);FullOverviewCommand=new(()=>{Drawer=false;SetMode("overview");_=Refresh();});
         RefreshCommand=new(()=>_=Refresh());SaveCompletionCommand=new(()=>_=SaveCompletion(),()=>admin&&!Busy&&stats is not null);
         services.Session.Changed+=SessionChanged;
     }
