@@ -59,6 +59,7 @@ public sealed class InsightsTests(SqlFixture fixture)
         var stats=(await a.GetFromJsonAsync<BoardStatisticsDto>($"/api/boards/{g.Board.Id}/statistics?today=2026-10-21&utcOffsetMinutes=180"))!;
         Assert.True(stats.HasPreviousPeriod);Assert.Equal(1,stats.Completed);Assert.Equal(1,stats.Days[0].Count);Assert.Equal(0,stats.PreviousCompleted);Assert.Equal(0,stats.InProgress);Assert.Equal(1,stats.Workload.Single().Total);
         Assert.Equal(HttpStatusCode.BadRequest,(await a.GetAsync($"/api/boards/{g.Board.Id}/statistics?utcOffsetMinutes=9999")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest,(await a.GetAsync($"/api/boards/{g.Board.Id}/statistics?today=0001-01-01")).StatusCode);
     }
     [SqlFact]
     public async Task RevocationDeniesBothFeedsAndDeletedCardKeepsSafeHistory()

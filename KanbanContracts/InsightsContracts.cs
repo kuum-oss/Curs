@@ -9,10 +9,14 @@ public sealed class HistoryQuery : PageQuery
     public string? Field { get; set; }
     [Range(1,90)] public int Days { get; set; } = 7;
 }
-public sealed class StatisticsQuery
+public sealed class StatisticsQuery : IValidatableObject
 {
     public DateOnly Today { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
     [Range(-840,840)] public int UtcOffsetMinutes { get; set; }
+    public IEnumerable<ValidationResult> Validate(ValidationContext context)
+    {
+        if(Today.Year < 1900 || Today.Year > 9998) yield return new ValidationResult("Некоректна дата статистики.", [nameof(Today)]);
+    }
 }
 public sealed class CompletionColumnRequest : BoardMutationRequest { public Guid? ColumnId { get; set; } }
 public sealed record ActivityDto(long Id, Guid BoardId, Guid CardId, string CardTitle, UserDto Actor,
