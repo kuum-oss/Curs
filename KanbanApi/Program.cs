@@ -37,6 +37,8 @@ builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<AccountDeletionService>();
 if (!builder.Environment.IsEnvironment("Testing")) builder.Services.AddHostedService<AccountDeletionCleanupWorker>();
 builder.Services.AddScoped<BoardCoverService>();
+builder.Services.AddScoped<ActivityRecorder>();
+builder.Services.AddScoped<InsightsService>();
 builder.Services.AddScoped<BoardAccess>();
 builder.Services.AddScoped<BoardService>();
 builder.Services.AddScoped<ContentService>();

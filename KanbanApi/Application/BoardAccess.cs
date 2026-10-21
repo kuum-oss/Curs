@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace KanbanApi.Application;
 
 // All future board mutations (including cards and assignments) must use this same gate.
-public sealed class BoardAccess(KanbanDbContext db)
+public sealed class BoardAccess(KanbanDbContext db, ActivityRecorder recorder)
 {
     public async Task<BoardMember> RequireAsync(Guid boardId, Guid userId, bool admin, CancellationToken token)
     {
@@ -39,8 +39,10 @@ public sealed class BoardAccess(KanbanDbContext db)
             }
             // The update holds the board lock until commit. Membership is checked again under that lock.
             var member = await RequireAsync(boardId, userId, admin, token);
+            var before = await recorder.Capture(boardId, token);
             var result = await action(member);
             await db.SaveChangesAsync(token);
+            await recorder.Record(boardId, userId, before, token);
             await transaction.CommitAsync(token);
             return result;
         });

@@ -20,6 +20,8 @@ public sealed class User
 
 public sealed class Board
 {
+    public Guid? CompletionColumnId { get; set; }
+    public DateTime InsightsSinceUtc { get; set; } = DateTime.UtcNow;
     public string? RestoreChecksum { get; set; }
     public Guid? OwnerId { get; set; }
     public bool IsArchived { get; set; }
@@ -157,4 +159,23 @@ public sealed class Notification
     public DateOnly? DueDate { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public DateTime? ReadAtUtc { get; set; }
+}
+
+// Card targets and actors intentionally have no FK: their history survives deletion.
+public sealed class BoardActivity
+{
+    public long Id { get; set; }
+    public Guid BoardId { get; set; }
+    public Guid CardId { get; set; }
+    public Guid? ActorId { get; set; }
+    public string CardTitle { get; set; } = "";
+    public string Field { get; set; } = "";
+    public string? Before { get; set; }
+    public string? After { get; set; }
+    public string? BeforeStateJson { get; set; }
+    public string? AfterStateJson { get; set; }
+    public Guid? FromColumnId { get; set; }
+    public Guid? ToColumnId { get; set; }
+    public DateTime CardCreatedAtUtc { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
 }

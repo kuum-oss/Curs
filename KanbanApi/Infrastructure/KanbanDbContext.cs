@@ -20,6 +20,8 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
     public DbSet<DirectChat> DirectChats => Set<DirectChat>();
     public DbSet<DirectMessage> DirectMessages => Set<DirectMessage>();
 
+    public DbSet<BoardActivity> BoardActivities => Set<BoardActivity>();
+
     public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder model)
@@ -48,6 +50,7 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         board.Property(x => x.Name).HasMaxLength(FieldLimits.BoardName).IsRequired();
         board.Property(x => x.Description).HasMaxLength(FieldLimits.BoardDescription);
         board.Property(x => x.RowVersion).IsRowVersion();
+        board.Property(x => x.InsightsSinceUtc).HasDefaultValueSql("SYSUTCDATETIME()");
 
         var member = model.Entity<BoardMember>();
         member.ToTable("BoardMembers", t => t.HasCheckConstraint("CK_BoardMembers_Role", "[Role] IN (0, 1)"));
@@ -157,8 +160,22 @@ public sealed class KanbanDbContext(DbContextOptions<KanbanDbContext> options) :
         notification.HasIndex(x => new { x.UserId, x.EventKey }).IsUnique();
         notification.HasIndex(x => new { x.UserId, x.ReadAtUtc, x.Id });
 
+        var activity = model.Entity<BoardActivity>();
+        activity.ToTable("BoardActivities");
+        activity.HasKey(x => x.Id);
+        activity.Property(x => x.Id).UseIdentityColumn();
+        activity.Property(x => x.CardTitle).HasMaxLength(200);
+        activity.Property(x => x.Field).HasMaxLength(30).IsUnicode(false);
+        activity.Property(x => x.Before).HasMaxLength(10000);
+        activity.Property(x => x.After).HasMaxLength(10000);
+        activity.HasIndex(x => new { x.BoardId, x.Id });
+        activity.HasIndex(x => new { x.BoardId, x.CardId, x.CreatedAtUtc });
+        activity.HasIndex(x => new { x.BoardId, x.ToColumnId, x.CreatedAtUtc });
+
         // Avoid SQL Server multiple cascade paths; deletion is an explicit service transaction.
         foreach (var foreignKey in model.Model.GetEntityTypes().SelectMany(x => x.GetForeignKeys()))
             foreignKey.DeleteBehavior = DeleteBehavior.NoAction;
+        // A single direct path; graph deletion and expired-account cleanup remove history too.
+        activity.HasOne<Board>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.Cascade);
     }
 }

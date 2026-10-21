@@ -28,6 +28,9 @@ namespace KanbanApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("CompletionColumnId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("CoverContentType")
                         .HasMaxLength(50)
                         .IsUnicode(false)
@@ -45,6 +48,11 @@ namespace KanbanApi.Migrations
                     b.Property<string>("Description")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("InsightsSinceUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
@@ -76,6 +84,71 @@ namespace KanbanApi.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Boards", (string)null);
+                });
+
+            modelBuilder.Entity("KanbanApi.Domain.BoardActivity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid?>("ActorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("After")
+                        .HasMaxLength(10000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AfterStateJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Before")
+                        .HasMaxLength(10000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BeforeStateJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("BoardId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CardCreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CardId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CardTitle")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<Guid?>("FromColumnId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ToColumnId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BoardId", "Id");
+
+                    b.HasIndex("BoardId", "CardId", "CreatedAtUtc");
+
+                    b.HasIndex("BoardId", "ToColumnId", "CreatedAtUtc");
+
+                    b.ToTable("BoardActivities", (string)null);
                 });
 
             modelBuilder.Entity("KanbanApi.Domain.BoardColumn", b =>
@@ -597,6 +670,15 @@ namespace KanbanApi.Migrations
                         .WithMany()
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("KanbanApi.Domain.BoardActivity", b =>
+                {
+                    b.HasOne("KanbanApi.Domain.Board", null)
+                        .WithMany()
+                        .HasForeignKey("BoardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("KanbanApi.Domain.BoardColumn", b =>
