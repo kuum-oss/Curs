@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-21",
+  "tests": {
+    "total": "183",
+    "executed": "183",
+    "passed": "183",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "finalCalendarTests": {
+    "total": "8",
+    "executed": "8",
+    "passed": "8",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "http": {
+    "verifiedAtUtc": "2026-10-21T15:23:08.232874+00:00",
+    "httpRequests": 17,
+    "checks": [
+      "range includes scheduled and undated cards",
+      "assignee filter",
+      "deadline-only change and stale conflict",
+      "anonymous denied"
+    ],
+    "demoAccountsChanged": false
+  },
+  "native": {
+    "month": true,
+    "week": true,
+    "assigneeFilter": true,
+    "drag22To23October": true,
+    "restartPersisted": true,
+    "exactCardOpened": true,
+    "logout": true
+  },
+  "schema": {
+    "migrations": 8,
+    "tables": 13,
+    "migrationRequired": false
+  },
+  "temporaryAccountsCleaned": 2,
+  "demosChanged": false,
+  "serverRevision": "f314a6d",
+  "clientRevision": "c469a87",
+  "layoutRevision": "99faaf6"
+}
