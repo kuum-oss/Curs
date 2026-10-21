@@ -27,7 +27,7 @@ public sealed class InsightsTests(SqlFixture fixture)
         var other=await new ChecklistTests(fixture).Seed();using var outsider=ChecklistTests.Client(app,other.User);
         foreach(var suffix in new[]{"history","statistics"})Assert.Equal(HttpStatusCode.NotFound,(await outsider.GetAsync($"/api/boards/{g.Board.Id}/{suffix}")).StatusCode);
         using var anon=app.CreateClient();Assert.Equal(HttpStatusCode.Unauthorized,(await anon.GetAsync($"/api/boards/{g.Board.Id}/history")).StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest,(await a.GetAsync($"/api/boards/{g.Board.Id}/history?days=1000")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest,(await a.GetAsync($"/api/boards/{g.Board.Id}/history?days=1000000")).StatusCode);
     }
     [SqlFact]
     public async Task ExplicitCompletionCountsOnceAndHonestBaselineHandlesReopeningAndMissingConfiguration()
@@ -71,4 +71,23 @@ public sealed class InsightsTests(SqlFixture fixture)
         await using(var db=fixture.CreateContext()){await db.BoardMembers.Where(m=>m.BoardId==g.Board.Id&&m.UserId==g.Peer.Id).ExecuteDeleteAsync();}
         foreach(var suffix in new[]{"history","statistics"})Assert.Equal(HttpStatusCode.NotFound,(await b.GetAsync($"/api/boards/{g.Board.Id}/{suffix}")).StatusCode);
     }
+    [SqlFact]
+    public async Task CompleteHistoryRemainsReadableAndMigrationCannotDiscardIt()
+    {
+        using var app=ApiFoundationTests.Factory(fixture.ConnectionString);var g=await new ChecklistTests(fixture).Seed();using var a=ChecklistTests.Client(app,g.User);var card=await ChecklistTests.Create(a,g.Board.Id,g.Col.Id);
+        await using(var db=fixture.CreateContext()){await db.BoardActivities.Where(e=>e.CardId==card.Card.Id).ExecuteUpdateAsync(s=>s.SetProperty(e=>e.CreatedAtUtc,DateTime.UtcNow.AddDays(-100)));}
+        Assert.Empty((await a.GetFromJsonAsync<PagedResult<ActivityDto>>($"/api/boards/{g.Board.Id}/history"))!.Items);
+        Assert.Single((await a.GetFromJsonAsync<PagedResult<ActivityDto>>($"/api/boards/{g.Board.Id}/history?days=0"))!.Items);
+        var older=await ChecklistTests.Create(a,g.Board.Id,g.Col.Id);
+        await using(var db=fixture.CreateContext()){await db.BoardActivities.Where(e=>e.CardId==older.Card.Id).ExecuteUpdateAsync(s=>s.SetProperty(e=>e.CreatedAtUtc,DateTime.UtcNow.AddDays(-200)));}
+        var chronology=(await a.GetFromJsonAsync<PagedResult<ActivityDto>>($"/api/boards/{g.Board.Id}/history?days=0"))!;
+        Assert.Equal(new[]{card.Card.Id,older.Card.Id},chronology.Items.Select(e=>e.CardId));
+        Assert.Equal(card.Card.Id,(await a.GetFromJsonAsync<BoardStatisticsDto>($"/api/boards/{g.Board.Id}/statistics"))!.Recent[0].CardId);
+        var f=new SqlFixture();await f.InitializeAsync();try
+        {
+            await using var db=f.CreateContext();var b=new Board{Name="Зберегти історію"};db.Boards.Add(b);db.BoardActivities.Add(new(){BoardId=b.Id,CardId=Guid.NewGuid(),Field="created",CardTitle="Стара картка",CreatedAtUtc=DateTime.UtcNow,CardCreatedAtUtc=DateTime.UtcNow});await db.SaveChangesAsync();
+            var ex=await Assert.ThrowsAsync<Microsoft.Data.SqlClient.SqlException>(()=>Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>(db).MigrateAsync("20261021153418_BoardBackupMetadata"));Assert.Equal(50011,ex.Number);Assert.Single(await db.BoardActivities.ToListAsync());
+        }finally{await f.DisposeAsync();}
+    }
+
 }

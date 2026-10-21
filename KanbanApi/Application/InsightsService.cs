@@ -22,13 +22,14 @@ public sealed class InsightsService(KanbanDbContext db, BoardAccess access, Acti
         await using var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead,token);
         await access.RequireAsync(board,user,false,token);
         var since=clock.GetUtcNow().UtcDateTime.AddDays(-query.Days);
-        var rows=db.BoardActivities.AsNoTracking().Where(a=>a.BoardId==board&&a.CreatedAtUtc>=since);
+        var rows=db.BoardActivities.AsNoTracking().Where(a=>a.BoardId==board);
+        if(query.Days>0)rows=rows.Where(a=>a.CreatedAtUtc>=since);
         if(query.CardId is {} card)rows=rows.Where(a=>a.CardId==card);
         if(query.ActorId is {} actor)rows=rows.Where(a=>a.ActorId==actor);
         if(query.Field is {} field)rows=rows.Where(a=>a.Field==field);
         if(!string.IsNullOrWhiteSpace(query.Search)){var term=query.Search.Trim();rows=rows.Where(a=>EF.Functions.Collate(a.CardTitle,"Latin1_General_100_CI_AS_SC").Contains(term));}
         var count=await rows.CountAsync(token);
-        var result=await Present(await rows.OrderByDescending(a=>a.Id).Skip(query.Offset).Take(query.Limit).ToListAsync(token),token);
+        var result=await Present(await rows.OrderByDescending(a=>a.CreatedAtUtc).ThenByDescending(a=>a.Id).Skip(query.Offset).Take(query.Limit).ToListAsync(token),token);
         await access.RequireAsync(board,user,false,token);await tx.CommitAsync(token);
         return new PagedResult<ActivityDto>(result,count,query.Offset,query.Limit);
     });
@@ -70,7 +71,7 @@ public sealed class InsightsService(KanbanDbContext db, BoardAccess access, Acti
             var now=current.ToDictionary(c=>c.Id);
             foreach(var id in now.Keys.Concat(events.Select(e=>e.CardId)).Distinct())
             {
-                var rows=events.Where(e=>e.CardId==id).OrderBy(e=>e.Id).ToList();
+                var rows=events.Where(e=>e.CardId==id).OrderBy(e=>e.CreatedAtUtc).ThenBy(e=>e.Id).ToList();
                 var prior=rows.LastOrDefault(e=>e.CreatedAtUtc<start);
                 var json=prior is not null?prior.AfterStateJson:rows.FirstOrDefault()?.BeforeStateJson;
                 var state=json is not null?JsonSerializer.Deserialize<ActivityRecorder.State>(json):rows.Count==0?now.GetValueOrDefault(id):null;
@@ -80,7 +81,7 @@ public sealed class InsightsService(KanbanDbContext db, BoardAccess access, Acti
         var members=await (from m in db.BoardMembers.AsNoTracking() join u in db.Users on m.UserId equals u.Id where m.BoardId==board orderby u.Name select new UserDto(u.Id,"",u.Name,Convert.ToBase64String(u.RowVersion),u.AvatarData!=null)).ToListAsync(token);
         var workload=members.Select(u=>new WorkloadDto(u,active.Count(c=>c.AssigneeId==u.Id),current.Count(c=>!c.Archived&&c.AssigneeId==u.Id))).ToList();
         if(current.Any(c=>!c.Archived&&c.AssigneeId==null))workload.Add(new(new UserDto(Guid.Empty,"","Без відповідального"),active.Count(c=>c.AssigneeId==null),current.Count(c=>!c.Archived&&c.AssigneeId==null)));
-        var recent=await Present(await db.BoardActivities.AsNoTracking().Where(a=>a.BoardId==board).OrderByDescending(a=>a.Id).Take(4).ToListAsync(token),token);
+        var recent=await Present(await db.BoardActivities.AsNoTracking().Where(a=>a.BoardId==board).OrderByDescending(a=>a.CreatedAtUtc).ThenByDescending(a=>a.Id).Take(4).ToListAsync(token),token);
         var days=Enumerable.Range(0,7).Select(i=>first.AddDays(i)).Select(d=>new DailyCompletionDto(d,finished.Count(c=>c.At>=Utc(d)&&c.At<Utc(d.AddDays(1))))).ToList();
         await access.RequireAsync(board,user,false,token);await tx.CommitAsync(token);
         return new BoardStatisticsDto(board,Convert.ToBase64String(b.RowVersion),done,columns,b.InsightsSinceUtc,hasPrevious,

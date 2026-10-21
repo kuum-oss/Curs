@@ -7,7 +7,7 @@ public sealed class HistoryQuery : PageQuery
     [StringLength(100)] public string? Search { get; set; }
     [RegularExpression("^(created|deleted|title|description|deadline|priority|assignee|column|archive)$")]
     public string? Field { get; set; }
-    [Range(1,90)] public int Days { get; set; } = 7;
+    [Range(0,3650)] public int Days { get; set; } = 7;
 }
 public sealed class StatisticsQuery : IValidatableObject
 {
