@@ -1,0 +1,99 @@
+{
+  "verifiedAtUtc": "2026-10-21T15:50:51.274729+00:00",
+  "tests": {
+    "total": "190",
+    "executed": "190",
+    "passed": "190",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "finalFocusedTests": {
+    "total": "7",
+    "executed": "7",
+    "passed": "7",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0
+  },
+  "dockerHttp": {
+    "verifiedAtUtc": "2026-10-21T15:42:08.128973+00:00",
+    "httpRequests": 25,
+    "checks": [
+      "whole board image/checklist/comments round trip",
+      "retry creates one board",
+      "no credential export or implicit membership",
+      "UTF-8 CSV newline and comma round trip",
+      "corruption and anonymous rejection"
+    ],
+    "demoAccountsChanged": false
+  },
+  "native": {
+    "jsonFileParsed": true,
+    "csvFileParsed": true,
+    "nativeRestoreCreatedThirdBoard": true,
+    "contentFieldsAndPhotoVerified": true,
+    "originalBoardAndTwoMembersPreserved": true,
+    "restoredBoardMembers": 1,
+    "macSaveJson": true,
+    "macSaveCsv": true,
+    "macOpenSavedJson": true,
+    "previewAndRestore": true,
+    "cardEditorOpened": true,
+    "signedOutAfterVerification": true
+  },
+  "schema": {
+    "tables": 13,
+    "migrations": 9,
+    "pendingModelChanges": false,
+    "downgradeGuardPassed": true
+  },
+  "temporaryNativeAccountsCleaned": 2,
+  "temporaryNativeBoardsCleaned": 3,
+  "conceptRevision": "8ce28aa",
+  "serverRevision": "703857e",
+  "clientRevision": "2a36d38",
+  "finalExportLimitsRevision": "578dde4",
+  "httpAcceptanceRevision": "6ee3434",
+  "finalDockerHttp": {
+    "verifiedAtUtc": "2026-10-21T15:50:53.997229+00:00",
+    "httpRequests": 25,
+    "checks": [
+      "whole board image/checklist/comments round trip",
+      "retry creates one board",
+      "no credential export or implicit membership",
+      "UTF-8 CSV newline and comma round trip",
+      "corruption and anonymous rejection"
+    ],
+    "demoAccountsChanged": false
+  },
+  "protectedDemosRemaining": 4,
+  "ownTemporaryAccountsRemaining": 0,
+  "volumePreserved": "kanbanboard_sqlserver-data",
+  "containersHealthy": true
+}
