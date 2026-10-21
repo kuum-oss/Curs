@@ -1,0 +1,30 @@
+{
+  "tests": {
+    "total": 197,
+    "passed": 197,
+    "failed": 0,
+    "skipped": 0,
+    "configuration": "Release",
+    "provider": "Microsoft SQL Server 2022; isolated test database"
+  },
+  "httpFixture": {
+    "verifiedAtUtc": "2026-10-21T18:25:44.429736+00:00",
+    "completed": 12,
+    "previousCompleted": 9,
+    "inProgress": 8,
+    "overdue": 3,
+    "meanDays": 2.3999999999999995,
+    "seriesTotal": 12,
+    "httpRequests": 141,
+    "syntheticHistoricalFixture": true,
+    "demoAccountsChanged": false
+  },
+  "load": {
+    "concurrentRequests": 20,
+    "successful": 20,
+    "maxMs": 346.94,
+    "p95Ms": 342.64,
+    "scope": "statistics endpoint; same disposable board, local Docker API"
+  },
+  "nativeAcceptance": "in progress; overview and drawer verified; awaiting unlocked Mac for final card-history and filter checks"
+}
