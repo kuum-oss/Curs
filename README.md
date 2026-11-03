@@ -8,6 +8,8 @@
 
 [Докладна інструкція, вимоги та підпис пакетів](docs/RELEASES.md). База залишається на цьому комп’ютері; інсталяційна версія використовує власний Docker-проєкт та окремий volume.
 
+**Старі версії Windows, зокрема Windows 10 LTSC 1809, не підтримуються для локального запуску через вимоги Docker Desktop. Оновіть Windows до підтримуваної версії, рекомендовано актуальної Windows 11, і повторіть встановлення.** Відкриття клієнта із ZIP на старій ОС не підтверджує можливість запустити сервер. [Версії Windows та пояснення EXE/ZIP](docs/RELEASES.md#windows-оновлення-системи-та-різниця-exezip).
+
 Версія 0.2.0: [Windows x64 — установник](https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-windows-x64-setup.exe) · [Mac Apple Silicon — DMG](https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-apple-silicon.dmg) · [Mac Intel — DMG](https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-intel.dmg).
 
 ## Документація
