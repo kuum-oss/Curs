@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Curs.ViewModels" x:Class="Curs.Views.SetupWindow" x:DataType="vm:SetupViewModel"
+        Title="KanbanBoard — початок роботи" Icon="/Assets/kanbanboard.ico" Width="760" Height="800"
+        MinWidth="620" MinHeight="640" WindowStartupLocation="CenterScreen" Background="#F3F8FA">
+ <Grid RowDefinitions="Auto,*,Auto" Margin="34,28">
+  <Grid ColumnDefinitions="48,*,Auto" ColumnSpacing="13" Margin="0,0,0,24">
+   <Image Source="/Assets/kanbanboard.png" Width="46" Height="46"/>
+   <StackPanel Grid.Column="1" Spacing="3"><TextBlock Text="KanbanBoard" FontSize="23" FontWeight="Bold"/><TextBlock Text="Плануйте. Співпрацюйте. Досягайте." Classes="muted" FontSize="12"/></StackPanel>
+   <Border Grid.Column="2" Background="#E1F2F3" CornerRadius="12" Padding="10,5" VerticalAlignment="Center"><TextBlock Text="Локальний запуск" Foreground="#168C98" FontSize="11"/></Border>
+  </Grid>
+  <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+   <Border Background="White" BorderBrush="#E1E8EF" BorderThickness="1" CornerRadius="14" Padding="26">
+    <StackPanel Spacing="18">
+     <TextBlock Text="{Binding Title}" FontSize="25" FontWeight="Bold" TextWrapping="Wrap"/>
+     <TextBlock Text="{Binding Detail}" Classes="muted" TextWrapping="Wrap" LineHeight="22"/>
+     <StackPanel Spacing="13" Margin="0,4">
+      <Grid ColumnDefinitions="34,*" ColumnSpacing="12"><Border Width="32" Height="32" CornerRadius="16" Background="#E2F5F2"><TextBlock Text="1" HorizontalAlignment="Center" Foreground="#168C98" FontWeight="SemiBold"/></Border><StackPanel Grid.Column="1" Spacing="3"><TextBlock Text="Завантаження компонентів" FontWeight="SemiBold"/><TextBlock Text="Готові компоненти для вашого комп’ютера" Classes="muted" FontSize="12" TextWrapping="Wrap"/></StackPanel></Grid>
+      <Grid ColumnDefinitions="34,*" ColumnSpacing="12"><Border Width="32" Height="32" CornerRadius="16" Background="#E9F0FC"><TextBlock Text="2" HorizontalAlignment="Center" Foreground="#398CE7" FontWeight="SemiBold"/></Border><StackPanel Grid.Column="1" Spacing="3"><TextBlock Text="Підготовка робочого простору" FontWeight="SemiBold"/><TextBlock Text="Налаштування та база створюються автоматично" Classes="muted" FontSize="12" TextWrapping="Wrap"/></StackPanel></Grid>
+      <Grid ColumnDefinitions="34,*" ColumnSpacing="12"><Border Width="32" Height="32" CornerRadius="16" Background="#F0EBFD"><TextBlock Text="3" HorizontalAlignment="Center" Foreground="#8176DB" FontWeight="SemiBold"/></Border><StackPanel Grid.Column="1" Spacing="3"><TextBlock Text="Усе готово до роботи" FontWeight="SemiBold"/><TextBlock Text="Дані ваших дощок залишаються на цьому комп’ютері" Classes="muted" FontSize="12" TextWrapping="Wrap"/></StackPanel></Grid>
+     </StackPanel>
+     <StackPanel IsVisible="{Binding IsBusy}" Spacing="8"><ProgressBar Name="SetupProgress" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding ProgressValue}" Minimum="0" Maximum="100" Height="6" Foreground="#168C98"/><TextBlock Text="{Binding ProgressLabel}" HorizontalAlignment="Right" Classes="muted" FontSize="12"/></StackPanel>
+     <Border IsVisible="{Binding NeedsConsent}" Background="#F7FAFD" CornerRadius="8" Padding="14">
+      <StackPanel Spacing="7"><TextBlock Text="Для першого запуску потрібні інтернет і Docker Desktop. Його штатний інсталятор може попросити підтвердження системи." TextWrapping="Wrap" FontSize="12" Classes="muted"/><CheckBox Name="SetupTermsCheckBox" IsChecked="{Binding AcceptedTerms,Mode=TwoWay}" IsEnabled="{Binding CanEdit}"><TextBlock Text="Приймаю умови SQL Server Developer для навчального та тестового використання." TextWrapping="Wrap" FontSize="12"/></CheckBox><Button Classes="ghost" Content="Умови Microsoft ↗" Click="OpenTerms" FontSize="12" Foreground="#168C98" Padding="0" HorizontalAlignment="Left"/></StackPanel>
+     </Border>
+     <TextBlock Name="SetupError" Text="{Binding Error}" IsVisible="{Binding HasError}" Classes="error" FontSize="13"/>
+     <Button Name="InstallDockerButton" Content="Завантажити Docker Desktop" Command="{Binding InstallDockerCommand}" IsVisible="{Binding NeedsDockerInstall}" HorizontalAlignment="Stretch"/>
+     <Button Name="StartDockerButton" Content="Запустити Docker Desktop" Command="{Binding StartDockerCommand}" IsVisible="{Binding NeedsDockerStart}" HorizontalAlignment="Stretch"/>
+    </StackPanel>
+   </Border>
+  </ScrollViewer>
+  <Grid Grid.Row="2" RowDefinitions="Auto,Auto" Margin="0,20,0,0" RowSpacing="10"><Grid ColumnDefinitions="*,Auto" ColumnSpacing="12"><Button Name="PrepareAndOpenButton" Content="{Binding StartLabel}" Command="{Binding StartCommand}" Classes="primary" HorizontalAlignment="Stretch" IsVisible="{Binding !HasBlockingError}"/><Button Grid.Column="1" Content="Зупинити" Command="{Binding CancelCommand}" IsVisible="{Binding IsBusy}"/></Grid><TextBlock Grid.Row="1" Text="Після підготовки відкриється звичайний KanbanBoard." Classes="muted" FontSize="11" HorizontalAlignment="Center" TextWrapping="Wrap"/></Grid>
+ </Grid>
+</Window>
