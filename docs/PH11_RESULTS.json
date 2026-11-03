@@ -1,0 +1,162 @@
+{
+  "phase": "PH-11",
+  "status": "complete",
+  "version": "0.2.0",
+  "sourceCommit": "5fc4fc12b3d34c10d08ac52dda2993e25385c237",
+  "branchValidation": {
+    "url": "https://github.com/kuum-oss/Curs/actions/runs/41708091606",
+    "commit": "b07a649bac44ef28316cff8f79d628c62fdabf63",
+    "conclusion": "success"
+  },
+  "tests": {
+    "total": 255,
+    "executed": 255,
+    "passed": 255,
+    "failed": 0,
+    "notExecuted": 0
+  },
+  "localUnitTests": {
+    "passed": 58,
+    "failed": 0,
+    "skipped": 0,
+    "dockerAndSqlUsed": false
+  },
+  "packagingIntegrityTests": {
+    "passed": 4,
+    "failed": 0
+  },
+  "nativeStartupRuntimes": [
+    "win-x64",
+    "osx-arm64",
+    "osx-x64"
+  ],
+  "runtimeSmoke": {
+    "host": "GitHub-hosted Ubuntu 24.04 amd64",
+    "passed": true,
+    "checks": [
+      "archive SHA256",
+      "docker load",
+      "isolated compose",
+      "migrations",
+      "registration",
+      "create board",
+      "stop/start",
+      "persistent credentials and port",
+      "persistent board"
+    ]
+  },
+  "localDockerDatabase": {
+    "usedForAcceptance": false,
+    "composeStartedForAcceptance": false,
+    "migrationsRun": false,
+    "dataMutationsPerformed": false
+  },
+  "signing": {
+    "macOS": "ad-hoc only; no Developer ID or notarization",
+    "windows": "unsigned publisher"
+  },
+  "branchArtifactChecksums": {
+    "KanbanBoard-0.2.0-macos-apple-silicon.dmg": "72c84adfeab41a8cb9ec59b4492635b47b7065c72e20527043315f3b8a835aa3",
+    "KanbanBoard-0.2.0-macos-apple-silicon.zip": "03ad249152c1c4ac2642a2affdca96bdf86d9770e32458fda7cad58ef17b05ff",
+    "KanbanBoard-0.2.0-macos-intel.dmg": "4fa56c48e4c05f5c63095a676ee9eea60d65ac33d7f5ef2244ba9cea2a332231",
+    "KanbanBoard-0.2.0-macos-intel.zip": "f419032699edd33ae0aa7fb86ec6cb32502444a9088e42e564df9915ab01a4fb",
+    "KanbanBoard-0.2.0-windows-x64-setup.exe": "acdb1acd741507b68eff7fcd0204c2456437f629410a0550968a94f88a808de3",
+    "KanbanBoard-0.2.0-windows-x64.zip": "e5909f7e7cc95883c6d18083f20ddd27fd3a8e8fe9766e798a42f3633f287417",
+    "kanbanboard-server-linux-amd64.tar.gz": "96a14614b43a1b9a3692e871746d073a0a1380855a2d97b41afca12a6fe6c798",
+    "kanbanboard-server-linux-arm64.tar.gz": "294155952cdaac7ebfa5a47c0d68ea9a1d3ce8c6d6b6742bdf245366d71b10ba",
+    "server-linux-amd64.json": "6bf7320199dddce10a2bf2318bef5faaade5e5dd21a04aba6658cdc07a338a02",
+    "server-linux-arm64.json": "e9e40b55d795cca59d6b0be0645e4d08e0391db5fd88d1dc0f958cebd761411f"
+  },
+  "releaseValidation": {
+    "url": "https://github.com/kuum-oss/Curs/actions/runs/41709204424",
+    "commit": "5fc4fc12b3d34c10d08ac52dda2993e25385c237",
+    "conclusion": "success"
+  },
+  "publication": {
+    "verifiedAtUtc": "2026-11-03T20:13:07.614180+00:00",
+    "publicRelease": "https://github.com/kuum-oss/Curs/releases/tag/v0.2.0",
+    "publishedAtUtc": "2026-11-03T20:12:02Z",
+    "files": [
+      {
+        "name": "KanbanBoard-0.2.0-macos-apple-silicon.dmg",
+        "status": 200,
+        "size": 51353711,
+        "sha256": "043fef9502ac87cdc7c5fc93f6129e2de2979c4f28e682aadfca6523951de4d2",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-apple-silicon.dmg"
+      },
+      {
+        "name": "KanbanBoard-0.2.0-macos-apple-silicon.zip",
+        "status": 200,
+        "size": 45374427,
+        "sha256": "0c5ecb0e566e1eeb9bfb283055aecec29fa1a5e399928fc0dc376bc7ec6d819f",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-apple-silicon.zip"
+      },
+      {
+        "name": "KanbanBoard-0.2.0-macos-intel.dmg",
+        "status": 200,
+        "size": 53339567,
+        "sha256": "271f27ac2f04fc2b824ecb2e3cf0dae6186912dc34ea5423ef95123cb122b804",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-intel.dmg"
+      },
+      {
+        "name": "KanbanBoard-0.2.0-macos-intel.zip",
+        "status": 200,
+        "size": 47591643,
+        "sha256": "4149dfba1b90527ffac116d4c7ad5659610cec89527395cb34a37dac108dbb52",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-intel.zip"
+      },
+      {
+        "name": "KanbanBoard-0.2.0-windows-x64-setup.exe",
+        "status": 200,
+        "size": 35434065,
+        "sha256": "283cb5adc8aa728285e6565abf6bc739f716a649d48cebaf3873900c2ff8c53a",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-windows-x64-setup.exe"
+      },
+      {
+        "name": "KanbanBoard-0.2.0-windows-x64.zip",
+        "status": 200,
+        "size": 46658670,
+        "sha256": "4d25af7a44f97cf0d1abc8ff047218142496b573440624e24b877c9265b95eb5",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-windows-x64.zip"
+      },
+      {
+        "name": "kanbanboard-server-linux-amd64.tar.gz",
+        "status": 200,
+        "size": 139859528,
+        "sha256": "f44ab0ca756f4f261e6f7bde08e58db92ab5e31948958f2d17fff35b9229f3e4",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/kanbanboard-server-linux-amd64.tar.gz"
+      },
+      {
+        "name": "kanbanboard-server-linux-arm64.tar.gz",
+        "status": 200,
+        "size": 121284187,
+        "sha256": "b29ca4d8c43b2ce14a4c21a9c50d7b3f84d3611db9eaa312b912dd997bea535a",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/kanbanboard-server-linux-arm64.tar.gz"
+      },
+      {
+        "name": "server-linux-amd64.json",
+        "status": 200,
+        "size": 231,
+        "sha256": "fdc2b0dc8cf8e197cb29659886b7a2525cad7750c1b13f8b168302e755a85f4c",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/server-linux-amd64.json"
+      },
+      {
+        "name": "server-linux-arm64.json",
+        "status": 200,
+        "size": 231,
+        "sha256": "ccd5d7e98254a9b204e07f6c089ab161350129c1cce64cc7811c710ab3d5d181",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/server-linux-arm64.json"
+      },
+      {
+        "name": "SHA256SUMS",
+        "status": 200,
+        "size": 1010,
+        "sha256": "1389be9e966f9afb15f1b0cd3388516c6aa54d62717a92e301bd89f78e818bde",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/SHA256SUMS"
+      }
+    ],
+    "anonymousAccess": true,
+    "allGitHubDigestsMatchCiChecksums": true,
+    "downloadedChecksumFileMatchesCi": true
+  }
+}

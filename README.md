@@ -8,6 +8,8 @@
 
 [Докладна інструкція, вимоги та підпис пакетів](docs/RELEASES.md). База залишається на цьому комп’ютері; інсталяційна версія використовує власний Docker-проєкт та окремий volume.
 
+Версія 0.2.0: [Windows x64 — установник](https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-windows-x64-setup.exe) · [Mac Apple Silicon — DMG](https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-apple-silicon.dmg) · [Mac Intel — DMG](https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-intel.dmg).
+
 ## Документація
 
 | Документ | Зміст |
@@ -52,7 +54,7 @@
 
 ## Поточний стан
 
-Стан на 22.10.2026: PH-00–PH-10 та доповнення виконано; актуально 197 тестів, 10 міграцій і 14 доменних таблиць. Рішення `Curs.sln` містить Avalonia-клієнт `Curs`, сервер `KanbanApi`, спільні DTO `KanbanContracts` та тести `KanbanApi.Tests`. Використовуються .NET 10, Avalonia 11.3.12 та EF Core 10.0.12.
+Стан на 03.11.2026: PH-00–PH-11 та доповнення виконано; актуально 255 тестів, 10 міграцій і 14 доменних таблиць. Опубліковано [реліз 0.2.0](https://github.com/kuum-oss/Curs/releases/tag/v0.2.0) з Windows-установником і двома Mac-пакетами. Рішення `Curs.sln` містить Avalonia-клієнт `Curs`, сервер `KanbanApi`, спільні DTO `KanbanContracts` та тести `KanbanApi.Tests`. Використовуються .NET 10, Avalonia 11.3.12 та EF Core 10.0.12.
 
 Початкова міграція створила дев'ять таблиць у справжньому MSSQL 2022. API має перевірки працездатності та єдиний формат помилок; клієнт — основу MVVM, HTTP, сесії та навігації. У PH-01 Release-збірка пройшла без попереджень; усі 19 початкових тестів пройшли без пропусків. Докази — у [результатах PH-01](docs/PH01_IMPLEMENTATION.md) та [протоколі](docs/PH01_RESULTS.json).
 
