@@ -165,8 +165,24 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  runtime-smoke:
+    needs: [tests, server]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-server-amd64
+          path: server
+      - name: Verify isolated first install and persistent restart
+        run: dotnet run --project scripts/release/RuntimeSmoke/RuntimeSmoke.csproj -c Release -- server/server-linux-amd64.json server/kanbanboard-server-linux-amd64.tar.gz
+
   verify:
-    needs: [version, desktop, server]
+    needs: [version, desktop, server, runtime-smoke]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
