@@ -2,7 +2,10 @@ name: Desktop release
 
 on:
   push:
-    branches: [release-installer]
+    branches: [main, release-installer]
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
     tags: ['v*']
   workflow_dispatch:
     inputs:
