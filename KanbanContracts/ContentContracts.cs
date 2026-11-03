@@ -58,3 +58,9 @@ public class PageQuery
     [Range(0, int.MaxValue, ErrorMessage = "Зміщення не може бути від’ємним.")] public int Offset { get; set; }
     [Range(1, 500, ErrorMessage = "Розмір сторінки: від 1 до 500.")] public int Limit { get; set; } = 100;
 }
+
+public sealed class CompleteCardRequest : ResourceVersionQuery
+{
+    public bool Completed { get; set; } = true;
+    public bool CreateCompletionColumn { get; set; }
+}

@@ -44,6 +44,7 @@ public sealed class OrderingService(KanbanDbContext db, BoardAccess access)
             var index = request.BeforeCardId is Guid before ? target.FindIndex(x => x.Id == before) : target.Count;
             if (index < 0)
                 throw new ApiException(400, "invalid_anchor", "Опорна картка має належати цільовій колонці й відрізнятися від переміщуваної.");
+            if (sourceId != request.TargetColumnId) card.CompletedAtUtc = null;
             card.ColumnId = request.TargetColumnId; card.UpdatedAtUtc = DateTime.UtcNow; target.Insert(index, card);
             for (var i = 0; i < source.Count; i++) source[i].Position = i;
             for (var i = 0; i < target.Count; i++) target[i].Position = i;

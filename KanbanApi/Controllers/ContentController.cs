@@ -31,6 +31,9 @@ public sealed class ContentController(ContentService content) : ControllerBase
     {
         var card = await content.CreateCard(boardId, UserId, request, token); return Created($"/api/cards/{card.Card.Id}", card);
     }
+    [HttpPost("cards/{cardId:guid}/complete")]
+    public async Task<IActionResult> Complete(Guid cardId, CompleteCardRequest request, CancellationToken token) =>
+        Ok(await content.CompleteCard(cardId, UserId, request, token));
     [HttpGet("cards/{cardId:guid}")]
     public async Task<IActionResult> Card(Guid cardId, CancellationToken token) => Ok(await content.GetCard(cardId, UserId, token));
     [HttpPut("cards/{cardId:guid}")]

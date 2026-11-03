@@ -10,7 +10,7 @@
  <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="12">
   <ProgressBar IsIndeterminate="True" IsVisible="{Binding Busy}" Height="3"/>
   <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}" Classes="error" TextWrapping="Wrap"/>
-  <Border IsVisible="{Binding NeedsCompletion}" Background="#FFF8E5" CornerRadius="6" Padding="12"><TextBlock Text="Для підрахунку завершених задач оберіть колонку завершення у повному огляді. «У роботі» — активні задачі поза цією колонкою." TextWrapping="Wrap" FontSize="12" Foreground="#8B6A24"/></Border>
+  <Border IsVisible="{Binding NeedsCompletion}" Background="#FFF8E5" CornerRadius="6" Padding="12"><TextBlock Text="Кнопка «Виконано» враховує задачу навіть без колонки завершення. Налаштуйте колонку, щоб також завершувати задачі перетягуванням." TextWrapping="Wrap" FontSize="12" Foreground="#8B6A24"/></Border>
   <ItemsControl IsVisible="{Binding !$parent[views:StatisticsView].Compact}" ItemsSource="{Binding Metrics}" ItemTemplate="{StaticResource Metric}" Margin="0,0,-10,0"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="4" Rows="1"/></ItemsPanelTemplate></ItemsControl.ItemsPanel></ItemsControl>
   <ItemsControl IsVisible="{Binding $parent[views:StatisticsView].Compact}" ItemsSource="{Binding Metrics}" ItemTemplate="{StaticResource CompactMetric}" Margin="0,0,-8,-8"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2" Rows="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel></ItemsControl>
   <Grid ColumnDefinitions="1.15*,1*" ColumnSpacing="16" IsVisible="{Binding !$parent[views:StatisticsView].Compact}">

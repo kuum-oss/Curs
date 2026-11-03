@@ -5,7 +5,7 @@ public sealed class HistoryQuery : PageQuery
     public Guid? CardId { get; set; }
     public Guid? ActorId { get; set; }
     [StringLength(100)] public string? Search { get; set; }
-    [RegularExpression("^(created|deleted|title|description|deadline|priority|assignee|column|archive)$")]
+    [RegularExpression("^(created|deleted|title|description|deadline|priority|assignee|column|archive|completion)$")]
     public string? Field { get; set; }
     [Range(0,3650)] public int Days { get; set; } = 7;
 }
@@ -27,4 +27,4 @@ public sealed record BoardStatisticsDto(Guid BoardId, string BoardVersion, Guid?
     IReadOnlyList<ColumnDto> Columns, DateTime TrackingSinceUtc, bool HasPreviousPeriod,
     int Completed, int? PreviousCompleted, int Overdue, int? PreviousOverdue, int InProgress,
     int? PreviousInProgress, double? MeanDays, double? PreviousMeanDays, int OverdueOverSevenDays,
-    IReadOnlyList<DailyCompletionDto> Days, IReadOnlyList<WorkloadDto> Workload, IReadOnlyList<ActivityDto> Recent);
+    IReadOnlyList<DailyCompletionDto> Days, IReadOnlyList<WorkloadDto> Workload, IReadOnlyList<ActivityDto> Recent, int CompletedTotal = 0);

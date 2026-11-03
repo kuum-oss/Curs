@@ -24,9 +24,11 @@ public sealed partial class CardItemViewModel : ViewModelBase, IDisposable
     public string Title => Card.Title;
     public string Summary => $"{Card.Priority} · {Card.DueDate?.ToString("yyyy-MM-dd") ?? "Без дедлайну"}\n{Card.Assignee?.Name ?? (Card.SourceAssigneeName is {} name?name+" · з копії (не призначено)":"Без відповідального")}";
     public string Tags => string.Join(" · ", Card.Tags.Select(t => t.Name));
+    public bool IsCompleted => Card.IsCompleted;
+    public ActionCommand CompleteCommand { get; }
     public ActionCommand OpenCommand { get; }
     public CardItemViewModel(CardSummaryDto card, BoardContentViewModel workspace)
-    { Card = card; Avatar=card.Assignee is {} user?new(user):null; OpenCommand = new ActionCommand(() => _ = workspace.OpenCardAsync(card.Id), () => !workspace.IsBusy); }
+    { Card = card; CompleteCommand = new(() => _ = workspace.RequestCompletionAsync(card.Id), () => !workspace.IsBusy && !card.IsCompleted); Avatar=card.Assignee is {} user?new(user):null; OpenCommand = new ActionCommand(() => _ = workspace.OpenCardAsync(card.Id), () => !workspace.IsBusy); }
 }
 public sealed partial class ColumnItemViewModel : ViewModelBase
 {
@@ -43,7 +45,7 @@ public sealed partial class ColumnItemViewModel : ViewModelBase
         SelectCommand = new ActionCommand(() => workspace.SelectColumn(this), () => !workspace.IsBusy);
         AddCommand = new ActionCommand(() => workspace.NewCard(this), () => workspace.CanCreate && !workspace.IsBusy);
     }
-    public void Refresh() { Notify(nameof(CanCreate)); SelectCommand.Refresh(); AddCommand.Refresh(); foreach (var c in Cards) c.OpenCommand.Refresh(); }
+    public void Refresh() { Notify(nameof(CanCreate)); SelectCommand.Refresh(); AddCommand.Refresh(); foreach (var c in Cards) { c.OpenCommand.Refresh(); c.CompleteCommand.Refresh(); } }
 }
 public sealed class TagChoiceViewModel : ViewModelBase
 {
@@ -264,7 +266,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         AddCommentCommand = Command(AddCommentAsync, () => ExistingCard);
         ConfirmCommand = Command(ConfirmAsync, () => ShowConfirmation);
         CancelCommand = new ActionCommand(CancelConfirmation, () => !IsBusy);
-        services.Session.Changed += SessionChanged; InitializePresentation(); InitializeChecklist(); InsertMentionCommand=new(InsertMention);
+        services.Session.Changed += SessionChanged; InitializeCompletion(); InitializePresentation(); InitializeChecklist(); InsertMentionCommand=new(InsertMention);
     }
     private ActionCommand Command(Func<Task> action, Func<bool>? allowed = null) => new(() => _ = action(), () => !IsBusy && !polling && IsVisible && (allowed?.Invoke() ?? true));
     private void SessionChanged() { if (services.Session.AccessToken is null) Clear(); }
@@ -409,7 +411,7 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
         else return;
         token.ThrowIfCancellationRequested(); CloseEditor(); selectedColumn = null; await Load(board.Id, token); NotifyState(); Status = "Видалення завершено.";
     });
-    public void CloseEditor() { ResetCardHistory(); MentionPerson=null; LoadChecklist(null); DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible)); NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
+    public void CloseEditor() { CancelCompletion(); ResetCardHistory(); MentionPerson=null; LoadChecklist(null); DiscardChangesVisible=false;Notify(nameof(DiscardChangesVisible)); NewColumnVisible=false;FullImageVisible=false;CancelCommentEdit(); FullImage=null; selectedCard = null; selectedColumn = null; ColumnName = ""; DisposeComments(); Comments.Clear(); CommentText = ""; EditorVisible = false; pendingDelete = null; NotifyState(); }
 
     public bool BeginDrag(Guid id, bool card)
     {
@@ -526,12 +528,14 @@ public sealed partial class BoardContentViewModel : ViewModelBase, IDisposable
     }
     private void RefreshCommands()
     {
+        RefreshCompletion();
         ChecklistChanged();ArchiveCardCommand?.Refresh();SaveCommentCommand?.Refresh();DeleteCommentCommand?.Refresh();
         foreach (var command in new[] { RefreshCommand, CreateColumnCommand, RenameColumnCommand, DeleteColumnCommand, SaveCardCommand, DeleteCardCommand, CloseEditorCommand, CreateTagCommand, AddCommentCommand, ConfirmCommand, CancelCommand }) command.Refresh();
         foreach (var col in Columns) col.Refresh();
     }
     private void ClearData()
     {
+        CancelCompletion();
         ResetCardHistory();
         LoadChecklist(null);
         filterDelay?.Cancel();filterRevision++;CancelImages();DisposeRows();FullImage=null;services.Images.Clear();

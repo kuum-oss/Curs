@@ -59,6 +59,7 @@ public sealed class BoardColumn
 
 public sealed class Card
 {
+    public DateTime? CompletedAtUtc { get; set; }
     public string? SourceAssigneeName { get; set; }
     public bool IsArchived { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();

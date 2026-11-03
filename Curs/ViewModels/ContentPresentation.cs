@@ -26,7 +26,7 @@ public sealed partial class CardItemViewModel
     public IBrush PriorityForeground=>Brush.Parse(Card.Priority is CardPriority.High or CardPriority.Critical?"#9A1531":Card.Priority==CardPriority.Low?"#11644B":"#805006");
     public IReadOnlyList<TagPillViewModel> TagItems=>Card.Tags.Select(t=>new TagPillViewModel(t)).ToList();
     public string DateLabel=>Card.DueDate?.ToString("d MMM",CultureInfo.GetCultureInfo("uk-UA"))??"Без дати";
-    public bool IsOverdue=>Card.DueDate is {} date&&date<DateOnly.FromDateTime(DateTime.Today);
+    public bool IsOverdue=>!Card.IsCompleted && Card.DueDate is {} date&&date<DateOnly.FromDateTime(DateTime.Today);
     public IBrush DateForeground=>IsOverdue?Brush.Parse("#D95155"):Brush.Parse("#738097");
     public string CommentCount=>Card.CommentCount.ToString(CultureInfo.InvariantCulture);
 }
@@ -63,7 +63,7 @@ public sealed partial class BoardContentViewModel
     private CommentItemViewModel? editingComment,deletingComment;
     private string editCommentText="";
     public bool DiscardChangesVisible{get;private set;}
-    public bool AnyDialogVisible=>DiscardChangesVisible||NewColumnVisible||ColumnEditorVisible||EditorVisible||ShowConfirmation||FullImageVisible||CommentEditorVisible||CommentDeleteVisible;
+    public bool AnyDialogVisible=>CompletionPromptVisible||DiscardChangesVisible||NewColumnVisible||ColumnEditorVisible||EditorVisible||ShowConfirmation||FullImageVisible||CommentEditorVisible||CommentDeleteVisible;
     public bool HasStatus=>!string.IsNullOrEmpty(Status);
     public Guid? CurrentUserId=>services.Session.User?.Id;
     public bool IsBoardAdmin=>board?.Role==BoardRole.Admin;

@@ -151,6 +151,7 @@ public sealed partial class BoardWorkspaceViewModel
         FavoriteCommand=new(()=>_=FavoriteSelected());ArchiveBoardCommand=new(()=>_=ArchiveSelected());RemoveBoardCoverCommand=new(()=>_=RemoveBoardCover());
         StayCommand=new(()=>{pendingNavigation=null;NavigationConfirmation=false;});DiscardNavigationCommand=new(()=>{var next=pendingNavigation;pendingNavigation=null;NavigationConfirmation=false;Profile.CancelDeleteAccount();CloseDialogs();Content.CloseEditor();next?.Invoke();});
         Insights=new(services,e=>Navigate(()=>_=OpenLinkedCard(e.BoardId,e.CardId)));
+        Content.CompletionChanged = () => Insights.Refresh();
         RefreshIdentity();
     }
     private void Navigate(Action next)

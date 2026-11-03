@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KanbanApi.Application;
 
-public sealed class ContentService(KanbanDbContext db, BoardAccess access, NotificationService notifications)
+public sealed partial class ContentService(KanbanDbContext db, BoardAccess access, NotificationService notifications)
 {
     private static ApiException Missing() => BoardAccess.NotFound();
     private static void Version(byte[] actual, string expected)
@@ -109,9 +109,12 @@ public sealed class ContentService(KanbanDbContext db, BoardAccess access, Notif
         var comments = await db.Comments.Where(c=>ids.Contains(c.CardId)).GroupBy(c=>c.CardId).Select(g=>new{Id=g.Key,Count=g.Count()}).ToDictionaryAsync(g=>g.Id,g=>g.Count,token);
         var checks = await db.ChecklistItems.Where(i => ids.Contains(i.CardId)).GroupBy(i => i.CardId)
             .Select(g => new { Id = g.Key, Total = g.Count(), Done = g.Count(i => i.IsCompleted) }).ToDictionaryAsync(g => g.Id, token);
+        var columnIds = cards.Select(c => c.ColumnId).Distinct().ToArray();
+        var completedColumns = await (from col in db.Columns join b in db.Boards on col.BoardId equals b.Id
+            where b.CompletionColumnId == col.Id && columnIds.Contains(col.Id) select col.Id).ToListAsync(token);
         return cards.Select(c => new CardSummaryDto(c.Id, c.ColumnId, c.Title, c.DueDate, c.Priority,
             c.AssigneeId is Guid id ? users.GetValueOrDefault(id) : null, c.Position, tags.Where(t => t.CardId == c.Id).Select(t => t.Tag).ToList(),
-            images.Contains(c.Id), Convert.ToBase64String(c.RowVersion), c.Description, comments.GetValueOrDefault(c.Id), c.IsArchived, checks.GetValueOrDefault(c.Id)?.Done ?? 0, checks.GetValueOrDefault(c.Id)?.Total ?? 0, c.SourceAssigneeName)).ToList();
+            images.Contains(c.Id), Convert.ToBase64String(c.RowVersion), c.Description, comments.GetValueOrDefault(c.Id), c.IsArchived, checks.GetValueOrDefault(c.Id)?.Done ?? 0, checks.GetValueOrDefault(c.Id)?.Total ?? 0, c.SourceAssigneeName, c.CompletedAtUtc != null || completedColumns.Contains(c.ColumnId))).ToList();
     }
     private async Task<CardDetailsDto> Details(Card card, CancellationToken token)
     {

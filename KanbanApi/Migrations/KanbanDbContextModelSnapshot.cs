@@ -232,6 +232,9 @@ namespace KanbanApi.Migrations
                     b.Property<Guid>("ColumnId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 

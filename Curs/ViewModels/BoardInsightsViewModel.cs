@@ -93,7 +93,7 @@ public sealed class BoardInsightsViewModel : ViewModelBase,IDisposable
     private void Populate()
     {
         ClearRows();if(stats is not {} s)return;
-        var uk=CultureInfo.GetCultureInfo("uk-UA");var configured=s.CompletionColumnId is not null;
+        var uk=CultureInfo.GetCultureInfo("uk-UA");
         string Number(double? n)=>n?.ToString("0.#",uk)??"—";
         string Delta(double? current,double? previous){if(current is null||previous is null)return "—";var d=current.Value-previous.Value;return d==0?"— 0":(d>0?"↑ +":"↓ ")+d.ToString("0.#",uk);}
         string Comparison(double? current,double? previous,bool lowerBetter=false)
@@ -103,10 +103,10 @@ public sealed class BoardInsightsViewModel : ViewModelBase,IDisposable
         const string clock="M10,0 A10,10 0 1 1 9.99,0 M10,2 A8,8 0 1 0 10.01,2 M9,4 L11,4 11,9 15,12 14,14 9,10 Z";
         const string progress="M10,0 L10,3 A7,7 0 1 1 3,10 L0,10 A10,10 0 1 0 10,0 M1,5 L3,2 5,4 3,7 Z";
         const string bars="M1,12 L5,12 5,20 1,20 Z M8,5 L12,5 12,20 8,20 Z M15,0 L19,0 19,20 15,20 Z";
-        Metrics.Add(new("Виконано за тиждень",configured?s.Completed.ToString():"—",configured?Delta(s.Completed,s.PreviousCompleted):"—",configured?Comparison(s.Completed,s.PreviousCompleted):"Оберіть колонку завершення","#F0FAF6","#DDEFE7","#37B992",check,Color(s.Completed,s.PreviousCompleted,false)));
+        Metrics.Add(new("Виконано за тиждень",s.Completed.ToString(),Delta(s.Completed,s.PreviousCompleted),$"Усього виконано: {s.CompletedTotal}. "+Comparison(s.Completed,s.PreviousCompleted),"#F0FAF6","#DDEFE7","#37B992",check,Color(s.Completed,s.PreviousCompleted,false)));
         Metrics.Add(new("Прострочено",s.Overdue.ToString(),Delta(s.Overdue,s.PreviousOverdue),$"{s.OverdueOverSevenDays} задач прострочені понад 7 днів","#FFF4F5","#F7E3E6","#EE6578",clock,Color(s.Overdue,s.PreviousOverdue,true)));
         Metrics.Add(new("У роботі",s.InProgress.ToString(),Delta(s.InProgress,s.PreviousInProgress),Comparison(s.InProgress,s.PreviousInProgress),"#F1F7FF","#DFEAFB","#398CE7",progress,Color(s.InProgress,s.PreviousInProgress,true)));
-        Metrics.Add(new("Середній час виконання",configured&&s.MeanDays is not null?Number(s.MeanDays)+" дня":"—",configured?Delta(s.MeanDays,s.PreviousMeanDays):"—",configured?Comparison(s.MeanDays,s.PreviousMeanDays,true):"Оберіть колонку завершення","#F7F4FF","#EAE5F6","#8176DB",bars,Color(s.MeanDays,s.PreviousMeanDays,true)));
+        Metrics.Add(new("Середній час виконання",s.MeanDays is not null?Number(s.MeanDays)+" дня":"—",Delta(s.MeanDays,s.PreviousMeanDays),Comparison(s.MeanDays,s.PreviousMeanDays,true),"#F7F4FF","#EAE5F6","#8176DB",bars,Color(s.MeanDays,s.PreviousMeanDays,true)));
         foreach(var w in s.Workload)Workload.Add(new(w,services));foreach(var e in s.Recent)Recent.Add(new(e,services,open));
         Columns.Clear();Columns.Add(new(null,"Не обрано"));foreach(var c in s.Columns)Columns.Add(new(c.Id,c.Name));completion=Columns.FirstOrDefault(c=>c.Id==s.CompletionColumnId)??Columns[0];Notify(nameof(Completion));NotifyAll();
     }

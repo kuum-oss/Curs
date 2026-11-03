@@ -9,13 +9,13 @@ namespace KanbanApi.Application;
 public sealed class ActivityRecorder(KanbanDbContext db, TimeProvider clock)
 {
     public sealed record State(Guid Id, string Title, string? Description, DateOnly? DueDate, string Priority,
-        Guid? AssigneeId, string? Assignee, Guid ColumnId, string Column, bool Archived, DateTime Created);
+        Guid? AssigneeId, string? Assignee, Guid ColumnId, string Column, bool Archived, DateTime Created, DateTime? CompletedAtUtc = null);
     public Task<List<State>> Capture(Guid board, CancellationToken token) =>
         (from c in db.Cards.AsNoTracking() join col in db.Columns on c.ColumnId equals col.Id
          join u in db.Users on c.AssigneeId equals u.Id into people from u in people.DefaultIfEmpty()
          where col.BoardId == board
          select new State(c.Id,c.Title,c.Description,c.DueDate,c.Priority.ToString(),c.AssigneeId,u==null?null:u.Name,
-             col.Id,col.Name,c.IsArchived,c.CreatedAtUtc)).ToListAsync(token);
+             col.Id,col.Name,c.IsArchived,c.CreatedAtUtc,c.CompletedAtUtc)).ToListAsync(token);
     public async Task Record(Guid board, Guid actor, List<State> before, CancellationToken token)
     {
         // Deleting the board itself cascades its history; never recreate orphan records.
@@ -28,7 +28,8 @@ public sealed class ActivityRecorder(KanbanDbContext db, TimeProvider clock)
                 AfterStateJson=current.TryGetValue(c.Id,out var next)?JsonSerializer.Serialize(next):null,FromColumnId=fromColumn,ToColumnId=toColumn,CardCreatedAtUtc=c.Created,CreatedAtUtc=now });
         foreach(var c in after)
         {
-            if(!old.TryGetValue(c.Id,out var b)) { Add(c,"created",null,c.Title,null,c.ColumnId); continue; }
+            if(!old.TryGetValue(c.Id,out var b)) { Add(c,"created",null,c.Title,null,c.ColumnId); if(c.CompletedAtUtc!=null)Add(c,"completion",null,"Виконано"); continue; }
+            if(b.CompletedAtUtc!=c.CompletedAtUtc)Add(c,"completion",b.CompletedAtUtc is null?"У роботі":"Виконано",c.CompletedAtUtc is null?"У роботі":"Виконано");
             if(b.Title!=c.Title)Add(c,"title",b.Title,c.Title);
             if(b.Description!=c.Description)Add(c,"description",b.Description,c.Description);
             if(b.DueDate!=c.DueDate)Add(c,"deadline",b.DueDate?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),c.DueDate?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));

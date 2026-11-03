@@ -53,12 +53,12 @@ public sealed class InsightsService(KanbanDbContext db, BoardAccess access, Acti
         var start=Utc(first);var end=Utc(today.AddDays(1));var previousStart=Utc(previousFirst);
         var hasPrevious=b.InsightsSinceUtc<=previousStart;
         var done=b.CompletionColumnId;
-        bool Active(ActivityRecorder.State c)=>!c.Archived&&c.ColumnId!=done;
+        bool Active(ActivityRecorder.State c)=>!c.Archived&&c.CompletedAtUtc==null&&c.ColumnId!=done;
         var active=current.Where(Active).ToList();
         int Overdue(IEnumerable<ActivityRecorder.State> cards,DateOnly date)=>cards.Count(c=>Active(c)&&c.DueDate<date);
         // First observed completion per card: reopening/reclosing cannot inflate throughput.
-        var completions=done is null?[]:await db.BoardActivities.AsNoTracking()
-            .Where(a=>a.BoardId==board&&a.ToColumnId==done&&(a.Field=="column"||a.Field=="created"))
+        var completions=await db.BoardActivities.AsNoTracking()
+            .Where(a=>a.BoardId==board&&((done!=null&&a.ToColumnId==done&&(a.Field=="column"||a.Field=="created"))||(a.Field=="completion"&&a.After=="Виконано")))
             .GroupBy(a=>a.CardId).Select(g=>new{At=g.Min(a=>a.CreatedAtUtc),Created=g.Min(a=>a.CardCreatedAtUtc)}).ToListAsync(token);
         var finished=completions.Where(c=>c.At>=start&&c.At<end).ToList();
         var previousFinished=completions.Where(c=>c.At>=previousStart&&c.At<start).ToList();
@@ -88,6 +88,6 @@ public sealed class InsightsService(KanbanDbContext db, BoardAccess access, Acti
             finished.Count,hasPrevious?previousFinished.Count:null,Overdue(current,today),hasPrevious?Overdue(previous,today.AddDays(-7)):null,
             active.Count,hasPrevious?previous.Count(Active):null,Mean(finished.Select(c=>Math.Max(0,(c.At-c.Created).TotalDays))),
             hasPrevious?Mean(previousFinished.Select(c=>Math.Max(0,(c.At-c.Created).TotalDays))):null,
-            active.Count(c=>c.DueDate<today.AddDays(-7)),days,workload,recent);
+            active.Count(c=>c.DueDate<today.AddDays(-7)),days,workload,recent,current.Count(c=>!c.Archived&&(c.CompletedAtUtc!=null||c.ColumnId==done)));
     });
 }
