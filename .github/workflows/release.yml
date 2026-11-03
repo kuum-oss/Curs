@@ -1,0 +1,235 @@
+name: Desktop release
+
+on:
+  push:
+    branches: [release-installer]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package version without the v prefix (does not publish a release)
+        required: true
+        default: '0.2.0'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate package version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, sys
+          sys.path.insert(0, 'scripts/release')
+          from common import version_text
+          version = os.environ['GITHUB_REF_NAME'][1:] if os.environ['GITHUB_REF_TYPE'] == 'tag' else os.environ.get('INPUT_VERSION') or '0.2.0'
+          version_text(version)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('version=' + version + '\n')
+          PY
+
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest@sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'CiOnly.2026!Kanban'
+          MSSQL_PID: Developer
+        ports: ['1433:1433']
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'CiOnly.2026!Kanban' -C -Q 'SELECT 1' -b -o /dev/null"
+          --health-interval 10s --health-timeout 10s --health-start-period 60s --health-retries 15
+    env:
+      KANBAN_TEST_CONNECTION: 'Server=localhost,1433;Database=master;User Id=sa;Password=CiOnly.2026!Kanban;TrustServerCertificate=True;Connect Timeout=15'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Test package integrity validation
+        run: python3 -m unittest discover -s scripts/release -p 'test_*.py'
+      - name: Test with Microsoft SQL Server
+        run: dotnet test KanbanApi.Tests/KanbanApi.Tests.csproj -c Release --nologo --logger 'trx;LogFileName=release.trx' --results-directory TestResults/release
+      - name: Require every test to run
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as E
+          root = E.parse('TestResults/release/release.trx').getroot()
+          counters = root.find('.//{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}Counters').attrib
+          assert int(counters['total']) > 0 and counters['passed'] == counters['total'] and counters['notExecuted'] == '0', counters
+          print(counters)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-test-results
+          path: TestResults/release/*.trx
+          if-no-files-found: warn
+          retention-days: 7
+
+  server:
+    needs: version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Build ready-to-load API image
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          ARCH: ${{ matrix.arch }}
+        run: python3 scripts/release/build-server.py --arch "$ARCH" --version "$VERSION" --output "$RUNNER_TEMP/server"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: server-metadata-${{ matrix.arch }}
+          path: ${{ runner.temp }}/server/server-linux-*.json
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-server-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/server/*.tar.gz
+            ${{ runner.temp }}/server/*.json
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+
+  desktop:
+    needs: [version, tests, server]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            arch: amd64
+            runner: windows-2022
+          - rid: osx-arm64
+            arch: arm64
+            runner: macos-15
+          - rid: osx-x64
+            arch: amd64
+            runner: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: server-metadata-${{ matrix.arch }}
+          path: server-metadata
+      - name: Package and verify native application startup
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          RID: ${{ matrix.rid }}
+          ARCH: ${{ matrix.arch }}
+        shell: bash
+        run: python scripts/release/package-client.py --rid "$RID" --version "$VERSION" --server-metadata "server-metadata/server-linux-$ARCH.json" --output "$RUNNER_TEMP/client" --verify-startup
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-client-${{ matrix.rid }}
+          path: |
+            ${{ runner.temp }}/client/*.zip
+            ${{ runner.temp }}/client/*.dmg
+            ${{ runner.temp }}/client/*-setup.exe
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+
+  verify:
+    needs: [version, desktop, server]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-server-*
+          path: release-assets
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-client-*
+          path: release-assets
+          merge-multiple: true
+      - name: Verify every archive and embedded checksum
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: python3 scripts/release/verify-artifacts.py --directory release-assets --version "$VERSION" --write-checksums
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-release-checksums
+          path: release-assets/SHA256SUMS
+          retention-days: 7
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [version, tests, server, desktop, verify]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-server-*
+          path: release-assets
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-client-*
+          path: release-assets
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: verified-release-checksums
+          path: release-assets
+      - name: Recheck asset integrity
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: python3 scripts/release/verify-artifacts.py --directory release-assets --version "$VERSION"
+      - name: Publish checked release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo 'Release already exists; do not overwrite published assets.' >&2
+            exit 1
+          fi
+          gh release create "$tag" --verify-tag --draft --title "KanbanBoard $VERSION" --notes-file installer/RELEASE-NOTES.md
+          gh release upload "$tag" release-assets/*
+          gh release edit "$tag" --draft=false

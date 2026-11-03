@@ -1,0 +1,70 @@
+# Встановлення та випуск KanbanBoard
+
+## Для користувача
+
+Відкрийте [GitHub Releases](https://github.com/kuum-oss/Curs/releases), виберіть пакет своєї системи та запустіть його.
+
+| Система | Основний файл | Альтернатива |
+| --- | --- | --- |
+| Windows x64 | `KanbanBoard-<версія>-windows-x64-setup.exe` | ZIP, розпакувати всю папку й відкрити `KanbanBoard.exe` |
+| macOS, Apple Silicon | `KanbanBoard-<версія>-macos-apple-silicon.dmg` | ZIP з `KanbanBoard.app` |
+| macOS, Intel | `KanbanBoard-<версія>-macos-intel.dmg` | ZIP з `KanbanBoard.app` |
+
+Windows-установник працює для поточного користувача, створює ярлик і пропонує відкрити програму. На Mac скопіюйте `KanbanBoard.app` до Applications із відкритого DMG. Усі пакети містять .NET runtime; встановлювати .NET SDK, Python, Git або відкривати термінал не потрібно.
+
+При першому запуску майстер перевіряє Docker Desktop і з’єднання з ним, завантажує готовий сервер та підготовляє локальну базу. Якщо Docker ще відсутній, відкривається офіційний установник. Його умови, системні дозволи та можливе перезавантаження Windows потребують дій у штатних вікнах. Після встановлення й запуску Docker поверніться до KanbanBoard і повторіть перевірку. Перший запуск потребує інтернету; наступний використовує вже завантажені компоненти.
+
+Діють [вимоги Docker Desktop для Windows](https://docs.docker.com/desktop/setup/install/windows-install/) або [macOS](https://docs.docker.com/desktop/setup/install/mac-install/). MSSQL 2022 у цьому проєкті має Linux x86-64 образ; на Apple Silicon використовується емуляція. Це перевірена локальна конфігурація, а не офіційно підтримувана Microsoft платформа для SQL Server. SQL Server Developer дозволяє розробку, тестування та демонстрації; для production потрібна відповідна ліцензія.
+
+Програма зберігає дані локально. Звичайне оновлення клієнта або його видалення не видаляє Docker volume з базою. Для перенесення дошки використовуйте вбудовані резервні копії. Видалення Docker разом із даними може видалити базу; установник цього не робить.
+
+### Підпис і перевірка файлів
+
+Поточні Mac-пакети підписані ad-hoc для цілісності `.app`, без Apple Developer ID та notarization. Windows-пакет не має комерційного підпису видавця. Тому ОС може вимагати підтвердження запуску завантаженої програми. Пакування не вимикає Gatekeeper чи SmartScreen й не змінює політику безпеки системи. Для поширення без таких попереджень потрібні окремі сертифікати підпису та Apple notarization.
+
+У релізі є `SHA256SUMS`. Він перевіряє цілісність завантажених файлів, але не замінює підпис видавця. Майстер додатково перевіряє SHA-256 серверного архіву з власного версійованого `setup/runtime.json` перед завантаженням образу в Docker. URL прив’язаний до конкретного релізу, не до змінного `latest`.
+
+## Для розробника
+
+### Склад релізу
+
+- Готові Docker API-архіви Linux `amd64` і `arm64`, без SDK, тестів та `.env`.
+- Метадані `server-linux-<архітектура>.json`: версія, образ, назва архіву та SHA-256.
+- Самодостатні клієнти `win-x64`, `osx-arm64`, `osx-x64`.
+- Windows per-user Inno Setup 6 та ZIP; Mac `.app` у ZIP і DMG.
+- `SHA256SUMS`, сформований після звірки всіх пакетів.
+
+`setup/runtime.json` лежить поруч із клієнтським executable, на Mac — у `KanbanBoard.app/Contents/MacOS/setup/`. Схема:
+
+```json
+{
+  "version": "0.2.0",
+  "apiImage": "kanbanboard-api:0.2.0-arm64",
+  "serverArchiveUrl": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/kanbanboard-server-linux-arm64.tar.gz",
+  "serverArchiveSha256": "<SHA-256 готового архіву>",
+  "sqlImage": "<образ MSSQL із compose.yaml, зафіксований digest>"
+}
+```
+
+Значення hash береться з реально створеного серверного архіву. Пакування відхиляє невалідний hash, іншу версію/архітектуру або невідповідний файл. На Mac executable має назву `Curs`, як у dev-пакеті; Windows apphost називається `KanbanBoard.exe`, managed assembly залишається `Curs.dll`, щоб зберегти адреси ресурсів Avalonia.
+
+### Локальні команди
+
+Потрібні SDK з `global.json`, Docker із buildx, Python 3.10+; для Mac — `codesign`, `ditto`, `hdiutil`; для Windows — Inno Setup 6. Пакувальник сам вибирає `.tools/dotnet/dotnet`, якщо він є в checkout, або `dotnet` із PATH.
+
+```sh
+python3 scripts/release/build-server.py --arch arm64 --version 0.2.0 --output TestResults/releases/0.2.0/server-arm64
+python3 scripts/release/package-client.py --rid osx-arm64 --version 0.2.0 --server-metadata TestResults/releases/0.2.0/server-arm64/server-linux-arm64.json --output TestResults/releases/0.2.0/client-arm64 --verify-startup
+```
+
+Вихідна папка має бути новою або порожньою. Пакувальник не видаляє довільну попередню збірку. `--verify-startup` створює нативний інтерфейс і завершується без підготовки Docker, прийняття ліцензій чи читання збережених сеансів. Для Windows підставте `amd64` і `win-x64`; компілятор ISCC за потреби задається `--iscc`. Для Intel Mac — `amd64` та `osx-x64`. Поточний `scripts/package-macos.sh` залишається допоміжним dev-пакуванням і не використовується для релізу.
+
+### GitHub Actions
+
+[Desktop release](../.github/workflows/release.yml) запускається для `release-installer`, вручну через `workflow_dispatch` та для тегів `v*`. Гілка й ручний запуск створюють лише перевірочні artifacts; **публікація дозволена лише тегу**.
+
+Порядок: перевірка версії → SQL-тести та два API-образи → три нативні desktop-пакети з startup probe → звірка архівів і manifest → draft release з файлами → публікація. Усі SQL-тести працюють із випадковими базами на тимчасовому CI-сервісі; пропуски тестів блокують випуск. Команди пакування не приймають секретів SQL або JWT і не включають локальні `TestResults`, `.tools`, профілі та дані користувачів.
+
+Публікація відмовляється перезаписувати наявний реліз; безпечне повторення — новий тег після виправлення або явне опрацювання незавершеного draft. Лише publish-job отримує `contents: write`; усі збірки мають read-only GitHub token. Для самостійного випуску потрібно спочатку перевірити artifacts гілки, потім створити тег потрібного коміту й відправити його в `origin`.
+
+Окремий документ не підтверджує завершення тестів чи фактичну публікацію: їхній результат визначається конкретним запуском Actions та файлами GitHub Release.
