@@ -9,9 +9,12 @@ COPY KanbanApi/ KanbanApi/
 # retain the large all-platform Magick.NET NuGet cache in an intermediate layer.
 # Discard other platforms before publish duplicates the selected native library.
 # This keeps peak disk usage within the local 7.8 GiB Docker allocation.
-RUN dotnet restore KanbanApi/KanbanApi.csproj --no-http-cache -r linux-$TARGETARCH \
-    && find /root/.nuget/packages/magick.net-q8-anycpu -mindepth 3 -maxdepth 3 -type d -path '*/runtimes/*' ! -name "linux-$TARGETARCH" -exec rm -rf {} + \
-    && dotnet publish KanbanApi/KanbanApi.csproj --no-restore -c Release -r linux-$TARGETARCH --self-contained false -o /app/publish /p:UseAppHost=false \
+# Docker calls x86-64 "amd64"; NuGet native assets and .NET RIDs call it "x64".
+RUN case "$TARGETARCH" in amd64) runtime_arch=x64 ;; arm64) runtime_arch=arm64 ;; *) exit 1 ;; esac \
+    && runtime_id="linux-$runtime_arch" \
+    && dotnet restore KanbanApi/KanbanApi.csproj --no-http-cache -r "$runtime_id" \
+    && find /root/.nuget/packages/magick.net-q8-anycpu -mindepth 3 -maxdepth 3 -type d -path '*/runtimes/*' ! -name "$runtime_id" -exec rm -rf {} + \
+    && dotnet publish KanbanApi/KanbanApi.csproj --no-restore -c Release -r "$runtime_id" --self-contained false -o /app/publish /p:UseAppHost=false \
     && dotnet nuget locals all --clear \
     && rm -rf /root/.nuget/packages /src/KanbanApi/bin /src/KanbanApi/obj /src/KanbanContracts/bin /src/KanbanContracts/obj
 
