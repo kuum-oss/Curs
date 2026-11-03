@@ -29,7 +29,7 @@
   "nativeAcceptance": {
     "completedOn": "2026-10-22",
     "checks": [
-      "overview and drawer match approved block composition",
+      "overview and drawer match design block composition",
       "all four KPI cards and seven bars",
       "all four workload rows and scroll",
       "board history to correct card",
@@ -43,7 +43,7 @@
       "logout clears session"
     ],
     "screenshots": "screenshots/history-statistics/",
-    "automationLimit": "Direct AX setValue on a ComboBox restarted the native process; final selection checks used normal option clicks."
+    "automationLimit": "Direct ComboBox accessibility value assignment restarted the native process; final selection checks used normal option clicks."
   },
   "finalDeployedApi": {
     "fixedToday": "2026-10-21",

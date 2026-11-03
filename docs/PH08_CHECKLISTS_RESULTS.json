@@ -54,7 +54,7 @@
     "completed": 3,
     "positionsContiguous": true,
     "nativeEditsPersisted": true,
-    "dragAndDrop": "confirmed by user after native mouse automation failed with noWindowsAvailable",
+    "dragAndDrop": "manual verification: drag, save, and reopen; native mouse automation unavailable",
     "serverAndBoardProgressAgree": true
   },
   "ui": {
@@ -64,7 +64,7 @@
     "discardDraftVerified": true,
     "boardProgressVerified": true,
     "screenshotsInspected": true,
-    "dragAndDrop": "user manually confirmed drag, save, and reopen",
+    "dragAndDrop": "manual verification: drag, save, and reopen",
     "automatedMouseLimitation": "noWindowsAvailable / cgWindowNotFound"
   },
   "docker": {

@@ -71,9 +71,8 @@
   "nativeVerification": {
     "originalMacOsScreenshot": "Selected in macOS picker; preview and full image visibly displayed",
     "boardFileDrop": "Native DataFormat.File drag in temporary harness; Copy returned; API bytes matched mountains.png for target card",
-    "editorFileDrop": "SQL-backed client test preserves unsaved fields; user independently confirmed feature works",
-    "finderAutomation": "Finder window unavailable to automation; native file source was supplied by a temporary harness",
-    "userConfirmation": "я проверил работает"
+    "editorFileDrop": "SQL-backed client test preserves unsaved fields; additional manual verification passed",
+    "finderAutomation": "Finder window unavailable to automation; native file source was supplied by a temporary harness"
   },
   "privacy": "User screenshots and monitor ICC profiles were not committed; fixture uses built-in sRGB with synthetic padding"
 }

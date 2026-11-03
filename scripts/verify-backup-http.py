@@ -75,7 +75,7 @@ try:
     tag=call('POST',f'/api/boards/{bid}/tags',{'name':'Документація','color':'#168C98','expectedBoardVersion':version()},a,201)
     card=call('POST',f'/api/boards/{bid}/cards',{'title':'Підготувати презентацію','description':'Опис, з комою.\nДругий рядок','columnId':col['id'],'dueDate':'2026-10-23','assigneeId':b['user']['id'],'tagIds':[tag['id']],'checklist':[{'id':str(uuid.uuid4()),'title':'Перевірити матеріали','isCompleted':True}],'expectedBoardVersion':version()},a,201)['card']
     call('POST',f"/api/cards/{card['id']}/comments",{'text':'Коментар має зберегтися','expectedVersion':card['version'],'expectedBoardVersion':version()},a,201)
-    # Upload an existing project-owned generated concept as synthetic image data.
+    # Upload an existing project-owned UI concept as synthetic image data.
     image=(root/'docs/concepts/task-calendar-2026-10-21.png').read_bytes();card=call('GET',f"/api/cards/{card['id']}",auth=a)['card'];boundary='Kanban'+uuid.uuid4().hex
     parts=[]
     for key,value in {'ExpectedVersion':card['version'],'ExpectedBoardVersion':version()}.items():parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'.encode())

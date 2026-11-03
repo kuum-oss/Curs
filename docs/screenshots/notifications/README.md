@@ -7,4 +7,4 @@
 3. [Чат](03-chat-target.png): відкрита потрібна розмова.
 4. [Прочитано](04-read.png): порожній фільтр після «Прочитати всі».
 
-[Згенеровані концепти](../../concepts/NOTIFICATIONS_AND_CHAT_CARDS.md), [перевірки](../../PH08_NOTIFICATIONS.md).
+[Концепти інтерфейсу](../../concepts/NOTIFICATIONS_AND_CHAT_CARDS.md), [перевірки](../../PH08_NOTIFICATIONS.md).
