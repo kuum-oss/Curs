@@ -4,7 +4,7 @@
   "testedAt": "2026-11-04",
   "validation": {
     "url": "https://github.com/kuum-oss/Curs/actions/runs/41861064156",
-    "status": "in_progress",
+    "status": "complete",
     "sourceCommit": "48ea001aa175a69d12b5a7eec0db988f2a1585d9",
     "previousRun": {
       "url": "https://github.com/kuum-oss/Curs/actions/runs/41854210067",
@@ -21,7 +21,27 @@
       "macos-26-intel"
     ],
     "minimumClientMacOS": "15.0",
-    "codeTestsPassed": true
+    "codeTestsPassed": true,
+    "conclusion": "success",
+    "nativeStartupRuntimes": [
+      "win-x64",
+      "osx-arm64",
+      "osx-x64"
+    ],
+    "runtimeSmokePassed": true,
+    "packageIntegrityPassed": true,
+    "assetChecksums": {
+      "KanbanBoard-0.3.0-macos-apple-silicon.dmg": "009489daa30a94f879a9a2fdc0af5e0d306c804ad6d8f77c8fa6c70a789c1bc4",
+      "KanbanBoard-0.3.0-macos-apple-silicon.zip": "26d82ca396a9b57fda034177310751bc3c5d00fc41c9ec1ddbf54530691c86bc",
+      "KanbanBoard-0.3.0-macos-intel.dmg": "90a6fc1aeb16e3125cc7137414e584bb3ded80cb2e9f0cd69db60faa1dd32a20",
+      "KanbanBoard-0.3.0-macos-intel.zip": "20e8ed43966efa7e99d756fd85180c81e366a042634e04e40c264979f023ab4d",
+      "KanbanBoard-0.3.0-windows-x64-setup.exe": "ea6b0758828c71b4e720ffaa15b341de6f920c4b7bd050a86da1a29cfa434645",
+      "KanbanBoard-0.3.0-windows-x64.zip": "39c63a6a1ea6ef367c98c5756cb950143e45d3beca40bb0cb89cbd06efb2e4f3",
+      "kanbanboard-server-linux-amd64.tar.gz": "525a46fd69d117796c794ef5ce69cadadfa0d15ec8b7102b6ef1a76c9a60f254",
+      "kanbanboard-server-linux-arm64.tar.gz": "9a9431d42b73e72c3f175b3c9e3c2ee7a7f478893251e478003542b34544fd23",
+      "server-linux-amd64.json": "bf1f76ba1c5297a1617545f593aa15f2b1f6d70ee675897bef1acfda37645210",
+      "server-linux-arm64.json": "1ca75d6c675c92f53f736dc9be8340e427f41e4dd66d34eeddc71ef369486fe6"
+    }
   },
   "tests": {
     "total": 260,

@@ -20,7 +20,7 @@ Windows-установник працює для поточного корист
 
 На 03.11.2026 [вимоги Docker для Windows x64](https://docs.docker.com/desktop/setup/install/windows-install/#system-requirements) указують Windows 10 22H2 (збірка 19045) або Windows 11 23H2 (22631) чи новішу, із застереженням щодо чинного строку обслуговування ОС. Також потрібні WSL 2 та апаратна віртуалізація. Windows 10 LTSC 1809 (17763) цим вимогам не відповідає.
 
-У версії KanbanBoard 0.2.0 EXE-установник має власний поріг `MinVersion=10.0.19041` і відмовляє на Windows 1809 ще до встановлення. ZIP містить клієнт, який може відкрити майстер на цій ОС: поріг установника до нього не застосовується. **Це не означає підтримку локального сервера:** без сумісного Docker підготовку API та БД завершити не вдасться. Використання ZIP не усуває потреби оновити Windows. Перед запуском ZIP потрібно розпакувати всю папку, зберігши DLL та каталог `setup` поруч із `KanbanBoard.exe`.
+У версіях KanbanBoard 0.2.0–0.3.0 EXE-установник має власний поріг `MinVersion=10.0.19041` і відмовляє на Windows 1809 ще до встановлення. ZIP містить клієнт, який може відкрити майстер на цій ОС: поріг установника до нього не застосовується. **Це не означає підтримку локального сервера:** без сумісного Docker підготовку API та БД завершити не вдасться. Використання ZIP не усуває потреби оновити Windows. Перед запуском ZIP потрібно розпакувати всю папку, зберігши DLL та каталог `setup` поруч із `KanbanBoard.exe`.
 
 При першому запуску майстер перевіряє Docker Desktop і з’єднання з ним, завантажує готовий сервер та підготовляє локальну базу. Якщо Docker ще відсутній, відкривається офіційний установник. Його умови, системні дозволи та можливе перезавантаження Windows потребують дій у штатних вікнах. Після встановлення й запуску Docker поверніться до KanbanBoard і повторіть перевірку. Перший запуск потребує інтернету; наступний використовує вже завантажені компоненти.
 
@@ -50,9 +50,9 @@ Windows-установник працює для поточного корист
 
 ```json
 {
-  "version": "0.2.0",
-  "apiImage": "kanbanboard-api:0.2.0-arm64",
-  "serverArchiveUrl": "https://github.com/kuum-oss/Curs/releases/download/v0.2.0/kanbanboard-server-linux-arm64.tar.gz",
+  "version": "0.3.0",
+  "apiImage": "kanbanboard-api:0.3.0-arm64",
+  "serverArchiveUrl": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/kanbanboard-server-linux-arm64.tar.gz",
   "serverArchiveSha256": "<SHA-256 готового архіву>",
   "sqlImage": "<образ MSSQL із compose.yaml, зафіксований digest>"
 }
@@ -65,8 +65,8 @@ Windows-установник працює для поточного корист
 Потрібні SDK з `global.json`, Docker із buildx, Python 3.10+; для Mac — `codesign`, `ditto`, `hdiutil`; для Windows — Inno Setup 6. Пакувальник сам вибирає `.tools/dotnet/dotnet`, якщо він є в checkout, або `dotnet` із PATH.
 
 ```sh
-python3 scripts/release/build-server.py --arch arm64 --version 0.2.0 --output TestResults/releases/0.2.0/server-arm64
-python3 scripts/release/package-client.py --rid osx-arm64 --version 0.2.0 --server-metadata TestResults/releases/0.2.0/server-arm64/server-linux-arm64.json --output TestResults/releases/0.2.0/client-arm64 --verify-startup
+python3 scripts/release/build-server.py --arch arm64 --version 0.3.0 --output TestResults/releases/0.3.0/server-arm64
+python3 scripts/release/package-client.py --rid osx-arm64 --version 0.3.0 --server-metadata TestResults/releases/0.3.0/server-arm64/server-linux-arm64.json --output TestResults/releases/0.3.0/client-arm64 --verify-startup
 ```
 
 Вихідна папка має бути новою або порожньою. Пакувальник не видаляє довільну попередню збірку. `--verify-startup` створює нативний інтерфейс і завершується без підготовки Docker, прийняття ліцензій чи читання збережених сеансів. Для Windows підставте `amd64` і `win-x64`; компілятор ISCC за потреби задається `--iscc`. Для Intel Mac — `amd64` та `osx-x64`. Поточний `scripts/package-macos.sh` залишається допоміжним dev-пакуванням і не використовується для релізу.
