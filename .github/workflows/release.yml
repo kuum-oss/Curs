@@ -134,10 +134,11 @@ jobs:
             runner: windows-2022
           - rid: osx-arm64
             arch: arm64
-            runner: macos-15
+            # Build-host version; the packaged app still targets macOS 15+.
+            runner: macos-26
           - rid: osx-x64
             arch: amd64
-            runner: macos-15-intel
+            runner: macos-26-intel
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
