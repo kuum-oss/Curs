@@ -330,3 +330,10 @@ Avalonia: `HistoryViewModel`, `BoardInsightsViewModel`, `ActivityListView`, `Sta
 `build-server.py` створює два готові API-образи; `package-client.py` збирає self-contained клієнти та EXE/DMG/ZIP. `verify-artifacts.py` звіряє архіви, усі embedded manifests та SHA256SUMS перед публікацією. GitHub Actions виконує повний SQL-набір, нативний запуск на Windows/обох Mac і окремий `runtime-smoke` із чистою тимчасовою БД та перезапуском. Локальна dev-БД до цих перевірок не залучається.
 
 [Вимоги](REQUIREMENTS.md#16-готові-інсталяційні-пакети--ph-11), [встановлення та випуск](RELEASES.md), [приймання](PH11_INSTALLER.md).
+
+
+## 17. Виконання карток — доповнення PH-10 від 04.11.2026
+
+Одинадцята міграція `CardCompletion` додає nullable `Cards.CompletedAtUtc`. `ContentService.CompleteCard` у транзакції `BoardAccess` перевіряє версії, за потреби створює/обирає колонку «Готово», переносить картку та записує відмітку. `ActivityRecorder` фіксує `completion`; `InsightsService` враховує відмітку та колонку, групуючи перше завершення за ID картки. DTO доповнено `isCompleted` та `completedTotal`, копію — необов’язковим полем без зміни формату v1.
+
+Avalonia відкриває спільний діалог над дошкою або редактором, підтримує відмітку без перенесення, повернення в роботу та негайне оновлення статистики. `ColumnName` оновлюється після перенесення відкритої картки. SQL-тести виконуються тільки у тимчасовому CI-середовищі; міграція звичайної локальної бази потребує окремої активації. [Повні правила й перевірки](PH10_COMPLETION.md).

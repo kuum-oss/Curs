@@ -1,0 +1,50 @@
+{
+  "feature": "card-completion",
+  "sourceCommit": "2fce0536d2e9270e39ab68b77701e720c9e99413",
+  "testedAt": "2026-11-04",
+  "validation": {
+    "url": "https://github.com/kuum-oss/Curs/actions/runs/41854210067",
+    "status": "packaging_pending"
+  },
+  "tests": {
+    "total": 260,
+    "executed": 260,
+    "passed": 260,
+    "failed": 0,
+    "notExecuted": 0
+  },
+  "newSqlTests": [
+    "KanbanApi.Tests.CardCompletionTests.ReopenClearsMarkerOrMovesFromConfiguredDoneAndReusesExistingColumn",
+    "KanbanApi.Tests.CardCompletionTests.MemberMayMarkWithoutColumnButCannotConfigureAndForeignUserCannotWrite",
+    "KanbanApi.Tests.CardCompletionTests.DesktopPromptCancelDraftAndCompletionUpdateStatistics",
+    "KanbanApi.Tests.CardCompletionTests.CompletionWithoutColumnPersistsCountsOnceAndReopensByMoving",
+    "KanbanApi.Tests.CardCompletionTests.CreateOrReuseDoneColumnMovesAndDoesNotDuplicateStatistics"
+  ],
+  "localBuild": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0
+  },
+  "nativeUi": {
+    "backend": "temporary in-memory HTTP fixture, no database",
+    "checked": [
+      "completion prompt above board and editor",
+      "mark without moving, badge above title",
+      "statistics with no completion column",
+      "create done column and update editor header",
+      "return to planned column"
+    ],
+    "screenshots": "screenshots/card-completion/"
+  },
+  "localDockerDatabase": {
+    "used": false,
+    "migrationsApplied": false,
+    "dataChanged": false
+  },
+  "activation": {
+    "normalAppUpdated": false,
+    "status": "pending authorization to update schema"
+  },
+  "publicReleaseChanged": false,
+  "preparedClient": "TestResults/completion-ready/KanbanBoard.app"
+}
