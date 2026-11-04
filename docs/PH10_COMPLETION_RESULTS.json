@@ -98,6 +98,110 @@
     "nativeStartupObserved": "login screen",
     "productionCardsModifiedForTesting": false
   },
-  "publicReleaseChanged": false,
-  "preparedClient": "TestResults/completion-ready/KanbanBoard.app"
+  "preparedClient": "TestResults/completion-ready/KanbanBoard.app",
+  "mainValidation": {
+    "url": "https://github.com/kuum-oss/Curs/actions/runs/41892267900",
+    "sourceCommit": "5dba581cf78b6259e778a41cb548412707abb8fb",
+    "conclusion": "success"
+  },
+  "existingReleaseOverwritten": false,
+  "publication": {
+    "verifiedAtUtc": "2026-11-04T19:06:59.206681+00:00",
+    "url": "https://github.com/kuum-oss/Curs/releases/tag/v0.3.0",
+    "tag": "v0.3.0",
+    "latest": true,
+    "publishedAt": "2026-11-04T19:05:11Z",
+    "files": [
+      {
+        "name": "KanbanBoard-0.3.0-macos-apple-silicon.dmg",
+        "status": 200,
+        "size": 51273324,
+        "sha256": "7644785040556c937452dc5f33a42db74b094119a09c8a1e08ffb82ddd6f0d07",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-macos-apple-silicon.dmg"
+      },
+      {
+        "name": "KanbanBoard-0.3.0-macos-apple-silicon.zip",
+        "status": 200,
+        "size": 45273830,
+        "sha256": "64f11f2d1559e42db92a09b354bc3b1432cb51375c884a471aaa3465ce8527cd",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-macos-apple-silicon.zip"
+      },
+      {
+        "name": "KanbanBoard-0.3.0-macos-intel.dmg",
+        "status": 200,
+        "size": 53010516,
+        "sha256": "6c74bd918a321e0867cb438ed966c53ed3d6a3c08aaa7ab364787a83876dcf77",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-macos-intel.dmg"
+      },
+      {
+        "name": "KanbanBoard-0.3.0-macos-intel.zip",
+        "status": 200,
+        "size": 47521987,
+        "sha256": "8d7bad5cb7b130a5d2274fc0de781e589cbcb4aa1d700157a2afe9b5b268cacd",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-macos-intel.zip"
+      },
+      {
+        "name": "KanbanBoard-0.3.0-windows-x64-setup.exe",
+        "status": 200,
+        "size": 35444957,
+        "sha256": "81c964c59eba6c74434bc3b771f5b838fe0b51c553bb6be3fadab5eccec67878",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-windows-x64-setup.exe"
+      },
+      {
+        "name": "KanbanBoard-0.3.0-windows-x64.zip",
+        "status": 200,
+        "size": 46663441,
+        "sha256": "e7976b46e89dd506d3712682e9edc427d8805676cbeecfbf27eb365166ad2f59",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-windows-x64.zip"
+      },
+      {
+        "name": "SHA256SUMS",
+        "status": 200,
+        "size": 1010,
+        "sha256": "e15dffa87243e117827b6fbef94bfbc0d92aced124160f991e136a723c02c9d8",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/SHA256SUMS"
+      },
+      {
+        "name": "kanbanboard-server-linux-amd64.tar.gz",
+        "status": 200,
+        "size": 139876970,
+        "sha256": "edaa3d36f1ab9b05b52854c900f30a3ffc548c0f96234817853e405b73a4241f",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/kanbanboard-server-linux-amd64.tar.gz"
+      },
+      {
+        "name": "kanbanboard-server-linux-arm64.tar.gz",
+        "status": 200,
+        "size": 121280765,
+        "sha256": "07fb0ff4bd050fc562277d87fc8bf44acd7c72863ebfa8be1ce37fc31e202d60",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/kanbanboard-server-linux-arm64.tar.gz"
+      },
+      {
+        "name": "server-linux-amd64.json",
+        "status": 200,
+        "size": 231,
+        "sha256": "419c19421c9a7f37b5fa27a8f59b7454e01096af63d756822ea96980f762a8fe",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/server-linux-amd64.json"
+      },
+      {
+        "name": "server-linux-arm64.json",
+        "status": 200,
+        "size": 231,
+        "sha256": "45cd66bd20a6151b3604ea7375224cd3417b5b4b9b8158f586ef9d912ae94127",
+        "url": "https://github.com/kuum-oss/Curs/releases/download/v0.3.0/server-linux-arm64.json"
+      }
+    ]
+  },
+  "releaseValidation": {
+    "url": "https://github.com/kuum-oss/Curs/actions/runs/41892473463",
+    "sourceCommit": "5dba581cf78b6259e778a41cb548412707abb8fb",
+    "conclusion": "success",
+    "testTotal": 260,
+    "nativeStartupRuntimes": [
+      "win-x64",
+      "osx-arm64",
+      "osx-x64"
+    ],
+    "runtimeSmokePassed": true,
+    "artifactIntegrityPassed": true
+  }
 }

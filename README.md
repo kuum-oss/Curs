@@ -10,7 +10,15 @@
 
 **Старі версії Windows, зокрема Windows 10 LTSC 1809, не підтримуються для локального запуску через вимоги Docker Desktop. Оновіть Windows до підтримуваної версії, рекомендовано актуальної Windows 11, і повторіть встановлення.** Відкриття клієнта із ZIP на старій ОС не підтверджує можливість запустити сервер. [Версії Windows та пояснення EXE/ZIP](docs/RELEASES.md#windows-оновлення-системи-та-різниця-exezip).
 
-Версія 0.2.0: [Windows x64 — установник](https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-windows-x64-setup.exe) · [Mac Apple Silicon — DMG](https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-apple-silicon.dmg) · [Mac Intel — DMG](https://github.com/kuum-oss/Curs/releases/download/v0.2.0/KanbanBoard-0.2.0-macos-intel.dmg).
+**[Реліз 0.3.0](https://github.com/kuum-oss/Curs/releases/tag/v0.3.0)**
+
+| Система | Встановлення | ZIP |
+| --- | --- | --- |
+| Windows x64 | [Завантажити EXE](https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-windows-x64-setup.exe) | [Переносний ZIP](https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-windows-x64.zip) |
+| Mac Apple Silicon | [Завантажити DMG](https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-macos-apple-silicon.dmg) | [ZIP](https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-macos-apple-silicon.zip) |
+| Mac Intel | [Завантажити DMG](https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-macos-intel.dmg) | [ZIP](https://github.com/kuum-oss/Curs/releases/download/v0.3.0/KanbanBoard-0.3.0-macos-intel.zip) |
+
+У 0.3.0 додано **«Виконано»**, відмітку без перенесення в колонку, **«Повернути в роботу»** та підрахунок виконаних у статистиці. [Що змінилося](https://github.com/kuum-oss/Curs/releases/tag/v0.3.0).
 
 ## Документація
 
@@ -32,6 +40,7 @@
 | [Реалізація PH-08](docs/PH08_DESKTOP.md) | Нові екрани, маршрути, профіль та фактичні перевірки |
 | [Матеріали захисту](docs/PH08_DEFENSE.md) | Схема дев’яти таблиць, приклади API, демонстраційний сценарій та докази |
 | [Календар задач](docs/PH08_CALENDAR.md) | Тиждень/місяць, виконавець, відкриття та перетягування дедлайнів |
+| [Виконання задач](docs/PH10_COMPLETION.md) | Кнопка виконання, повернення в роботу та поточна/тижнева статистика |
 | [Історія та статистика](docs/PH10_HISTORY_STATISTICS.md) | Журнал до/після, явне завершення, огляд, графік і права панель |
 | [Резервні копії та CSV](docs/PH09_BACKUPS.md) | Копія дошки у файл, відновлення як нової дошки та експорт задач |
 | [Картки в чаті](docs/PH08_CHAT_CARDS.md) | Вибір задачі, повідомлення з посиланням, контроль доступу й перевірки |
@@ -56,7 +65,7 @@
 
 ## Поточний стан
 
-Стан на 03.11.2026: PH-00–PH-11 та доповнення виконано; актуально 255 тестів, 10 міграцій і 14 доменних таблиць. Опубліковано [реліз 0.2.0](https://github.com/kuum-oss/Curs/releases/tag/v0.2.0) з Windows-установником і двома Mac-пакетами. Рішення `Curs.sln` містить Avalonia-клієнт `Curs`, сервер `KanbanApi`, спільні DTO `KanbanContracts` та тести `KanbanApi.Tests`. Використовуються .NET 10, Avalonia 11.3.12 та EF Core 10.0.12.
+Стан на 04.11.2026: PH-00–PH-11 та доповнення виконано; актуально 260 тестів, 11 міграцій і 14 доменних таблиць. Опубліковано [реліз 0.3.0](https://github.com/kuum-oss/Curs/releases/tag/v0.3.0) з Windows-установником і двома Mac-пакетами. Рішення `Curs.sln` містить Avalonia-клієнт `Curs`, сервер `KanbanApi`, спільні DTO `KanbanContracts` та тести `KanbanApi.Tests`. Використовуються .NET 10, Avalonia 11.3.12 та EF Core 10.0.12.
 
 Початкова міграція створила дев'ять таблиць у справжньому MSSQL 2022. API має перевірки працездатності та єдиний формат помилок; клієнт — основу MVVM, HTTP, сесії та навігації. У PH-01 Release-збірка пройшла без попереджень; усі 19 початкових тестів пройшли без пропусків. Докази — у [результатах PH-01](docs/PH01_IMPLEMENTATION.md) та [протоколі](docs/PH01_RESULTS.json).
 
