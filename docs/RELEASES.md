@@ -73,7 +73,9 @@ python3 scripts/release/package-client.py --rid osx-arm64 --version 0.2.0 --serv
 
 ### GitHub Actions
 
-[Desktop release](../.github/workflows/release.yml) запускається для `release-installer`, вручну через `workflow_dispatch` та для тегів `v*`. Гілка й ручний запуск створюють лише перевірочні artifacts; **публікація дозволена лише тегу**.
+[Desktop release](../.github/workflows/release.yml) запускається для `main` і `release-installer` (крім змін лише документації), вручну через `workflow_dispatch` та для тегів `v*`. Гілка й ручний запуск створюють лише перевірочні artifacts; **публікація дозволена лише тегу**.
+
+Машини пакування macOS: стандартні `macos-26` (Apple Silicon) і `macos-26-intel` (Intel), наведені в [офіційному списку GitHub](https://docs.github.com/en/actions/reference/runners/github-hosted-runners). Перехід від 04.11.2026 виконано після двох відмов GitHub виділити runner macOS 15 ще до запуску кроків. Обидві архітектури та перевірка нативного запуску залишаються обов’язковими; `LSMinimumSystemVersion` клієнта зберігається `15.0`. Повідомлення `The job was not acquired by Runner` означає збій виділення машини; помилка компіляції, тесту чи запуску має власний крок і журнал. Новий прогін перевіряють окремо: зміна образу машини сама по собі не підтверджує успіху.
 
 Порядок: перевірка версії → SQL-тести та два API-образи → три нативні desktop-пакети з startup probe та окрема перевірка встановлення → звірка архівів і manifest → draft release з файлами → публікація. Усі SQL-тести працюють із випадковими базами на тимчасовому CI-сервісі; пропуски тестів блокують випуск. Команди пакування не приймають секретів SQL або JWT і не включають локальні `TestResults`, `.tools`, профілі та дані користувачів.
 

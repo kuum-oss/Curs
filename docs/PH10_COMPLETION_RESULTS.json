@@ -3,10 +3,24 @@
   "sourceCommit": "2fce0536d2e9270e39ab68b77701e720c9e99413",
   "testedAt": "2026-11-04",
   "validation": {
-    "url": "https://github.com/kuum-oss/Curs/actions/runs/41854210067",
-    "status": "rerun_pending",
-    "attempt": 2,
-    "firstAttemptFailure": "GitHub hosted macOS runners unavailable before any build steps; capacity constraint notices",
+    "url": "https://github.com/kuum-oss/Curs/actions/runs/41861064156",
+    "status": "in_progress",
+    "sourceCommit": "48ea001aa175a69d12b5a7eec0db988f2a1585d9",
+    "previousRun": {
+      "url": "https://github.com/kuum-oss/Curs/actions/runs/41854210067",
+      "attempts": 2,
+      "conclusion": "failure",
+      "reason": "macOS hosted runner not acquired before build steps; capacity constraints",
+      "sqlTestsPassed": 260,
+      "windowsPassed": true,
+      "serverBothArchitecturesPassed": true,
+      "runtimeSmokePassed": true
+    },
+    "macOSBuildHosts": [
+      "macos-26",
+      "macos-26-intel"
+    ],
+    "minimumClientMacOS": "15.0",
     "codeTestsPassed": true
   },
   "tests": {
