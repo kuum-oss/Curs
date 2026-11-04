@@ -4,7 +4,10 @@
   "testedAt": "2026-11-04",
   "validation": {
     "url": "https://github.com/kuum-oss/Curs/actions/runs/41854210067",
-    "status": "packaging_pending"
+    "status": "rerun_pending",
+    "attempt": 2,
+    "firstAttemptFailure": "GitHub hosted macOS runners unavailable before any build steps; capacity constraint notices",
+    "codeTestsPassed": true
   },
   "tests": {
     "total": 260,
@@ -37,13 +40,29 @@
     "screenshots": "screenshots/card-completion/"
   },
   "localDockerDatabase": {
-    "used": false,
-    "migrationsApplied": false,
-    "dataChanged": false
+    "used": true,
+    "authorization": "explicit approval on 2026-11-04 to add field while preserving all data",
+    "migrationsBefore": 10,
+    "migrationsAfter": 11,
+    "schemaColumnAdded": "Cards.CompletedAtUtc",
+    "existingApplicationRowsChanged": false,
+    "contentHashesMatchedInTables": 14,
+    "protectedDemoAccountsPreserved": 4,
+    "boardsPreserved": 8,
+    "cardsPreserved": 38,
+    "usersPreserved": 5,
+    "sqlContainerRecreated": false,
+    "volumeReplaced": false,
+    "backupCreatedAndVerified": true,
+    "backupLocalPath": "TestResults/completion-local-update/KanbanDB-before-completion.bak",
+    "apiHealth": "ready"
   },
   "activation": {
-    "normalAppUpdated": false,
-    "status": "pending authorization to update schema"
+    "normalAppUpdated": true,
+    "normalAppPath": "TestResults/KanbanBoard.app",
+    "status": "complete",
+    "nativeStartupObserved": "login screen",
+    "productionCardsModifiedForTesting": false
   },
   "publicReleaseChanged": false,
   "preparedClient": "TestResults/completion-ready/KanbanBoard.app"
