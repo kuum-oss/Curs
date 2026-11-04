@@ -12,11 +12,11 @@ namespace KanbanApi.Tests;
 [Collection("sql")]
 public sealed class CardCompletionTests(SqlFixture fixture)
 {
-    private static async Task<HttpResponseMessage> Complete(HttpClient client, Guid board, Guid card, bool create = false)
+    private static async Task<HttpResponseMessage> Complete(HttpClient client, Guid board, Guid card, bool create = false, bool completed = true)
     {
         var current = (await client.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{card}"))!;
         return await client.PostAsJsonAsync($"/api/cards/{card}/complete", new CompleteCardRequest
-        { ExpectedBoardVersion = await ChecklistTests.V(client, board), ExpectedVersion = current.Card.Version, CreateCompletionColumn = create });
+        { ExpectedBoardVersion = await ChecklistTests.V(client, board), ExpectedVersion = current.Card.Version, CreateCompletionColumn = create, Completed = completed });
     }
 
     [SqlFact]
@@ -61,6 +61,29 @@ public sealed class CardCompletionTests(SqlFixture fixture)
     }
 
     [SqlFact]
+    public async Task ReopenClearsMarkerOrMovesFromConfiguredDoneAndReusesExistingColumn()
+    {
+        using var app = ApiFoundationTests.Factory(fixture.ConnectionString);
+        var g = await new ChecklistTests(fixture).Seed(); using var a = ChecklistTests.Client(app, g.User);
+        var card = await ChecklistTests.Create(a, g.Board.Id, g.Col.Id);
+        (await Complete(a, g.Board.Id, card.Card.Id)).EnsureSuccessStatusCode();
+        (await Complete(a, g.Board.Id, card.Card.Id, completed: false)).EnsureSuccessStatusCode();
+        var reopened = (await a.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{card.Card.Id}"))!;
+        Assert.False(reopened.Card.IsCompleted); Assert.Equal(g.Col.Id, reopened.Card.ColumnId);
+        var response = await a.PostAsJsonAsync($"/api/boards/{g.Board.Id}/columns", new CreateColumnRequest
+        { Name = "Готово", ExpectedBoardVersion = await ChecklistTests.V(a, g.Board.Id) });
+        response.EnsureSuccessStatusCode(); var doneColumn = (await response.Content.ReadFromJsonAsync<ColumnDto>())!;
+        (await Complete(a, g.Board.Id, card.Card.Id, create: true)).EnsureSuccessStatusCode();
+        Assert.Equal(doneColumn.Id, (await a.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{card.Card.Id}"))!.Card.ColumnId);
+        Assert.Single((await a.GetFromJsonAsync<List<ColumnDto>>($"/api/boards/{g.Board.Id}/columns"))!, c => c.Name == "Готово");
+        (await Complete(a, g.Board.Id, card.Card.Id, completed: false)).EnsureSuccessStatusCode();
+        reopened = (await a.GetFromJsonAsync<CardDetailsDto>($"/api/cards/{card.Card.Id}"))!;
+        Assert.False(reopened.Card.IsCompleted); Assert.Equal(g.Col.Id, reopened.Card.ColumnId);
+        var stats = (await a.GetFromJsonAsync<BoardStatisticsDto>($"/api/boards/{g.Board.Id}/statistics"))!;
+        Assert.Equal(0, stats.CompletedTotal); Assert.Equal(1, stats.InProgress); Assert.Equal(1, stats.Completed);
+    }
+
+    [SqlFact]
     public async Task MemberMayMarkWithoutColumnButCannotConfigureAndForeignUserCannotWrite()
     {
         using var app = ApiFoundationTests.Factory(fixture.ConnectionString);
@@ -98,5 +121,12 @@ public sealed class CardCompletionTests(SqlFixture fixture)
         Assert.False(content.CompletionPromptVisible); Assert.Empty(content.Error);
         Assert.True(Assert.Single(Assert.Single(content.Columns).Cards).IsCompleted);
         Assert.Equal(1, insights.Snapshot!.CompletedTotal); Assert.Equal("1", insights.Metrics[0].Value);
+        await content.OpenCardAsync(card.Card.Id);
+        await content.RequestCompletionAsync(card.Card.Id, false);
+        Assert.False(content.EditorCompleted); Assert.Equal("✓ Виконано", content.CompletionButtonLabel);
+        await content.RequestCompletionAsync(card.Card.Id); await content.CompletePendingAsync(true);
+        Assert.True(content.EditorCompleted); Assert.Equal("Готово", content.ColumnName);
+        Assert.Equal("Повернути в роботу", content.CompletionButtonLabel);
+        Assert.Equal(1, insights.Snapshot!.CompletedTotal);
     }
 }

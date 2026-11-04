@@ -72,7 +72,11 @@ public sealed partial class BoardContentViewModel
         CancelCompletion();
         if (editing) selectedCard = saved;
         await Load(board.Id, token);
-        if (editing && saved is not null) selectedColumn = Columns.FirstOrDefault(c => c.Column.Id == saved.Card.ColumnId)?.Column;
+        if (editing && saved is not null)
+        {
+            selectedColumn = Columns.FirstOrDefault(c => c.Column.Id == saved.Card.ColumnId)?.Column;
+            ColumnName = selectedColumn?.Name ?? "";
+        }
         NotifyState(); RefreshCompletion(); Status = completed ? "Картку позначено як виконану." : "Картку повернуто в роботу.";
         if (CompletionChanged is not null) await CompletionChanged();
     });
